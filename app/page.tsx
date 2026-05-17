@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 }
 
 const signals = [
-  ['Composite score', '公開ベンチマーク、価格、速度、用途適性を総合評価'],
+  ['Metric views', '賢さ、速度、単価効率を分けて比較'],
   ['Use-case lens', 'リサーチ、文章、コード、画像、動画で用途別に比較'],
   ['Subscription view', '性能だけでなくコスパと課金判断を並べて見る'],
 ]
@@ -100,7 +100,7 @@ export default function HomePage() {
           <p className="text-xs font-black uppercase tracking-[0.2em] text-rose-500">Model Compare</p>
           <h2 className="mt-2 text-3xl font-black tracking-tight text-brand-text">AIモデル比較</h2>
           <p className="mt-3 max-w-3xl text-sm font-bold leading-relaxed text-gray-500">
-            公開ベンチマーク、料金、速度、文脈長、用途別の強みを合わせてAincarn総合スコアとして整理します。独自の実測データ、サブスク制限、UIの使い勝手も順次追加します。
+            公開ベンチマーク、料金、速度、文脈長、用途別の強みを項目別に整理します。独自の実測データ、サブスク制限、UIの使い勝手も順次追加します。
           </p>
         </div>
         <AiModelCompareTool />

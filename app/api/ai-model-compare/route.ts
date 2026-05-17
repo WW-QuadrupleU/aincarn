@@ -366,7 +366,7 @@ export async function GET() {
       sourceLabel: '公開ベンチマーク・料金情報・公式情報',
       sourceUrl: SOURCE_URL,
       isLive: true,
-      message: '公開ベンチマーク、料金情報、速度などをもとにAincarn総合スコアを更新しています。',
+      message: '公開ベンチマーク、料金情報、速度などをもとに項目別ランキングを更新しています。',
     }
 
     return NextResponse.json(payload, {

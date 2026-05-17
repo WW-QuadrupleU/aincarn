@@ -61,7 +61,7 @@ export const AI_GENRES: AiGenre[] = [
     description:
       '情報収集、出典確認、比較検討、長い資料の整理に向くLLMを比較します。',
     primaryMetrics: ['推論力', '長文読解', '出典確認', '情報整理'],
-    sourceMetric: '公開ベンチマーク、速度、価格、文脈長、用途適性を総合して評価します。',
+    sourceMetric: '公開ベンチマーク、速度、価格、文脈長、用途適性を項目別に確認します。',
   },
   {
     id: 'writing',
@@ -70,7 +70,7 @@ export const AI_GENRES: AiGenre[] = [
     description:
       '記事作成、リライト、構成整理、トーン調整に向くLLMを比較します。',
     primaryMetrics: ['推論力', '指示追従', '長文編集', '日本語運用'],
-    sourceMetric: '文章品質、長文処理、指示追従、料金バランスを総合して評価します。',
+    sourceMetric: '文章品質、長文処理、指示追従、料金バランスを項目別に確認します。',
   },
   {
     id: 'coding',
@@ -79,7 +79,7 @@ export const AI_GENRES: AiGenre[] = [
     description:
       '実装、デバッグ、設計相談、既存コード読解に向くLLMを比較します。',
     primaryMetrics: ['Coding Index', '実装力', 'デバッグ', '設計相談'],
-    sourceMetric: 'コード系ベンチマーク、推論力、価格、実装補助の相性を総合して評価します。',
+    sourceMetric: 'コード系ベンチマーク、推論力、価格、実装補助の相性を項目別に確認します。',
   },
   {
     id: 'analysis',
@@ -88,7 +88,7 @@ export const AI_GENRES: AiGenre[] = [
     description:
       '数値処理、表計算、グラフ化、業務データ整理に向くLLMを比較します。',
     primaryMetrics: ['Math Index', '数値処理', '表計算', '推論力'],
-    sourceMetric: '数理・分析系ベンチマーク、推論力、表計算やデータ整理の相性を総合して評価します。',
+    sourceMetric: '数理・分析系ベンチマーク、推論力、表計算やデータ整理の相性を項目別に確認します。',
   },
   {
     id: 'agent',
@@ -98,7 +98,7 @@ export const AI_GENRES: AiGenre[] = [
       'ツール実行、複数ステップの作業、長時間の自律タスクに向くLLMを比較します。',
     primaryMetrics: ['Agentic Index', 'ツール利用', '長時間タスク', '指示追従'],
     sourceMetric:
-      'エージェント系ベンチマーク、コード理解、長時間タスク適性、ツール利用のしやすさを総合して評価します。',
+      'エージェント系ベンチマーク、コード理解、長時間タスク適性、ツール利用のしやすさを項目別に確認します。',
   },
   {
     id: 'image',
@@ -107,7 +107,7 @@ export const AI_GENRES: AiGenre[] = [
     description:
       '画像生成、記事用ビジュアル、サムネイル、広告素材に向く画像モデルを比較します。',
     primaryMetrics: ['Text to Image Elo', '画質', '指示追従', '商用運用'],
-    sourceMetric: '画像生成の公開評価、価格、用途適性、商用利用時の確認しやすさを総合して評価します。',
+    sourceMetric: '画像生成の公開評価、価格、用途適性、商用利用時の確認しやすさを項目別に確認します。',
   },
   {
     id: 'textVideo',
@@ -116,7 +116,7 @@ export const AI_GENRES: AiGenre[] = [
     description:
       'テキストプロンプトだけから動画を生成するモデルを比較します。',
     primaryMetrics: ['Text to Video Elo', '映像品質', '動き', '素材化'],
-    sourceMetric: '動画生成の公開評価、価格、生成品質、制作ワークフローへの組み込みやすさを総合して評価します。',
+    sourceMetric: '動画生成の公開評価、価格、生成品質、制作ワークフローへの組み込みやすさを項目別に確認します。',
   },
   {
     id: 'imageVideo',
@@ -125,7 +125,7 @@ export const AI_GENRES: AiGenre[] = [
     description:
       '参照画像をもとに動画を生成するモデルを比較します。',
     primaryMetrics: ['Image to Video Elo', '映像品質', '動き', '素材化'],
-    sourceMetric: 'Image to Videoの公開評価、価格、動きの自然さ、素材制作での扱いやすさを総合して評価します。',
+    sourceMetric: 'Image to Videoの公開評価、価格、動きの自然さ、素材制作での扱いやすさを項目別に確認します。',
   },
 ]
 
