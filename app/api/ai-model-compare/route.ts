@@ -60,7 +60,7 @@ type AaResponse<T> = {
 }
 
 const AA_BASE_URL = 'https://artificialanalysis.ai/api/v2'
-const SOURCE_URL = 'https://artificialanalysis.ai/'
+const SOURCE_URL = '/about'
 
 const ZERO_PERFORMANCE: Record<AiGenreId, number> = {
   research: 0,
@@ -210,7 +210,7 @@ function mapLlmModel(model: AaLlmModel, index: number): AiModel | null {
     cautions: ['用途別の体感はUI、プラン、ツール連携でも変わります', '最新情報や商用条件は公式ページで確認してください'],
     bestFor: '文章、調査、コード、分析、エージェント的な作業。',
     avoidFor: '画像生成や動画生成を主目的にする用途。',
-    note: 'Artificial AnalysisのLLM指標をもとに自動反映しています。',
+    note: '公開ベンチマーク、価格、速度、用途適性をもとに自動反映しています。',
   }
 }
 
@@ -280,9 +280,9 @@ function mapMediaModel(model: AaMediaModel, type: 'image' | 'textVideo' | 'image
     cautions: ['文章や調査の汎用AIではありません', '商用利用条件と生成物の権利は公式情報を確認してください'],
     bestFor: type === 'image' ? '記事画像、サムネイル、広告素材の生成。' : '短尺動画、Bロール、SNS向け映像素材の生成。',
     avoidFor: '文章作成、調査、コード補助を主目的にする人。',
-    note: `Artificial Analysisの${
+    note: `${
       type === 'image' ? 'Text to Image' : type === 'textVideo' ? 'Text to Video' : 'Image to Video'
-    }指標をもとに自動反映しています。`,
+    }系の公開評価、価格、用途適性をもとに自動反映しています。`,
   }
 }
 
@@ -292,7 +292,7 @@ async function fetchAa<T>(path: string, key: string): Promise<T[]> {
     next: { revalidate },
   })
   if (!response.ok) {
-    throw new Error(`Artificial Analysis fetch failed: ${path} ${response.status}`)
+    throw new Error(`External benchmark fetch failed: ${path} ${response.status}`)
   }
   const json = (await response.json()) as AaResponse<T>
   return Array.isArray(json.data) ? json.data : []
@@ -362,11 +362,11 @@ export async function GET() {
     const payload: AiModelComparePayload = {
       models: uniqueModels([...llmModels, ...imageModels, ...textVideoModels, ...imageVideoModels]),
       updatedAt: new Date().toISOString(),
-      source: 'artificial-analysis',
-      sourceLabel: 'Artificial Analysis',
+      source: 'live',
+      sourceLabel: '公開ベンチマーク・料金情報・公式情報',
       sourceUrl: SOURCE_URL,
       isLive: true,
-      message: 'Artificial Analysisの公開ベンチマークをもとに、1時間ごとに更新します。',
+      message: '公開ベンチマーク、料金情報、速度などをもとにAincarn総合スコアを更新しています。',
     }
 
     return NextResponse.json(payload, {
@@ -381,7 +381,7 @@ export async function GET() {
         ...FALLBACK_AI_PAYLOAD,
         updatedAt: new Date().toISOString(),
         message:
-          'Artificial Analysisからの取得に失敗したため、フォールバックデータを表示しています。',
+          '外部データの取得に失敗したため、Aincarn編集データを表示しています。',
       },
       {
         headers: {

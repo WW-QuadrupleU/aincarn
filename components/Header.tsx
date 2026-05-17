@@ -1,13 +1,19 @@
+import Image from 'next/image'
 import Link from 'next/link'
 
 export default function Header() {
   return (
-    <header className="sticky top-0 z-40 border-b border-white/60 bg-white/80 shadow-sm backdrop-blur-xl">
+    <header className="sticky top-0 z-40 border-b border-white/60 bg-white/88 shadow-sm backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
         <Link href="/" className="flex items-center gap-2 text-lg font-black tracking-tight text-brand-text">
-          <span className="grid size-9 place-items-center rounded-2xl bg-aurora text-sm text-white shadow-lg shadow-rose-500/20">
-            A
-          </span>
+          <Image
+            src="/icon.png"
+            alt=""
+            width={40}
+            height={40}
+            className="size-10 rounded-2xl object-cover shadow-lg shadow-rose-500/20"
+            priority
+          />
           Aincarn
         </Link>
         <nav className="flex items-center gap-2 text-xs font-black">

@@ -12,7 +12,7 @@ const config: Config = {
         brand: {
           dark: '#17131f',
           green: '#5bb8ff',
-          bg: '#f8fafc',
+          bg: '#fbf7ff',
           text: '#19151f',
         },
       },

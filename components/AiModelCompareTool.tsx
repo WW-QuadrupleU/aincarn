@@ -10,9 +10,9 @@ import {
 } from '@/lib/ai-model-compare-data'
 
 function scoreTone(score: number): string {
-  if (score >= 90) return 'bg-brand-green'
-  if (score >= 80) return 'bg-sky-500'
-  if (score >= 70) return 'bg-amber-500'
+  if (score >= 90) return 'bg-gradient-to-r from-fuchsia-500 to-rose-500'
+  if (score >= 80) return 'bg-gradient-to-r from-sky-400 to-cyan-300'
+  if (score >= 70) return 'bg-gradient-to-r from-yellow-300 to-orange-400'
   return 'bg-gray-400'
 }
 
@@ -77,15 +77,15 @@ function RankingCard({
   const score = mode === 'performance' ? model.performance[genreId] : model.costPerformance[genreId]
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+    <div className="rounded-xl border border-white/75 bg-white/90 p-4 shadow-sm shadow-rose-900/5 backdrop-blur">
       <div className="mb-3 flex items-start justify-between gap-3">
         <div>
-          <p className="text-xs font-black text-brand-green">#{rank} {model.family}</p>
+          <p className="text-xs font-black text-[#f0187a]">#{rank} {model.family}</p>
           <h3 className="text-lg font-extrabold text-brand-text">{model.name}</h3>
           <p className="text-xs text-gray-400">{model.creator} / {model.releaseLabel}</p>
         </div>
-        <div className="rounded-lg bg-brand-dark px-3 py-2 text-center text-white">
-          <p className="text-[10px] font-bold text-gray-300">{mode === 'performance' ? 'PERF' : 'VALUE'}</p>
+        <div className="rounded-lg bg-gradient-to-br from-[#f0187a] via-[#ff6b28] to-[#ffe431] px-3 py-2 text-center text-white shadow-lg shadow-rose-500/20">
+          <p className="text-[10px] font-bold text-white/75">{mode === 'performance' ? 'PERF' : 'VALUE'}</p>
           <p className="text-xl font-black">{score}</p>
         </div>
       </div>
@@ -142,7 +142,7 @@ function ModelSelect({
 
 function TextPanel({ title, items, tone }: { title: string; items: string[]; tone: 'green' | 'amber' }) {
   return (
-    <div className={`rounded-lg border p-3 ${tone === 'green' ? 'border-brand-green/30 bg-brand-green/5' : 'border-amber-200 bg-amber-50'}`}>
+    <div className={`rounded-lg border p-3 ${tone === 'green' ? 'border-sky-200 bg-sky-50/80' : 'border-amber-200 bg-amber-50/80'}`}>
       <p className="mb-2 text-xs font-black text-brand-text">{title}</p>
       <ul className="space-y-1 text-xs leading-relaxed text-gray-600">
         {items.map((item) => (
@@ -155,9 +155,9 @@ function TextPanel({ title, items, tone }: { title: string; items: string[]; ton
 
 function ModelSummary({ model, genreId }: { model: AiModel; genreId: AiGenreId }) {
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-4">
+    <div className="rounded-xl border border-white/75 bg-white/90 p-4 shadow-sm shadow-rose-900/5">
       <div className="mb-4">
-        <p className="text-xs font-black text-brand-green">{model.creator} / {model.family}</p>
+        <p className="text-xs font-black text-[#f0187a]">{model.creator} / {model.family}</p>
         <h3 className="text-lg font-extrabold text-brand-text">{model.name}</h3>
         <p className="mt-1 text-xs text-gray-400">
           性能: {model.performance[genreId]} / コスパ: {model.costPerformance[genreId]} / コスト感: {costLabel(model.costLevel)}
@@ -244,12 +244,12 @@ export default function AiModelCompareTool() {
 
   return (
     <div className="space-y-8">
-      <section className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+      <section className="rounded-2xl border border-white/75 bg-white/88 p-4 shadow-sm shadow-rose-900/5 backdrop-blur">
         <div className="mb-4">
           <div className="flex flex-wrap items-center gap-2">
-            <p className="text-xs font-black text-brand-green">Model Ranking</p>
-            <span className="rounded-full bg-gray-100 px-2 py-1 text-[10px] font-bold text-gray-500">
-              {payload.isLive ? '自動更新' : 'フォールバック'}
+            <p className="text-xs font-black text-[#f0187a]">Aincarn Score</p>
+            <span className="rounded-full bg-gradient-to-r from-yellow-100 to-rose-100 px-2 py-1 text-[10px] font-bold text-rose-600">
+              {payload.isLive ? '自動更新' : '編集データ'}
             </span>
             {loading && <span className="text-[10px] font-bold text-gray-400">更新確認中...</span>}
           </div>
@@ -264,8 +264,8 @@ export default function AiModelCompareTool() {
               onClick={() => setGenreId(item.id)}
               className={`rounded-lg border px-3 py-2 text-left text-xs font-black transition-all ${
                 genreId === item.id
-                  ? 'border-brand-green bg-brand-green text-white shadow-sm'
-                  : 'border-gray-200 bg-white text-gray-500 hover:border-brand-green hover:text-brand-text'
+                  ? 'border-rose-400 bg-gradient-to-r from-[#f0187a] to-[#ff6b28] text-white shadow-sm shadow-rose-500/20'
+                  : 'border-gray-200 bg-white text-gray-500 hover:border-rose-300 hover:text-brand-text'
               }`}
             >
               {item.shortLabel}
@@ -301,7 +301,7 @@ export default function AiModelCompareTool() {
         </div>
       </section>
 
-      <section className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+      <section className="rounded-2xl border border-white/75 bg-white/88 p-4 shadow-sm shadow-rose-900/5 backdrop-blur">
         <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end">
           <div className="flex-1">
             <ModelSelect label="比較するモデル 1" value={first.id} models={genreModels} onChange={setFirstId} />
@@ -309,8 +309,8 @@ export default function AiModelCompareTool() {
           <div className="flex-1">
             <ModelSelect label="比較するモデル 2" value={second.id} models={genreModels} onChange={setSecondId} />
           </div>
-          <div className="rounded-lg bg-brand-dark px-4 py-3 text-white sm:w-44">
-            <p className="text-[10px] font-bold text-gray-300">性能比較の優位</p>
+          <div className="rounded-lg bg-gradient-to-br from-[#f0187a] via-[#ff6b28] to-[#ffe431] px-4 py-3 text-white shadow-lg shadow-rose-500/20 sm:w-44">
+            <p className="text-[10px] font-bold text-white/75">性能比較の優位</p>
             <p className="text-sm font-black">{winner}</p>
           </div>
         </div>
@@ -320,7 +320,7 @@ export default function AiModelCompareTool() {
         </div>
       </section>
 
-      <section className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+      <section className="rounded-2xl border border-white/75 bg-white/88 p-4 shadow-sm shadow-rose-900/5 backdrop-blur">
         <h2 className="text-lg font-extrabold text-brand-text">{genre.shortLabel}モデル一覧</h2>
         <div className="mt-4 overflow-x-auto">
           <table className="w-full min-w-[860px] border-collapse text-sm">
@@ -351,8 +351,8 @@ export default function AiModelCompareTool() {
         </div>
       </section>
 
-      <p className="rounded-lg bg-gray-100 p-4 text-xs leading-relaxed text-gray-500">
-        {payload.message} 最終更新: {formatDate(payload.updatedAt)}。参考データ元：
+      <p className="rounded-xl border border-white/70 bg-white/70 p-4 text-xs leading-relaxed text-gray-500 backdrop-blur">
+        {payload.message} 最終更新: {formatDate(payload.updatedAt)}。データについて：
         <a
           href={payload.sourceUrl}
           target="_blank"

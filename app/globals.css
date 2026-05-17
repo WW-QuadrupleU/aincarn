@@ -10,11 +10,13 @@
   }
   body {
     @apply text-brand-text;
-    background-color: #f8fafc;
+    background-color: #fbf7ff;
     background-image:
-      radial-gradient(circle at 16% 0%, rgba(255, 230, 40, 0.08), transparent 28%),
-      radial-gradient(circle at 88% 10%, rgba(255, 92, 32, 0.07), transparent 26%),
-      radial-gradient(circle at 60% 88%, rgba(47, 143, 232, 0.07), transparent 30%);
+      radial-gradient(circle at 10% 4%, rgba(255, 236, 38, 0.22), transparent 25%),
+      radial-gradient(circle at 88% 8%, rgba(255, 92, 32, 0.18), transparent 27%),
+      radial-gradient(circle at 76% 46%, rgba(243, 19, 35, 0.13), transparent 31%),
+      radial-gradient(circle at 12% 62%, rgba(199, 41, 145, 0.14), transparent 30%),
+      linear-gradient(180deg, #fffbf1 0%, #fbf7ff 42%, #f2fbff 100%);
   }
 }
 
