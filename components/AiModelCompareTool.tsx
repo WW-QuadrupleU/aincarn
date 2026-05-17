@@ -24,6 +24,31 @@ function percent(score: number): number {
   return Math.max(6, Math.min(100, score))
 }
 
+function clampScore(value: number): number {
+  if (!Number.isFinite(value)) return 0
+  return Math.round(Math.max(0, Math.min(100, value)))
+}
+
+function priceEfficiencyScore(model: AiModel, genreId: AiGenreId): number {
+  const performance = model.performance[genreId] || 0
+  const valueScore = model.costPerformance[genreId] || 0
+  const inferredPriceScore = (valueScore - performance * 0.72) / 0.28
+
+  if (Number.isFinite(inferredPriceScore) && inferredPriceScore > 0) {
+    return clampScore(inferredPriceScore)
+  }
+
+  return clampScore(110 - model.costLevel * 14)
+}
+
+function aincarnScore(model: AiModel, genreId: AiGenreId): number {
+  const intelligence = model.performance[genreId] || 0
+  const speed = model.speed || 0
+  const price = priceEfficiencyScore(model, genreId)
+
+  return clampScore(intelligence * 0.55 + speed * 0.25 + price * 0.2)
+}
+
 function formatDate(value: string): string {
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return value
@@ -54,6 +79,36 @@ function ScoreBar({ label, score }: { label: string; score: number }) {
   )
 }
 
+function ProductivityBar({ model, genreId, rank }: { model: AiModel; genreId: AiGenreId; rank: number }) {
+  const score = aincarnScore(model, genreId)
+  const intelligence = model.performance[genreId] || 0
+  const price = priceEfficiencyScore(model, genreId)
+
+  return (
+    <div className="rounded-xl border border-white/75 bg-white/90 p-4 shadow-sm shadow-rose-900/5 backdrop-blur">
+      <div className="mb-3 flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <p className="text-xs font-black text-[#f0187a]">#{rank} {model.family}</p>
+          <h3 className="truncate text-base font-extrabold text-brand-text sm:text-lg">{model.name}</h3>
+          <p className="text-xs text-gray-400">{model.creator} / {model.releaseLabel}</p>
+        </div>
+        <div className="shrink-0 rounded-xl bg-gradient-to-br from-[#f0187a] via-[#ff6b28] to-[#ffe431] px-3 py-2 text-center text-white shadow-lg shadow-rose-500/20">
+          <p className="text-[10px] font-bold text-white/75">Aincarn</p>
+          <p className="text-2xl font-black">{score}</p>
+        </div>
+      </div>
+      <div className="h-4 overflow-hidden rounded-full bg-gray-100">
+        <div className={`h-full rounded-full ${scoreTone(score)}`} style={{ width: `${percent(score)}%` }} />
+      </div>
+      <div className="mt-3 grid grid-cols-3 gap-2 text-xs">
+        <MiniStat label="賢さ" value={intelligence} />
+        <MiniStat label="速度" value={model.speed} />
+        <MiniStat label="単価効率" value={price} />
+      </div>
+    </div>
+  )
+}
+
 function MiniStat({ label, value }: { label: string; value: number | string }) {
   return (
     <div className="rounded-md bg-gray-50 px-2 py-2 text-center">
@@ -72,9 +127,16 @@ function RankingCard({
   model: AiModel
   genreId: AiGenreId
   rank: number
-  mode: 'performance' | 'cost'
+  mode: 'intelligence' | 'speed' | 'price'
 }) {
-  const score = mode === 'performance' ? model.performance[genreId] : model.costPerformance[genreId]
+  const score =
+    mode === 'intelligence'
+      ? model.performance[genreId]
+      : mode === 'speed'
+        ? model.speed
+        : priceEfficiencyScore(model, genreId)
+  const label = mode === 'intelligence' ? 'INTEL' : mode === 'speed' ? 'SPEED' : 'PRICE'
+  const barLabel = mode === 'intelligence' ? '賢さ' : mode === 'speed' ? '速度' : '単価効率'
 
   return (
     <div className="rounded-xl border border-white/75 bg-white/90 p-4 shadow-sm shadow-rose-900/5 backdrop-blur">
@@ -85,15 +147,15 @@ function RankingCard({
           <p className="text-xs text-gray-400">{model.creator} / {model.releaseLabel}</p>
         </div>
         <div className="rounded-lg bg-gradient-to-br from-[#f0187a] via-[#ff6b28] to-[#ffe431] px-3 py-2 text-center text-white shadow-lg shadow-rose-500/20">
-          <p className="text-[10px] font-bold text-white/75">{mode === 'performance' ? 'PERF' : 'VALUE'}</p>
+          <p className="text-[10px] font-bold text-white/75">{label}</p>
           <p className="text-xl font-black">{score}</p>
         </div>
       </div>
-      <ScoreBar label={mode === 'performance' ? '性能スコア' : 'コスパスコア'} score={score} />
+      <ScoreBar label={barLabel} score={score} />
       <div className="mt-3 grid grid-cols-3 gap-2 text-xs">
+        <MiniStat label="総合" value={aincarnScore(model, genreId)} />
         <MiniStat label="速度" value={model.speed} />
-        <MiniStat label="日本語" value={model.japanese} />
-        <MiniStat label="文脈" value={model.context} />
+        <MiniStat label="単価効率" value={priceEfficiencyScore(model, genreId)} />
       </div>
       {model.metric && <p className="mt-3 text-xs font-bold text-gray-500">{model.metric}</p>}
       {model.priceLabel && <p className="mt-1 text-xs font-bold text-gray-400">{model.priceLabel}</p>}
@@ -160,13 +222,15 @@ function ModelSummary({ model, genreId }: { model: AiModel; genreId: AiGenreId }
         <p className="text-xs font-black text-[#f0187a]">{model.creator} / {model.family}</p>
         <h3 className="text-lg font-extrabold text-brand-text">{model.name}</h3>
         <p className="mt-1 text-xs text-gray-400">
-          性能: {model.performance[genreId]} / コスパ: {model.costPerformance[genreId]} / コスト感: {costLabel(model.costLevel)}
+          総合: {aincarnScore(model, genreId)} / 賢さ: {model.performance[genreId]} / 速度: {model.speed} / 単価効率: {priceEfficiencyScore(model, genreId)}
         </p>
         {model.metric && <p className="mt-2 text-xs leading-relaxed text-gray-500">{model.metric}</p>}
       </div>
       <div className="grid gap-3">
-        <ScoreBar label="性能スコア" score={model.performance[genreId]} />
-        <ScoreBar label="コスパスコア" score={model.costPerformance[genreId]} />
+        <ScoreBar label="Aincarn総合スコア" score={aincarnScore(model, genreId)} />
+        <ScoreBar label="賢さ" score={model.performance[genreId]} />
+        <ScoreBar label="速度" score={model.speed} />
+        <ScoreBar label="単価効率" score={priceEfficiencyScore(model, genreId)} />
       </div>
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
         <TextPanel title="強み" items={model.strengths} tone="green" />
@@ -218,17 +282,25 @@ export default function AiModelCompareTool() {
     () => [...genreModels].sort((a, b) => b.performance[genreId] - a.performance[genreId]),
     [genreModels, genreId]
   )
-  const costRanking = useMemo(
-    () => [...genreModels].sort((a, b) => b.costPerformance[genreId] - a.costPerformance[genreId]),
+  const productivityRanking = useMemo(
+    () => [...genreModels].sort((a, b) => aincarnScore(b, genreId) - aincarnScore(a, genreId)),
+    [genreModels, genreId]
+  )
+  const speedRanking = useMemo(
+    () => [...genreModels].sort((a, b) => b.speed - a.speed),
+    [genreModels]
+  )
+  const priceRanking = useMemo(
+    () => [...genreModels].sort((a, b) => priceEfficiencyScore(b, genreId) - priceEfficiencyScore(a, genreId)),
     [genreModels, genreId]
   )
 
-  const first = genreModels.find((model) => model.id === firstId) ?? performanceRanking[0]
-  const second = genreModels.find((model) => model.id === secondId) ?? performanceRanking[1] ?? performanceRanking[0]
+  const first = genreModels.find((model) => model.id === firstId) ?? productivityRanking[0]
+  const second = genreModels.find((model) => model.id === secondId) ?? productivityRanking[1] ?? productivityRanking[0]
   const winner =
-    first.performance[genreId] === second.performance[genreId]
+    aincarnScore(first, genreId) === aincarnScore(second, genreId)
       ? 'ほぼ同等'
-      : first.performance[genreId] > second.performance[genreId]
+      : aincarnScore(first, genreId) > aincarnScore(second, genreId)
         ? first.name
         : second.name
 
@@ -255,6 +327,9 @@ export default function AiModelCompareTool() {
           </div>
           <h2 className="mt-1 text-xl font-extrabold text-brand-text">ジャンルごとにAIモデルを比較</h2>
           <p className="mt-2 text-sm leading-relaxed text-gray-500">{genre.description}</p>
+          <p className="mt-2 text-xs leading-relaxed text-gray-500">
+            Aincarn総合スコアは、賢さ55%、速度25%、単価効率20%を目安に、同じ作業をどれだけ速く安く終えやすいかで評価します。
+          </p>
         </div>
         <div className="grid gap-2 sm:grid-cols-4">
           {AI_GENRES.map((item) => (
@@ -282,20 +357,37 @@ export default function AiModelCompareTool() {
         <p className="mt-3 text-xs leading-relaxed text-gray-500">{genre.sourceMetric}</p>
       </section>
 
-      <section className="grid gap-4 lg:grid-cols-2">
+      <section>
+        <h2 className="mb-3 text-lg font-extrabold text-brand-text">Aincarn総合スコア</h2>
+        <div className="grid gap-4">
+          {productivityRanking.slice(0, 6).map((model, index) => (
+            <ProductivityBar key={model.id} model={model} genreId={genreId} rank={index + 1} />
+          ))}
+        </div>
+      </section>
+
+      <section className="grid gap-4 lg:grid-cols-3">
         <div>
-          <h2 className="mb-3 text-lg font-extrabold text-brand-text">性能ランキング</h2>
+          <h2 className="mb-3 text-lg font-extrabold text-brand-text">賢さランキング</h2>
           <div className="grid gap-4">
             {performanceRanking.slice(0, 5).map((model, index) => (
-              <RankingCard key={model.id} model={model} genreId={genreId} rank={index + 1} mode="performance" />
+              <RankingCard key={model.id} model={model} genreId={genreId} rank={index + 1} mode="intelligence" />
             ))}
           </div>
         </div>
         <div>
-          <h2 className="mb-3 text-lg font-extrabold text-brand-text">コスパランキング</h2>
+          <h2 className="mb-3 text-lg font-extrabold text-brand-text">速度ランキング</h2>
           <div className="grid gap-4">
-            {costRanking.slice(0, 5).map((model, index) => (
-              <RankingCard key={model.id} model={model} genreId={genreId} rank={index + 1} mode="cost" />
+            {speedRanking.slice(0, 5).map((model, index) => (
+              <RankingCard key={model.id} model={model} genreId={genreId} rank={index + 1} mode="speed" />
+            ))}
+          </div>
+        </div>
+        <div>
+          <h2 className="mb-3 text-lg font-extrabold text-brand-text">単価効率ランキング</h2>
+          <div className="grid gap-4">
+            {priceRanking.slice(0, 5).map((model, index) => (
+              <RankingCard key={model.id} model={model} genreId={genreId} rank={index + 1} mode="price" />
             ))}
           </div>
         </div>
@@ -310,7 +402,7 @@ export default function AiModelCompareTool() {
             <ModelSelect label="比較するモデル 2" value={second.id} models={genreModels} onChange={setSecondId} />
           </div>
           <div className="rounded-lg bg-gradient-to-br from-[#f0187a] via-[#ff6b28] to-[#ffe431] px-4 py-3 text-white shadow-lg shadow-rose-500/20 sm:w-44">
-            <p className="text-[10px] font-bold text-white/75">性能比較の優位</p>
+            <p className="text-[10px] font-bold text-white/75">総合比較の優位</p>
             <p className="text-sm font-black">{winner}</p>
           </div>
         </div>
@@ -328,21 +420,25 @@ export default function AiModelCompareTool() {
               <tr className="border-b border-gray-200 text-left text-xs text-gray-400">
                 <th className="py-2 pr-3">モデル</th>
                 <th className="px-3 py-2 text-right">指標</th>
-                <th className="px-3 py-2 text-right">性能</th>
-                <th className="px-3 py-2 text-right">コスパ</th>
+                <th className="px-3 py-2 text-right">総合</th>
+                <th className="px-3 py-2 text-right">賢さ</th>
+                <th className="px-3 py-2 text-right">速度</th>
+                <th className="px-3 py-2 text-right">単価効率</th>
                 <th className="px-3 py-2 text-right">価格目安</th>
               </tr>
             </thead>
             <tbody>
-              {performanceRanking.map((model) => (
+              {productivityRanking.map((model) => (
                 <tr key={model.id} className="border-b border-gray-100">
                   <td className="py-3 pr-3">
                     <p className="font-black text-brand-text">{model.name}</p>
                     <p className="text-xs text-gray-400">{model.creator} / {model.releaseLabel}</p>
                   </td>
                   <td className="px-3 py-3 text-right text-xs font-bold text-gray-500">{model.metric ?? '-'}</td>
+                  <td className="px-3 py-3 text-right font-bold text-brand-text">{aincarnScore(model, genreId)}</td>
                   <td className="px-3 py-3 text-right font-bold text-brand-text">{model.performance[genreId]}</td>
-                  <td className="px-3 py-3 text-right font-bold text-brand-text">{model.costPerformance[genreId]}</td>
+                  <td className="px-3 py-3 text-right font-bold text-brand-text">{model.speed}</td>
+                  <td className="px-3 py-3 text-right font-bold text-brand-text">{priceEfficiencyScore(model, genreId)}</td>
                   <td className="px-3 py-3 text-right text-xs font-bold text-gray-500">{model.priceLabel ?? costLabel(model.costLevel)}</td>
                 </tr>
               ))}
