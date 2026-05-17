@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 }
 
 const signals = [
-  ['Metric views', '賢さ、速度、単価効率を分けて比較'],
+  ['Metric views', '賢さ、速度、価格効率を分けて比較'],
   ['Use-case lens', 'リサーチ、文章、コード、画像、動画で用途別に比較'],
   ['Subscription view', '性能だけでなくコスパと課金判断を並べて見る'],
 ]

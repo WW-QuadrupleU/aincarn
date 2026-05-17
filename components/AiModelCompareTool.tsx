@@ -106,17 +106,14 @@ function MetricLeaderboard({
 
   return (
     <section className="rounded-2xl border border-white/75 bg-white/90 p-4 shadow-sm shadow-rose-900/5 backdrop-blur">
-      <div className="mb-4 flex items-end justify-between gap-4">
+      <div className="mb-4">
         <div>
           <h2 className="text-lg font-extrabold text-brand-text">{title}</h2>
           <p className="mt-1 text-xs font-bold leading-relaxed text-gray-500">{caption}</p>
         </div>
-        <span className="hidden rounded-full bg-gray-100 px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-gray-500 sm:inline-flex">
-          Ranking
-        </span>
       </div>
       <div className="divide-y divide-gray-100">
-        {models.slice(0, 8).map((model, index) => {
+        {models.slice(0, 7).map((model, index) => {
           const score =
             mode === 'intelligence'
               ? model.performance[genreId]
@@ -126,20 +123,22 @@ function MetricLeaderboard({
           const width = Math.max(8, (score / maxScore) * 100)
 
           return (
-            <div key={model.id} className="grid gap-3 py-3 sm:grid-cols-[minmax(220px,0.9fr)_minmax(220px,1fr)_64px] sm:items-center">
-              <div className="flex min-w-0 items-center gap-3">
-                <span className="grid size-7 shrink-0 place-items-center rounded-full bg-gray-100 text-xs font-black text-gray-500">
-                  {index + 1}
-                </span>
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-black text-brand-text">{model.name}</p>
-                  <p className="truncate text-xs font-bold text-gray-400">{model.creator} / {model.releaseLabel}</p>
+            <div key={model.id} className="py-3">
+              <div className="mb-2 flex min-w-0 items-start justify-between gap-3">
+                <div className="flex min-w-0 items-center gap-2">
+                  <span className="grid size-6 shrink-0 place-items-center rounded-full bg-gray-100 text-[11px] font-black text-gray-500">
+                    {index + 1}
+                  </span>
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-black text-brand-text">{model.name}</p>
+                    <p className="truncate text-[11px] font-bold text-gray-400">{model.creator}</p>
+                  </div>
                 </div>
+                <p className="shrink-0 text-lg font-black text-brand-text">{score}</p>
               </div>
-              <div className="h-4 overflow-hidden rounded-full bg-gray-100">
+              <div className="h-3.5 overflow-hidden rounded-full bg-gray-100">
                 <div className={`h-full rounded-full ${scoreTone(score)}`} style={{ width: `${width}%` }} />
               </div>
-              <p className="text-right text-lg font-black text-brand-text">{score}</p>
             </div>
           )
         })}
@@ -206,14 +205,14 @@ function ModelSummary({ model, genreId }: { model: AiModel; genreId: AiGenreId }
         <p className="text-xs font-black text-[#f0187a]">{model.creator} / {model.family}</p>
         <h3 className="text-lg font-extrabold text-brand-text">{model.name}</h3>
         <p className="mt-1 text-xs text-gray-400">
-          賢さ: {model.performance[genreId]} / 速度: {model.speed} / 単価効率: {priceEfficiencyScore(model, genreId)} / コスト感: {costLabel(model.costLevel)}
+          賢さ: {model.performance[genreId]} / 速度: {model.speed} / 価格効率: {priceEfficiencyScore(model, genreId)} / コスト感: {costLabel(model.costLevel)}
         </p>
         {model.metric && <p className="mt-2 text-xs leading-relaxed text-gray-500">{model.metric}</p>}
       </div>
       <div className="grid gap-3">
         <ScoreBar label="賢さ" score={model.performance[genreId]} />
         <ScoreBar label="速度" score={model.speed} />
-        <ScoreBar label="単価効率" score={priceEfficiencyScore(model, genreId)} />
+        <ScoreBar label="価格効率" score={priceEfficiencyScore(model, genreId)} />
       </div>
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
         <TextPanel title="強み" items={model.strengths} tone="green" />
@@ -307,7 +306,7 @@ export default function AiModelCompareTool() {
           <h2 className="mt-1 text-xl font-extrabold text-brand-text">ジャンルごとにAIモデルを比較</h2>
           <p className="mt-2 text-sm leading-relaxed text-gray-500">{genre.description}</p>
           <p className="mt-2 text-xs leading-relaxed text-gray-500">
-            賢さ、速度、単価効率を分けて表示します。用途によって重視すべき指標が変わるため、単一の総合点ではなく項目別に比較します。
+            賢さ、速度、価格効率を分けて表示します。用途によって重視すべき指標が変わるため、単一の総合点ではなく項目別に比較します。
           </p>
         </div>
         <div className="grid gap-2 sm:grid-cols-4">
@@ -336,7 +335,7 @@ export default function AiModelCompareTool() {
         <p className="mt-3 text-xs leading-relaxed text-gray-500">{genre.sourceMetric}</p>
       </section>
 
-      <section className="grid gap-4">
+      <section className="grid gap-4 lg:grid-cols-3">
         <MetricLeaderboard
           title="賢さランキング"
           caption="用途別の能力指標。リサーチ、文章、コード、分析などの主戦場を見ます。"
@@ -352,7 +351,7 @@ export default function AiModelCompareTool() {
           mode="speed"
         />
         <MetricLeaderboard
-          title="単価効率ランキング"
+          title="価格効率ランキング"
           caption="価格の軽さをスコア化。高性能でも単価が重いモデルはここでは伸びにくくなります。"
           models={priceRanking}
           genreId={genreId}
@@ -389,7 +388,7 @@ export default function AiModelCompareTool() {
                 <th className="px-3 py-2 text-right">指標</th>
                 <th className="px-3 py-2 text-right">賢さ</th>
                 <th className="px-3 py-2 text-right">速度</th>
-                <th className="px-3 py-2 text-right">単価効率</th>
+                <th className="px-3 py-2 text-right">価格効率</th>
                 <th className="px-3 py-2 text-right">価格目安</th>
               </tr>
             </thead>
