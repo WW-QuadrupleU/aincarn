@@ -1,5 +1,6 @@
 import Image from 'next/image'
 import Link from 'next/link'
+import AuthNav from '@/components/AuthNav'
 import SmoothHashLink from '@/components/SmoothHashLink'
 
 export default function Header() {
@@ -21,9 +22,16 @@ export default function Header() {
           <SmoothHashLink href="/#compare" className="rounded-full px-3 py-2 text-gray-500 transition hover:bg-white hover:text-brand-text hover:shadow-sm">
             比較ツール
           </SmoothHashLink>
+          <Link href="/tools/ai-pricing" className="hidden rounded-full px-3 py-2 text-gray-500 transition hover:bg-white hover:text-brand-text hover:shadow-sm sm:inline-flex">
+            料金比較
+          </Link>
+          <Link href="/tools/subscriptions" className="hidden rounded-full px-3 py-2 text-gray-500 transition hover:bg-white hover:text-brand-text hover:shadow-sm md:inline-flex">
+            サブスク
+          </Link>
           <Link href="/about" className="rounded-full border border-brand-text bg-brand-text px-4 py-2 text-white shadow-sm shadow-slate-900/10 transition hover:-translate-y-0.5 hover:bg-white hover:text-brand-text">
             About
           </Link>
+          <AuthNav />
         </nav>
       </div>
     </header>

@@ -11,8 +11,10 @@
     "prices:refresh": "node scripts/refresh_prices.mjs"
   },
   "dependencies": {
+    "@clerk/nextjs": "^7.3.5",
+    "@neondatabase/serverless": "^1.1.0",
     "@notionhq/client": "^2.2.15",
-    "next": "^16.2.4",
+    "next": "^16.2.6",
     "notion-to-md": "^3.1.1",
     "react": "^18",
     "react-dom": "^18",
@@ -25,8 +27,11 @@
     "@types/react-dom": "^18",
     "autoprefixer": "^10.0.1",
     "dotenv": "^17.4.2",
-    "postcss": "^8",
+    "postcss": "8.5.11",
     "tailwindcss": "^3.3.0",
     "typescript": "^5"
+  },
+  "overrides": {
+    "postcss": "8.5.11"
   }
 }
