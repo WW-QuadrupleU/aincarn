@@ -14,8 +14,7 @@ type RouteContext = {
 function configurationError() {
   return NextResponse.json(
     {
-      error: 'Subscription storage is not configured',
-      requiredEnv: ['NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY', 'CLERK_SECRET_KEY', 'DATABASE_URL'],
+      error: 'サブスク保存機能は現在準備中です',
     },
     { status: 501 }
   )

@@ -7,7 +7,7 @@ export function hasSubscriptionAuth() {
 export async function getSubscriptionUserId() {
   if (!hasSubscriptionAuth()) {
     return {
-      error: 'Clerk authentication is not configured',
+      error: 'ログイン機能は現在準備中です',
       status: 501,
       userId: null,
     }
@@ -30,7 +30,7 @@ export async function getSubscriptionUserId() {
     }
   } catch {
     return {
-      error: 'Clerk authentication is not available',
+      error: 'ログイン機能は現在準備中です',
       status: 501,
       userId: null,
     }

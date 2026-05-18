@@ -2,7 +2,6 @@
 
 import { SignInButton, UserButton, useUser } from '@clerk/nextjs'
 import { useEffect, useMemo, useState } from 'react'
-import AuthSetupNotice from '@/components/AuthSetupNotice'
 import type { SavedSubscription, SubscriptionInput } from '@/lib/subscription-store'
 
 const clerkEnabled = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY)
@@ -64,11 +63,43 @@ function toInput(subscription: SavedSubscription): SubscriptionInput {
   }
 }
 
-export default function SubscriptionManager() {
-  if (!clerkEnabled) {
-    return <AuthSetupNotice title="サブスク管理にはログイン設定が必要です" />
-  }
+function AccountUnavailable() {
+  return (
+    <section className="rounded-[28px] border border-white/80 bg-white/90 p-6 shadow-sm shadow-rose-900/5 backdrop-blur">
+      <p className="text-xs font-black uppercase tracking-[0.2em] text-rose-500">Subscription Manager</p>
+      <h1 className="mt-2 text-3xl font-black tracking-tight text-brand-text">AIサブスク管理</h1>
+      <p className="mt-3 max-w-2xl text-sm font-bold leading-relaxed text-gray-500">
+        アカウント別のサブスク管理機能は準備中です。公開画面では設定情報を表示せず、利用可能になり次第ログインして使えるようにします。
+      </p>
+      <div className="mt-6 inline-flex rounded-full bg-slate-100 px-5 py-3 text-sm font-black text-gray-500">
+        Coming soon
+      </div>
+    </section>
+  )
+}
 
+function SignInPrompt() {
+  return (
+    <section className="rounded-[28px] border border-white/80 bg-white/90 p-6 shadow-sm shadow-rose-900/5 backdrop-blur">
+      <p className="text-xs font-black uppercase tracking-[0.2em] text-rose-500">Subscription Manager</p>
+      <h1 className="mt-2 text-3xl font-black tracking-tight text-brand-text">AIサブスク管理</h1>
+      <p className="mt-3 max-w-2xl text-sm font-bold leading-relaxed text-gray-500">
+        契約中のAIサービス、更新日、月額換算コストをアカウントごとに保存できます。利用するにはログインしてください。
+      </p>
+      <SignInButton mode="modal">
+        <button
+          type="button"
+          className="mt-6 rounded-full bg-brand-text px-5 py-3 text-sm font-black text-white transition hover:-translate-y-0.5 hover:bg-gray-700"
+        >
+          ログインして始める
+        </button>
+      </SignInButton>
+    </section>
+  )
+}
+
+export default function SubscriptionManager() {
+  if (!clerkEnabled) return <AccountUnavailable />
   return <AuthenticatedSubscriptionManager />
 }
 
@@ -87,10 +118,10 @@ function AuthenticatedSubscriptionManager() {
     try {
       const response = await fetch('/api/subscriptions')
       const data = await response.json()
-      if (!response.ok) throw new Error(data.error || '読み込みに失敗しました')
+      if (!response.ok) throw new Error(data.error || 'サブスク情報を読み込めませんでした')
       setSubscriptions(data.subscriptions || [])
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : '読み込みに失敗しました')
+    } catch {
+      setMessage('サブスク情報を読み込めませんでした。少し時間をおいて再度お試しください。')
     } finally {
       setLoading(false)
     }
@@ -110,15 +141,14 @@ function AuthenticatedSubscriptionManager() {
     .sort((a, b) => new Date(a.renewalDate).getTime() - new Date(b.renewalDate).getTime())[0]
 
   const categoryTotals = useMemo(() => {
-    return activeSubscriptions.reduce<Array<{ category: string; total: number }>>((acc, item) => {
-      const existing = acc.find((entry) => entry.category === item.category)
-      if (existing) {
-        existing.total += item.monthlyCostUsd
-      } else {
-        acc.push({ category: item.category, total: item.monthlyCostUsd })
-      }
-      return acc
-    }, []).sort((a, b) => b.total - a.total)
+    return activeSubscriptions
+      .reduce<Array<{ category: string; total: number }>>((acc, item) => {
+        const existing = acc.find((entry) => entry.category === item.category)
+        if (existing) existing.total += item.monthlyCostUsd
+        else acc.push({ category: item.category, total: item.monthlyCostUsd })
+        return acc
+      }, [])
+      .sort((a, b) => b.total - a.total)
   }, [activeSubscriptions])
 
   function updateForm<K extends keyof SubscriptionInput>(key: K, value: SubscriptionInput[K]) {
@@ -177,25 +207,7 @@ function AuthenticatedSubscriptionManager() {
     )
   }
 
-  if (!isSignedIn) {
-    return (
-      <section className="rounded-[28px] border border-white/80 bg-white/90 p-6 shadow-sm shadow-rose-900/5 backdrop-blur">
-        <p className="text-xs font-black uppercase tracking-[0.2em] text-rose-500">Subscription Manager</p>
-        <h1 className="mt-2 text-3xl font-black tracking-tight text-brand-text">AIサブスク管理</h1>
-        <p className="mt-3 max-w-2xl text-sm font-bold leading-relaxed text-gray-500">
-          契約中のAIサービス、更新日、月額換算コストをアカウントごとに保存できます。利用するにはログインしてください。
-        </p>
-        <SignInButton mode="modal">
-          <button
-            type="button"
-            className="mt-6 rounded-full bg-brand-text px-5 py-3 text-sm font-black text-white transition hover:-translate-y-0.5 hover:bg-gray-700"
-          >
-            ログインして始める
-          </button>
-        </SignInButton>
-      </section>
-    )
-  }
+  if (!isSignedIn) return <SignInPrompt />
 
   return (
     <div className="space-y-6">
