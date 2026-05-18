@@ -1,5 +1,6 @@
 import Image from 'next/image'
 import Link from 'next/link'
+import SmoothHashLink from '@/components/SmoothHashLink'
 
 export default function Header() {
   return (
@@ -17,9 +18,9 @@ export default function Header() {
           Aincarn
         </Link>
         <nav className="flex items-center gap-2 text-xs font-black">
-          <Link href="/#compare" className="rounded-full px-3 py-2 text-gray-500 transition hover:bg-white hover:text-brand-text hover:shadow-sm">
+          <SmoothHashLink href="/#compare" className="rounded-full px-3 py-2 text-gray-500 transition hover:bg-white hover:text-brand-text hover:shadow-sm">
             比較ツール
-          </Link>
+          </SmoothHashLink>
           <Link href="/about" className="rounded-full border border-brand-text bg-brand-text px-4 py-2 text-white shadow-sm shadow-slate-900/10 transition hover:-translate-y-0.5 hover:bg-white hover:text-brand-text">
             About
           </Link>

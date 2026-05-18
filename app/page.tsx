@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import AiModelCompareTool from '@/components/AiModelCompareTool'
+import SmoothHashLink from '@/components/SmoothHashLink'
 
 export const revalidate = 3600
 
@@ -39,12 +40,12 @@ export default function HomePage() {
               公開ベンチマーク、料金、速度、今後の実測データを合わせて、どのAIに課金すべきかを整理します。
             </p>
             <div className="relative mt-8 flex flex-wrap gap-3">
-              <Link
+              <SmoothHashLink
                 href="#compare"
                 className="rounded-full bg-white px-5 py-3 text-sm font-black text-brand-text shadow-2xl shadow-rose-600/20 transition hover:-translate-y-0.5 hover:bg-yellow-50"
               >
                 比較ツールを見る
-              </Link>
+              </SmoothHashLink>
               <Link
                 href="/about"
                 className="rounded-full border border-white/42 bg-white/18 px-5 py-3 text-sm font-black text-white backdrop-blur transition hover:bg-white/26"
