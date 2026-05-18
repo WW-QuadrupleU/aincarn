@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 
 const signals = [
   ['Metric views', '賢さ、速度、価格効率を横並びで比較'],
-  ['Use-case lens', 'リサーチ、文章、コード、画像、動画を用途別に整理'],
+  ['Use-case lens', 'テキスト、画像、動画から用途を細分化'],
   ['Live data', '公開データをもとにランキングを自動更新'],
 ]
 
@@ -57,7 +57,7 @@ export default function HomePage() {
                 <div key={item} className="rounded-2xl border border-white/20 bg-white/12 px-3 py-3 backdrop-blur">
                   <p className="text-[10px] font-black uppercase tracking-[0.14em] text-white/64">{item}</p>
                   <p className="mt-1 text-sm font-black text-white">
-                    {item === 'Live' ? '自動更新' : item === 'Metrics' ? '3指標' : '8用途'}
+                    {item === 'Live' ? '自動更新' : item === 'Metrics' ? '3指標' : '3カテゴリ'}
                   </p>
                 </div>
               ))}

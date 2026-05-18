@@ -57,6 +57,32 @@ function eligibleForGenre(models: AiModel[], genreId: AiGenreId): AiModel[] {
   return models.filter((model) => model.visibleIn.includes(genreId))
 }
 
+const AI_GENRE_GROUPS: Array<{
+  id: string
+  label: string
+  description: string
+  genreIds: AiGenreId[]
+}> = [
+  {
+    id: 'text',
+    label: 'テキストAI',
+    description: '調査、文章、コード、分析、エージェント用途',
+    genreIds: ['research', 'writing', 'coding', 'analysis', 'agent'],
+  },
+  {
+    id: 'image',
+    label: '画像AI',
+    description: '画像生成、デザイン、素材制作',
+    genreIds: ['image'],
+  },
+  {
+    id: 'video',
+    label: '動画AI',
+    description: 'Text to Video / Image to Video',
+    genreIds: ['textVideo', 'imageVideo'],
+  },
+]
+
 function ScoreBar({ label, score }: { label: string; score: number }) {
   return (
     <div>
@@ -260,6 +286,8 @@ export default function AiModelCompareTool() {
   }, [])
 
   const genre = AI_GENRES.find((item) => item.id === genreId) ?? AI_GENRES[0]
+  const activeGroup = AI_GENRE_GROUPS.find((group) => group.genreIds.includes(genreId)) ?? AI_GENRE_GROUPS[0]
+  const groupGenres = AI_GENRES.filter((item) => activeGroup.genreIds.includes(item.id))
   const genreModels = useMemo(() => eligibleForGenre(payload.models, genreId), [payload.models, genreId])
 
   const performanceRanking = useMemo(
@@ -311,16 +339,37 @@ export default function AiModelCompareTool() {
             賢さ、速度、価格効率を分けて表示します。用途によって重視すべき指標が変わるため、単一の総合点ではなく項目別に比較します。
           </p>
         </div>
-        <div className="grid gap-2 sm:grid-cols-4">
-          {AI_GENRES.map((item) => (
+        <div className="grid gap-2 md:grid-cols-3">
+          {AI_GENRE_GROUPS.map((group) => (
+            <button
+              key={group.id}
+              type="button"
+              onClick={() => setGenreId(group.genreIds[0])}
+              className={`rounded-2xl border px-4 py-3 text-left transition-all ${
+                activeGroup.id === group.id
+                  ? 'border-rose-400 bg-gradient-to-r from-[#f0187a] to-[#ff6b28] text-white shadow-sm shadow-rose-500/20'
+                  : 'border-gray-200 bg-white/82 text-gray-500 hover:border-rose-300 hover:bg-white hover:text-brand-text'
+              }`}
+            >
+              <span className="block text-sm font-black">{group.label}</span>
+              <span className={`mt-1 block text-[11px] font-bold leading-relaxed ${
+                activeGroup.id === group.id ? 'text-white/72' : 'text-gray-400'
+              }`}>
+                {group.description}
+              </span>
+            </button>
+          ))}
+        </div>
+        <div className="mt-3 flex flex-wrap gap-2">
+          {groupGenres.map((item) => (
             <button
               key={item.id}
               type="button"
               onClick={() => setGenreId(item.id)}
-              className={`rounded-xl border px-3 py-2.5 text-left text-xs font-black transition-all ${
+              className={`rounded-full border px-3 py-2 text-xs font-black transition-all ${
                 genreId === item.id
-                  ? 'border-rose-400 bg-gradient-to-r from-[#f0187a] to-[#ff6b28] text-white shadow-sm shadow-rose-500/20'
-                  : 'border-gray-200 bg-white/82 text-gray-500 hover:border-rose-300 hover:bg-white hover:text-brand-text'
+                  ? 'border-brand-text bg-brand-text text-white shadow-sm shadow-slate-900/10'
+                  : 'border-gray-200 bg-white/72 text-gray-500 hover:border-rose-300 hover:bg-white hover:text-brand-text'
               }`}
             >
               {item.shortLabel}
