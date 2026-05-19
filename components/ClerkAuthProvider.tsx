@@ -9,7 +9,7 @@ export default function ClerkAuthProvider({ children }: { children: ReactNode })
   if (!clerkEnabled) return <>{children}</>
 
   return (
-    <ClerkProvider signInUrl="/sign-in" signUpUrl="/sign-up">
+    <ClerkProvider signInUrl="/sign-in" signUpUrl="/sign-up" proxyUrl="/__clerk">
       {children}
     </ClerkProvider>
   )
