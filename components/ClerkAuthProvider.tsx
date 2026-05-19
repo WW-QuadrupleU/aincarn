@@ -8,9 +8,5 @@ const clerkEnabled = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY)
 export default function ClerkAuthProvider({ children }: { children: ReactNode }) {
   if (!clerkEnabled) return <>{children}</>
 
-  return (
-    <ClerkProvider signInUrl="/sign-in" signUpUrl="/sign-up" proxyUrl="/__clerk">
-      {children}
-    </ClerkProvider>
-  )
+  return <ClerkProvider signInUrl="/sign-in" signUpUrl="/sign-up">{children}</ClerkProvider>
 }
