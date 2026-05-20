@@ -342,7 +342,7 @@ function AuthenticatedSubscriptionManager() {
         <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
           <div>
             <p className="text-xs font-black uppercase tracking-[0.2em] text-rose-500">Choose Service</p>
-            <h2 className="mt-2 text-2xl font-black tracking-tight text-brand-text">サービスを選んで、プランを選択</h2>
+            <h2 className="mt-2 text-2xl font-black tracking-tight text-brand-text">サービスを選んで、その場でプランを選択</h2>
             <p className="mt-2 text-sm font-bold text-gray-500">
               料金は公式ページをもとにした目安です。外部カタログURLを設定すると、デプロイなしで最新プランに差し替えられます。
               {catalogLoading && ' 最新カタログを確認中...'}
@@ -365,98 +365,99 @@ function AuthenticatedSubscriptionManager() {
             ))}
           </div>
         </div>
-
-        <div className="mt-5 grid gap-3 lg:grid-cols-[320px_1fr]">
-          <div className="grid gap-3 sm:grid-cols-2 lg:max-h-[calc(100vh-9rem)] lg:grid-cols-1 lg:overflow-y-auto lg:pr-1">
-            {filteredCatalog.map((service) => (
-              <button
+        <div className="mt-5 space-y-3">
+          {filteredCatalog.map((service) => {
+            const isSelected = selectedService?.id === service.id
+            return (
+              <article
                 key={service.id}
-                type="button"
-                onClick={() => setSelectedServiceId(service.id)}
-                className={`overflow-hidden rounded-2xl border bg-white text-left shadow-sm shadow-rose-900/5 transition hover:-translate-y-0.5 hover:shadow-lg hover:shadow-rose-900/10 ${
-                  selectedService?.id === service.id ? 'border-brand-text' : 'border-white/80'
+                className={`overflow-visible rounded-3xl border bg-white shadow-sm shadow-rose-900/5 transition ${
+                  isSelected ? 'border-brand-text shadow-lg shadow-rose-900/10' : 'border-white/80'
                 }`}
               >
-                <div className={`h-2 bg-gradient-to-r ${service.accent}`} />
-                <div className="p-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className={`flex size-11 items-center justify-center rounded-2xl bg-gradient-to-br ${service.accent} text-xs font-black text-white`}>
-                      {service.mark}
-                    </div>
-                    <span className="rounded-full bg-slate-100 px-2 py-1 text-[10px] font-black text-gray-500">{service.vibe}</span>
-                  </div>
-                  <h3 className="mt-3 text-lg font-black text-brand-text">{service.name}</h3>
-                  <div className="mt-2 flex flex-wrap gap-1.5">
-                    {service.categories.map((category) => (
-                      <span key={category} className="rounded-full bg-slate-50 px-2 py-1 text-[10px] font-black text-gray-500">
-                        {category}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </button>
-            ))}
-          </div>
-
-          {selectedService && (
-            <div className="overflow-hidden rounded-3xl border border-white/80 bg-white shadow-sm shadow-rose-900/5 lg:sticky lg:top-24 lg:self-start">
-              <div className={`bg-gradient-to-r ${selectedService.accent} p-5 text-white`}>
-                <div className="flex flex-wrap items-start justify-between gap-4">
-                  <div>
-                    <p className="text-xs font-black uppercase tracking-[0.2em] text-white/70">Selected</p>
-                    <h3 className="mt-2 text-3xl font-black">{selectedService.name}</h3>
-                    <p className="mt-2 max-w-2xl text-sm font-bold leading-relaxed text-white/82">{selectedService.description}</p>
-                  </div>
-                  <a
-                    href={selectedService.sourceUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="rounded-full border border-white/40 bg-white/16 px-3 py-2 text-xs font-black text-white backdrop-blur transition hover:bg-white/24"
-                  >
-                    公式料金
-                  </a>
-                </div>
-              </div>
-              <div className="grid gap-3 p-4 md:grid-cols-2 xl:grid-cols-3">
-                {selectedService.plans.map((plan) => {
-                  const exists = subscriptions.some(
-                    (item) =>
-                      item.serviceName.toLowerCase() === selectedService.name.toLowerCase() &&
-                      (item.planName || '').toLowerCase() === plan.name.toLowerCase() &&
-                      item.status !== 'cancelled',
-                  )
-                  return (
-                    <article key={plan.id} className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm shadow-slate-900/5">
-                      <p className="text-xs font-black uppercase tracking-[0.14em] text-rose-500">{selectedService.name}</p>
-                      <h4 className="mt-2 text-lg font-black text-brand-text">{plan.name}</h4>
-                      <p className="mt-2 text-3xl font-black text-brand-text">{formatUsd(plan.monthlyCostUsd)}</p>
-                      <p className="text-xs font-bold text-gray-400">
-                        {billingCycleOptions.find((cycle) => cycle.value === plan.billingCycle)?.label || plan.billingCycle}
-                      </p>
-                      <p className="mt-3 min-h-[54px] text-xs font-bold leading-relaxed text-gray-500">{plan.summary}</p>
-                      <div className="mt-4 flex flex-wrap gap-2">
-                        <button
-                          type="button"
-                          disabled={saving || exists}
-                          onClick={() => addPlan(selectedService, plan)}
-                          className="rounded-full bg-brand-text px-4 py-2.5 text-xs font-black text-white transition hover:-translate-y-0.5 hover:bg-gray-700 disabled:cursor-not-allowed disabled:bg-gray-300"
-                        >
-                          {exists ? '登録済み' : 'そのまま追加'}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => choosePlan(selectedService, plan)}
-                          className="rounded-full border border-gray-200 bg-white px-4 py-2.5 text-xs font-black text-gray-500 transition hover:border-brand-text hover:text-brand-text"
-                        >
-                          編集して追加
-                        </button>
+                <button type="button" onClick={() => setSelectedServiceId(service.id)} className="block w-full text-left">
+                  <div className={`h-2 rounded-t-3xl bg-gradient-to-r ${service.accent}`} />
+                  <div className="grid gap-4 p-4 md:grid-cols-[220px_1fr_auto] md:items-center">
+                    <div className="flex items-center gap-3">
+                      <div className={`flex size-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br ${service.accent} text-xs font-black text-white`}>
+                        {service.mark}
                       </div>
-                    </article>
-                  )
-                })}
-              </div>
-            </div>
-          )}
+                      <div>
+                        <h3 className="text-lg font-black text-brand-text">{service.name}</h3>
+                        <span className="mt-1 inline-flex rounded-full bg-slate-100 px-2 py-1 text-[10px] font-black text-gray-500">
+                          {service.vibe}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {service.categories.map((category) => (
+                        <span key={category} className="rounded-full bg-slate-50 px-2.5 py-1.5 text-[11px] font-black text-gray-500">
+                          {category}
+                        </span>
+                      ))}
+                    </div>
+                    <span className="rounded-full bg-brand-text px-4 py-2 text-center text-xs font-black text-white">
+                      {isSelected ? 'プランを表示中' : 'プランを見る'}
+                    </span>
+                  </div>
+                </button>
+
+                {isSelected && (
+                  <div className="border-t border-gray-100 bg-white/92 p-4">
+                    <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                      <p className="max-w-3xl text-sm font-bold leading-relaxed text-gray-600">{service.description}</p>
+                      <a
+                        href={service.sourceUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="shrink-0 rounded-full border border-gray-200 bg-white px-3 py-2 text-xs font-black text-gray-500 transition hover:border-brand-text hover:text-brand-text"
+                      >
+                        公式料金
+                      </a>
+                    </div>
+                    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                      {service.plans.map((plan) => {
+                        const exists = subscriptions.some(
+                          (item) =>
+                            item.serviceName.toLowerCase() === service.name.toLowerCase() &&
+                            (item.planName || '').toLowerCase() === plan.name.toLowerCase() &&
+                            item.status !== 'cancelled',
+                        )
+                        return (
+                          <article key={plan.id} className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm shadow-slate-900/5">
+                            <p className="text-xs font-black uppercase tracking-[0.14em] text-rose-500">{service.name}</p>
+                            <h4 className="mt-2 text-lg font-black text-brand-text">{plan.name}</h4>
+                            <p className="mt-2 text-3xl font-black text-brand-text">{formatUsd(plan.monthlyCostUsd)}</p>
+                            <p className="text-xs font-bold text-gray-400">
+                              {billingCycleOptions.find((cycle) => cycle.value === plan.billingCycle)?.label || plan.billingCycle}
+                            </p>
+                            <p className="mt-3 min-h-[54px] text-xs font-bold leading-relaxed text-gray-500">{plan.summary}</p>
+                            <div className="mt-4 flex flex-wrap gap-2">
+                              <button
+                                type="button"
+                                disabled={saving || exists}
+                                onClick={() => addPlan(service, plan)}
+                                className="rounded-full bg-brand-text px-4 py-2.5 text-xs font-black text-white transition hover:-translate-y-0.5 hover:bg-gray-700 disabled:cursor-not-allowed disabled:bg-gray-300"
+                              >
+                                {exists ? '登録済み' : 'そのまま追加'}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => choosePlan(service, plan)}
+                                className="rounded-full border border-gray-200 bg-white px-4 py-2.5 text-xs font-black text-gray-500 transition hover:border-brand-text hover:text-brand-text"
+                              >
+                                編集して追加
+                              </button>
+                            </div>
+                          </article>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+              </article>
+            )
+          })}
         </div>
       </section>
 
