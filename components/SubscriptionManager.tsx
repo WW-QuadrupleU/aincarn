@@ -367,7 +367,7 @@ function AuthenticatedSubscriptionManager() {
         </div>
 
         <div className="mt-5 grid gap-3 lg:grid-cols-[320px_1fr]">
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
+          <div className="grid gap-3 sm:grid-cols-2 lg:max-h-[calc(100vh-9rem)] lg:grid-cols-1 lg:overflow-y-auto lg:pr-1">
             {filteredCatalog.map((service) => (
               <button
                 key={service.id}
@@ -399,7 +399,7 @@ function AuthenticatedSubscriptionManager() {
           </div>
 
           {selectedService && (
-            <div className="overflow-hidden rounded-3xl border border-white/80 bg-white shadow-sm shadow-rose-900/5">
+            <div className="overflow-hidden rounded-3xl border border-white/80 bg-white shadow-sm shadow-rose-900/5 lg:sticky lg:top-24 lg:self-start">
               <div className={`bg-gradient-to-r ${selectedService.accent} p-5 text-white`}>
                 <div className="flex flex-wrap items-start justify-between gap-4">
                   <div>
