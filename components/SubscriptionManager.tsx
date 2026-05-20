@@ -2,17 +2,24 @@
 
 import { SignInButton, UserButton, useUser } from '@clerk/nextjs'
 import { useEffect, useMemo, useState } from 'react'
+import {
+  categoryOptions,
+  defaultSubscriptionCatalog,
+  type SubscriptionCatalogPlan,
+  type SubscriptionCatalogService,
+} from '@/lib/subscription-catalog'
 import type { SavedSubscription, SubscriptionInput } from '@/lib/subscription-store'
 
 const clerkEnabled = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY)
+const allFilter = 'すべて'
 
-const categoryOptions = ['AIチャット', '画像生成', '動画生成', 'コーディング', '検索・リサーチ', 'デザイン', 'API', 'その他']
 const billingCycleOptions: Array<{ value: SubscriptionInput['billingCycle']; label: string }> = [
   { value: 'monthly', label: '月払い' },
   { value: 'yearly', label: '年払い' },
   { value: 'weekly', label: '週払い' },
   { value: 'one_time', label: '買い切り' },
 ]
+
 const statusOptions: Array<{ value: SubscriptionInput['status']; label: string }> = [
   { value: 'active', label: '契約中' },
   { value: 'trial', label: '試用中' },
@@ -20,158 +27,10 @@ const statusOptions: Array<{ value: SubscriptionInput['status']; label: string }
   { value: 'cancelled', label: '解約済み' },
 ]
 
-type SubscriptionPreset = {
-  id: string
-  serviceName: string
-  planName: string
-  category: string
-  monthlyCostUsd: number
-  billingCycle: SubscriptionInput['billingCycle']
-  notes: string
-  accent: string
-  mark: string
-  vibe: string
-}
-
-const subscriptionPresets: SubscriptionPreset[] = [
-  {
-    id: 'chatgpt-plus',
-    serviceName: 'ChatGPT',
-    planName: 'Plus',
-    category: 'AIチャット',
-    monthlyCostUsd: 20,
-    billingCycle: 'monthly',
-    notes: '文章作成、調査、画像生成まで広く使う総合枠。料金は登録時点の目安です。',
-    accent: 'from-[#15f5ba] via-[#39a7ff] to-[#7c3cff]',
-    mark: 'CG',
-    vibe: '万能',
-  },
-  {
-    id: 'chatgpt-pro',
-    serviceName: 'ChatGPT',
-    planName: 'Pro',
-    category: 'AIチャット',
-    monthlyCostUsd: 200,
-    billingCycle: 'monthly',
-    notes: '高負荷利用や上位モデル利用を重視する人向け。料金は登録時点の目安です。',
-    accent: 'from-[#ffe431] via-[#ff6b28] to-[#f0187a]',
-    mark: 'CP',
-    vibe: '上位',
-  },
-  {
-    id: 'claude-pro',
-    serviceName: 'Claude',
-    planName: 'Pro',
-    category: 'AIチャット',
-    monthlyCostUsd: 20,
-    billingCycle: 'monthly',
-    notes: '長文、文章整理、分析用途で使いやすい枠。料金は登録時点の目安です。',
-    accent: 'from-[#ff9a3c] via-[#ff5f6d] to-[#8f3cff]',
-    mark: 'CL',
-    vibe: '文章',
-  },
-  {
-    id: 'claude-max',
-    serviceName: 'Claude',
-    planName: 'Max',
-    category: 'AIチャット',
-    monthlyCostUsd: 100,
-    billingCycle: 'monthly',
-    notes: 'Claudeを多めに使う人向けの上位枠。料金は登録時点の目安です。',
-    accent: 'from-[#fdff6a] via-[#ff8a00] to-[#a100ff]',
-    mark: 'CM',
-    vibe: '深掘り',
-  },
-  {
-    id: 'gemini-advanced',
-    serviceName: 'Gemini',
-    planName: 'Advanced',
-    category: 'AIチャット',
-    monthlyCostUsd: 19.99,
-    billingCycle: 'monthly',
-    notes: 'Google連携や日常利用をまとめたい人向け。料金は登録時点の目安です。',
-    accent: 'from-[#30d5ff] via-[#7b61ff] to-[#ff4ecd]',
-    mark: 'GM',
-    vibe: 'Google',
-  },
-  {
-    id: 'perplexity-pro',
-    serviceName: 'Perplexity',
-    planName: 'Pro',
-    category: '検索・リサーチ',
-    monthlyCostUsd: 20,
-    billingCycle: 'monthly',
-    notes: '検索、出典確認、調査の入り口に使うリサーチ枠。料金は登録時点の目安です。',
-    accent: 'from-[#00e5ff] via-[#00c48c] to-[#7dff6a]',
-    mark: 'PX',
-    vibe: '調査',
-  },
-  {
-    id: 'github-copilot-pro',
-    serviceName: 'GitHub Copilot',
-    planName: 'Pro',
-    category: 'コーディング',
-    monthlyCostUsd: 10,
-    billingCycle: 'monthly',
-    notes: 'IDE内のコード補完や実装支援用。料金は登録時点の目安です。',
-    accent: 'from-[#1f2937] via-[#6d28d9] to-[#22d3ee]',
-    mark: 'GH',
-    vibe: '開発',
-  },
-  {
-    id: 'cursor-pro',
-    serviceName: 'Cursor',
-    planName: 'Pro',
-    category: 'コーディング',
-    monthlyCostUsd: 20,
-    billingCycle: 'monthly',
-    notes: 'AIコードエディタを中心に開発する人向け。料金は登録時点の目安です。',
-    accent: 'from-[#111827] via-[#0ea5e9] to-[#f97316]',
-    mark: 'CU',
-    vibe: '実装',
-  },
-  {
-    id: 'midjourney-basic',
-    serviceName: 'Midjourney',
-    planName: 'Basic',
-    category: '画像生成',
-    monthlyCostUsd: 10,
-    billingCycle: 'monthly',
-    notes: '画像生成を軽めに試す枠。料金は登録時点の目安です。',
-    accent: 'from-[#ff47a3] via-[#ffcc00] to-[#00e0ff]',
-    mark: 'MJ',
-    vibe: '画像',
-  },
-  {
-    id: 'runway-standard',
-    serviceName: 'Runway',
-    planName: 'Standard',
-    category: '動画生成',
-    monthlyCostUsd: 15,
-    billingCycle: 'monthly',
-    notes: '動画生成や映像編集AIを触るための枠。料金は登録時点の目安です。',
-    accent: 'from-[#b6ff00] via-[#00d5ff] to-[#3b00ff]',
-    mark: 'RW',
-    vibe: '動画',
-  },
-  {
-    id: 'canva-pro',
-    serviceName: 'Canva',
-    planName: 'Pro',
-    category: 'デザイン',
-    monthlyCostUsd: 15,
-    billingCycle: 'monthly',
-    notes: 'デザイン制作、資料、SNS素材をまとめる枠。料金は登録時点の目安です。',
-    accent: 'from-[#00c4cc] via-[#8b3dff] to-[#ff5e9c]',
-    mark: 'CV',
-    vibe: '制作',
-  },
-]
-
 const emptyForm: SubscriptionInput = {
   serviceName: '',
   planName: '',
-  category: 'AIチャット',
+  category: 'チャット',
   monthlyCostUsd: 20,
   billingCycle: 'monthly',
   renewalDate: '',
@@ -198,6 +57,17 @@ function formatDate(value?: string) {
   }).format(date)
 }
 
+function categoriesToText(categories: string[]) {
+  return categories.join(', ')
+}
+
+function splitCategories(value: string) {
+  return value
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean)
+}
+
 function toInput(subscription: SavedSubscription): SubscriptionInput {
   return {
     serviceName: subscription.serviceName,
@@ -211,26 +81,22 @@ function toInput(subscription: SavedSubscription): SubscriptionInput {
   }
 }
 
-function presetToInput(preset: SubscriptionPreset): SubscriptionInput {
+function planToInput(service: SubscriptionCatalogService, plan: SubscriptionCatalogPlan): SubscriptionInput {
   return {
-    serviceName: preset.serviceName,
-    planName: preset.planName,
-    category: preset.category,
-    monthlyCostUsd: preset.monthlyCostUsd,
-    billingCycle: preset.billingCycle,
+    serviceName: service.name,
+    planName: plan.name,
+    category: categoriesToText(service.categories),
+    monthlyCostUsd: plan.monthlyCostUsd,
+    billingCycle: plan.billingCycle,
     renewalDate: '',
     status: 'active',
-    notes: preset.notes,
+    notes: `${service.description} ${plan.summary} 料金は${service.updatedAt}時点の目安です。`,
   }
 }
 
-function getAccentForSubscription(subscription: SavedSubscription) {
-  const preset = subscriptionPresets.find(
-    (item) =>
-      item.serviceName.toLowerCase() === subscription.serviceName.toLowerCase() &&
-      item.planName.toLowerCase() === (subscription.planName || '').toLowerCase(),
-  )
-  return preset?.accent || 'from-[#f0187a] via-[#ff6b28] to-[#ffe431]'
+function getAccentForSubscription(subscription: SavedSubscription, catalog: SubscriptionCatalogService[]) {
+  const service = catalog.find((item) => item.name.toLowerCase() === subscription.serviceName.toLowerCase())
+  return service?.accent || 'from-[#f0187a] via-[#ff6b28] to-[#ffe431]'
 }
 
 function AccountUnavailable() {
@@ -240,7 +106,7 @@ function AccountUnavailable() {
         <p className="text-xs font-black uppercase tracking-[0.2em] text-white/75">Subscription Collection</p>
         <h1 className="mt-2 text-3xl font-black tracking-tight">AIサブスク管理</h1>
         <p className="mt-3 max-w-2xl text-sm font-bold leading-relaxed text-white/80">
-          アカウント別のサブスク管理機能は準備中です。公開画面では設定情報を表示せず、利用可能になり次第ログインして使えるようにします。
+          アカウント別のサブスク保存機能は準備中です。Clerkとデータベース設定後に利用できます。
         </p>
       </div>
     </section>
@@ -250,14 +116,15 @@ function AccountUnavailable() {
 function SignInPrompt() {
   return (
     <section className="overflow-hidden rounded-[32px] border border-white/80 bg-white/92 shadow-xl shadow-rose-900/10 backdrop-blur">
-      <div className="grid gap-0 lg:grid-cols-[1fr_360px]">
+      <div className="grid gap-0 lg:grid-cols-[1fr_380px]">
         <div className="p-6 sm:p-8">
           <p className="text-xs font-black uppercase tracking-[0.2em] text-rose-500">Subscription Collection</p>
           <h1 className="mt-3 max-w-2xl text-4xl font-black tracking-tight text-brand-text sm:text-5xl">
-            AIサブスクを集めて、眺めて、育てる。
+            AIサブスクを選んで、集めて、育てる。
           </h1>
           <p className="mt-4 max-w-2xl text-sm font-bold leading-relaxed text-gray-600">
-            契約中のAIサービス、更新日、月額換算コストをアカウントごとに保存できます。主要サービスはカードから選んで追加できます。
+            ChatGPT、Claude、Gemini、Midjourney、Runwayなどをサービスから選び、その中のプランを選んで保存できます。
+            ジャンルがまたがるサービスも、コレクションでは複数タグとして扱います。
           </p>
           <SignInButton mode="modal">
             <button
@@ -268,13 +135,13 @@ function SignInPrompt() {
             </button>
           </SignInButton>
         </div>
-        <div className="min-h-[260px] bg-[radial-gradient(circle_at_15%_20%,#fff06a_0,transparent_28%),radial-gradient(circle_at_75%_15%,#ff5e9c_0,transparent_28%),radial-gradient(circle_at_55%_80%,#00d5ff_0,transparent_30%),linear-gradient(135deg,#f0187a,#ff6b28,#ffe431)] p-6">
+        <div className="min-h-[300px] bg-[linear-gradient(135deg,#f0187a_0%,#ff6b28_38%,#ffe431_70%,#39a7ff_100%)] p-6">
           <div className="grid grid-cols-2 gap-3">
-            {subscriptionPresets.slice(0, 6).map((preset) => (
-              <div key={preset.id} className="rounded-2xl border border-white/45 bg-white/18 p-3 text-white shadow-lg shadow-black/10 backdrop-blur">
-                <div className="flex size-10 items-center justify-center rounded-xl bg-white text-xs font-black text-brand-text">{preset.mark}</div>
-                <p className="mt-3 text-sm font-black">{preset.serviceName}</p>
-                <p className="text-xs font-bold text-white/75">{preset.planName}</p>
+            {defaultSubscriptionCatalog.slice(0, 6).map((service) => (
+              <div key={service.id} className="rounded-2xl border border-white/45 bg-white/18 p-3 text-white shadow-lg shadow-black/10 backdrop-blur">
+                <div className="flex size-10 items-center justify-center rounded-xl bg-white text-xs font-black text-brand-text">{service.mark}</div>
+                <p className="mt-3 text-sm font-black">{service.name}</p>
+                <p className="text-xs font-bold text-white/75">{service.categories.slice(0, 2).join(' / ')}</p>
               </div>
             ))}
           </div>
@@ -292,12 +159,31 @@ export default function SubscriptionManager() {
 function AuthenticatedSubscriptionManager() {
   const { isLoaded, isSignedIn, user } = useUser()
   const [subscriptions, setSubscriptions] = useState<SavedSubscription[]>([])
+  const [catalog, setCatalog] = useState(defaultSubscriptionCatalog)
+  const [selectedServiceId, setSelectedServiceId] = useState(defaultSubscriptionCatalog[0]?.id || '')
   const [form, setForm] = useState<SubscriptionInput>(emptyForm)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [catalogLoading, setCatalogLoading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
-  const [presetFilter, setPresetFilter] = useState('すべて')
+  const [serviceFilter, setServiceFilter] = useState(allFilter)
+
+  const selectedService = catalog.find((service) => service.id === selectedServiceId) || catalog[0]
+
+  async function loadCatalog() {
+    setCatalogLoading(true)
+    try {
+      const response = await fetch('/api/subscription-catalog', { cache: 'no-store' })
+      const data = await response.json()
+      if (response.ok && Array.isArray(data.services) && data.services.length > 0) {
+        setCatalog(data.services)
+        setSelectedServiceId((current) => data.services.some((service: SubscriptionCatalogService) => service.id === current) ? current : data.services[0].id)
+      }
+    } finally {
+      setCatalogLoading(false)
+    }
+  }
 
   async function loadSubscriptions() {
     setLoading(true)
@@ -316,6 +202,7 @@ function AuthenticatedSubscriptionManager() {
 
   useEffect(() => {
     if (isLoaded && isSignedIn) {
+      loadCatalog()
       loadSubscriptions()
     }
   }, [isLoaded, isSignedIn])
@@ -328,19 +215,17 @@ function AuthenticatedSubscriptionManager() {
     .sort((a, b) => new Date(a.renewalDate).getTime() - new Date(b.renewalDate).getTime())[0]
 
   const categoryTotals = useMemo(() => {
-    return activeSubscriptions
-      .reduce<Array<{ category: string; total: number }>>((acc, item) => {
-        const existing = acc.find((entry) => entry.category === item.category)
-        if (existing) existing.total += item.monthlyCostUsd
-        else acc.push({ category: item.category, total: item.monthlyCostUsd })
-        return acc
-      }, [])
-      .sort((a, b) => b.total - a.total)
+    const totals = new Map<string, number>()
+    activeSubscriptions.forEach((item) => {
+      splitCategories(item.category).forEach((category) => {
+        totals.set(category, (totals.get(category) || 0) + item.monthlyCostUsd)
+      })
+    })
+    return Array.from(totals, ([category, total]) => ({ category, total })).sort((a, b) => b.total - a.total)
   }, [activeSubscriptions])
 
-  const presetCategories = ['すべて', ...Array.from(new Set(subscriptionPresets.map((preset) => preset.category)))]
-  const filteredPresets =
-    presetFilter === 'すべて' ? subscriptionPresets : subscriptionPresets.filter((preset) => preset.category === presetFilter)
+  const filteredCatalog =
+    serviceFilter === allFilter ? catalog : catalog.filter((service) => service.categories.includes(serviceFilter as never))
 
   function updateForm<K extends keyof SubscriptionInput>(key: K, value: SubscriptionInput[K]) {
     setForm((current) => ({ ...current, [key]: value }))
@@ -351,24 +236,24 @@ function AuthenticatedSubscriptionManager() {
     setEditingId(null)
   }
 
-  function choosePreset(preset: SubscriptionPreset) {
-    setForm(presetToInput(preset))
+  function choosePlan(service: SubscriptionCatalogService, plan: SubscriptionCatalogPlan) {
+    setForm(planToInput(service, plan))
     setEditingId(null)
-    setMessage(`${preset.serviceName} ${preset.planName} をフォームに入れました。更新日だけ足して保存できます。`)
+    setMessage(`${service.name} ${plan.name} をフォームに入れました。更新日やメモを調整して保存できます。`)
   }
 
-  async function addPreset(preset: SubscriptionPreset) {
+  async function addPlan(service: SubscriptionCatalogService, plan: SubscriptionCatalogPlan) {
     const alreadyExists = subscriptions.some(
       (item) =>
-        item.serviceName.toLowerCase() === preset.serviceName.toLowerCase() &&
-        (item.planName || '').toLowerCase() === preset.planName.toLowerCase() &&
+        item.serviceName.toLowerCase() === service.name.toLowerCase() &&
+        (item.planName || '').toLowerCase() === plan.name.toLowerCase() &&
         item.status !== 'cancelled',
     )
     if (alreadyExists) {
-      setMessage(`${preset.serviceName} ${preset.planName} はすでにコレクションにあります。`)
+      setMessage(`${service.name} ${plan.name} はすでにコレクションにあります。`)
       return
     }
-    await saveSubscription(presetToInput(preset), null)
+    await saveSubscription(planToInput(service, plan), null)
   }
 
   async function saveSubscription(input: SubscriptionInput = form, targetEditingId: string | null = editingId) {
@@ -385,7 +270,7 @@ function AuthenticatedSubscriptionManager() {
       if (!response.ok) throw new Error(data.error || '保存に失敗しました')
       await loadSubscriptions()
       resetForm()
-      setMessage(targetEditingId ? '更新しました' : `${input.serviceName} をコレクションに追加しました`)
+      setMessage(targetEditingId ? '更新しました' : `${input.serviceName} ${input.planName || ''}をコレクションに追加しました`)
     } catch (error) {
       setMessage(error instanceof Error ? error.message : '保存に失敗しました')
     } finally {
@@ -432,17 +317,17 @@ function AuthenticatedSubscriptionManager() {
               <UserButton />
             </div>
             <h1 className="mt-4 max-w-3xl text-4xl font-black tracking-tight text-brand-text sm:text-5xl">
-              AIサブスクを、集める楽しさに変える。
+              AIサブスクを、カードで集める。
             </h1>
             <p className="mt-4 max-w-3xl text-sm font-bold leading-relaxed text-gray-600">
-              {user?.primaryEmailAddress?.emailAddress || 'ログイン中のアカウント'} に紐づけて、契約中のAIサービスをカードで管理します。
-              主要サービスは下のカードから選ぶだけで追加できます。
+              {user?.primaryEmailAddress?.emailAddress || 'ログイン中のアカウント'} に紐づけて、契約中のAIサービスを保存します。
+              サービスを選んでからプランを選択でき、画像と動画など複数ジャンルのサービスもそのままタグ化します。
             </p>
           </div>
-          <div className="bg-[radial-gradient(circle_at_10%_15%,#fff36d_0,transparent_26%),radial-gradient(circle_at_85%_20%,#ff39a8_0,transparent_28%),radial-gradient(circle_at_45%_85%,#00d5ff_0,transparent_32%),linear-gradient(135deg,#f0187a,#ff6b28,#ffe431)] p-5 text-white sm:p-6">
+          <div className="bg-[linear-gradient(135deg,#f0187a_0%,#ff6b28_40%,#ffe431_72%,#39a7ff_100%)] p-5 text-white sm:p-6">
             <p className="text-xs font-black uppercase tracking-[0.18em] text-white/75">Monthly total</p>
             <p className="mt-3 text-4xl font-black">{formatUsd(totalMonthly)}</p>
-            <p className="mt-2 text-sm font-bold text-white/82">年間目安 {formatUsd(yearlyEstimate)}</p>
+            <p className="mt-2 text-sm font-bold text-white/82">年換算目安 {formatUsd(yearlyEstimate)}</p>
             <div className="mt-5 rounded-2xl border border-white/35 bg-white/16 p-4 backdrop-blur">
               <p className="text-xs font-black uppercase tracking-[0.16em] text-white/70">Next renewal</p>
               <p className="mt-2 text-sm font-black">
@@ -456,18 +341,21 @@ function AuthenticatedSubscriptionManager() {
       <section className="rounded-[28px] border border-white/80 bg-white/90 p-5 shadow-sm shadow-rose-900/5 backdrop-blur sm:p-6">
         <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.2em] text-rose-500">Quick Add</p>
-            <h2 className="mt-2 text-2xl font-black tracking-tight text-brand-text">主要AIサービスを選んで追加</h2>
-            <p className="mt-2 text-sm font-bold text-gray-500">料金は登録時点の目安です。追加後にプラン名・更新日・メモを編集できます。</p>
+            <p className="text-xs font-black uppercase tracking-[0.2em] text-rose-500">Choose Service</p>
+            <h2 className="mt-2 text-2xl font-black tracking-tight text-brand-text">サービスを選んで、プランを選択</h2>
+            <p className="mt-2 text-sm font-bold text-gray-500">
+              料金は公式ページをもとにした目安です。外部カタログURLを設定すると、デプロイなしで最新プランに差し替えられます。
+              {catalogLoading && ' 最新カタログを確認中...'}
+            </p>
           </div>
           <div className="flex gap-2 overflow-x-auto pb-1">
-            {presetCategories.map((category) => (
+            {[allFilter, ...categoryOptions].map((category) => (
               <button
                 key={category}
                 type="button"
-                onClick={() => setPresetFilter(category)}
+                onClick={() => setServiceFilter(category)}
                 className={`shrink-0 rounded-full px-3 py-2 text-xs font-black transition ${
-                  presetFilter === category
+                  serviceFilter === category
                     ? 'bg-brand-text text-white shadow-sm shadow-slate-900/15'
                     : 'border border-gray-200 bg-white text-gray-500 hover:border-brand-text hover:text-brand-text'
                 }`}
@@ -477,52 +365,98 @@ function AuthenticatedSubscriptionManager() {
             ))}
           </div>
         </div>
-        <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-          {filteredPresets.map((preset) => {
-            const exists = subscriptions.some(
-              (item) =>
-                item.serviceName.toLowerCase() === preset.serviceName.toLowerCase() &&
-                (item.planName || '').toLowerCase() === preset.planName.toLowerCase() &&
-                item.status !== 'cancelled',
-            )
-            return (
-              <article
-                key={preset.id}
-                className="group overflow-hidden rounded-2xl border border-white/80 bg-white shadow-sm shadow-rose-900/5 transition hover:-translate-y-1 hover:shadow-xl hover:shadow-rose-900/10"
+
+        <div className="mt-5 grid gap-3 lg:grid-cols-[320px_1fr]">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
+            {filteredCatalog.map((service) => (
+              <button
+                key={service.id}
+                type="button"
+                onClick={() => setSelectedServiceId(service.id)}
+                className={`overflow-hidden rounded-2xl border bg-white text-left shadow-sm shadow-rose-900/5 transition hover:-translate-y-0.5 hover:shadow-lg hover:shadow-rose-900/10 ${
+                  selectedService?.id === service.id ? 'border-brand-text' : 'border-white/80'
+                }`}
               >
-                <div className={`h-2 bg-gradient-to-r ${preset.accent}`} />
+                <div className={`h-2 bg-gradient-to-r ${service.accent}`} />
                 <div className="p-4">
                   <div className="flex items-start justify-between gap-3">
-                    <div className={`flex size-12 items-center justify-center rounded-2xl bg-gradient-to-br ${preset.accent} text-xs font-black text-white shadow-lg shadow-slate-900/10`}>
-                      {preset.mark}
+                    <div className={`flex size-11 items-center justify-center rounded-2xl bg-gradient-to-br ${service.accent} text-xs font-black text-white`}>
+                      {service.mark}
                     </div>
-                    <span className="rounded-full bg-slate-100 px-2 py-1 text-[10px] font-black text-gray-500">{preset.vibe}</span>
+                    <span className="rounded-full bg-slate-100 px-2 py-1 text-[10px] font-black text-gray-500">{service.vibe}</span>
                   </div>
-                  <h3 className="mt-4 text-lg font-black text-brand-text">{preset.serviceName}</h3>
-                  <p className="text-xs font-bold text-gray-400">{preset.planName} / {preset.category}</p>
-                  <p className="mt-3 text-2xl font-black text-brand-text">{formatUsd(preset.monthlyCostUsd)}</p>
-                  <p className="mt-2 min-h-[40px] text-xs font-bold leading-relaxed text-gray-500">{preset.notes}</p>
-                  <div className="mt-4 flex gap-2">
-                    <button
-                      type="button"
-                      disabled={saving || exists}
-                      onClick={() => addPreset(preset)}
-                      className="rounded-full bg-brand-text px-4 py-2.5 text-xs font-black text-white transition hover:-translate-y-0.5 hover:bg-gray-700 disabled:cursor-not-allowed disabled:bg-gray-300"
-                    >
-                      {exists ? '登録済み' : 'コレクションに追加'}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => choosePreset(preset)}
-                      className="rounded-full border border-gray-200 bg-white px-4 py-2.5 text-xs font-black text-gray-500 transition hover:border-brand-text hover:text-brand-text"
-                    >
-                      編集して追加
-                    </button>
+                  <h3 className="mt-3 text-lg font-black text-brand-text">{service.name}</h3>
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {service.categories.map((category) => (
+                      <span key={category} className="rounded-full bg-slate-50 px-2 py-1 text-[10px] font-black text-gray-500">
+                        {category}
+                      </span>
+                    ))}
                   </div>
                 </div>
-              </article>
-            )
-          })}
+              </button>
+            ))}
+          </div>
+
+          {selectedService && (
+            <div className="overflow-hidden rounded-3xl border border-white/80 bg-white shadow-sm shadow-rose-900/5">
+              <div className={`bg-gradient-to-r ${selectedService.accent} p-5 text-white`}>
+                <div className="flex flex-wrap items-start justify-between gap-4">
+                  <div>
+                    <p className="text-xs font-black uppercase tracking-[0.2em] text-white/70">Selected</p>
+                    <h3 className="mt-2 text-3xl font-black">{selectedService.name}</h3>
+                    <p className="mt-2 max-w-2xl text-sm font-bold leading-relaxed text-white/82">{selectedService.description}</p>
+                  </div>
+                  <a
+                    href={selectedService.sourceUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="rounded-full border border-white/40 bg-white/16 px-3 py-2 text-xs font-black text-white backdrop-blur transition hover:bg-white/24"
+                  >
+                    公式料金
+                  </a>
+                </div>
+              </div>
+              <div className="grid gap-3 p-4 md:grid-cols-2 xl:grid-cols-3">
+                {selectedService.plans.map((plan) => {
+                  const exists = subscriptions.some(
+                    (item) =>
+                      item.serviceName.toLowerCase() === selectedService.name.toLowerCase() &&
+                      (item.planName || '').toLowerCase() === plan.name.toLowerCase() &&
+                      item.status !== 'cancelled',
+                  )
+                  return (
+                    <article key={plan.id} className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm shadow-slate-900/5">
+                      <p className="text-xs font-black uppercase tracking-[0.14em] text-rose-500">{selectedService.name}</p>
+                      <h4 className="mt-2 text-lg font-black text-brand-text">{plan.name}</h4>
+                      <p className="mt-2 text-3xl font-black text-brand-text">{formatUsd(plan.monthlyCostUsd)}</p>
+                      <p className="text-xs font-bold text-gray-400">
+                        {billingCycleOptions.find((cycle) => cycle.value === plan.billingCycle)?.label || plan.billingCycle}
+                      </p>
+                      <p className="mt-3 min-h-[54px] text-xs font-bold leading-relaxed text-gray-500">{plan.summary}</p>
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          disabled={saving || exists}
+                          onClick={() => addPlan(selectedService, plan)}
+                          className="rounded-full bg-brand-text px-4 py-2.5 text-xs font-black text-white transition hover:-translate-y-0.5 hover:bg-gray-700 disabled:cursor-not-allowed disabled:bg-gray-300"
+                        >
+                          {exists ? '登録済み' : 'そのまま追加'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => choosePlan(selectedService, plan)}
+                          className="rounded-full border border-gray-200 bg-white px-4 py-2.5 text-xs font-black text-gray-500 transition hover:border-brand-text hover:text-brand-text"
+                        >
+                          編集して追加
+                        </button>
+                      </div>
+                    </article>
+                  )
+                })}
+              </div>
+            </div>
+          )}
         </div>
       </section>
 
@@ -554,21 +488,16 @@ function AuthenticatedSubscriptionManager() {
                 className="mt-1 w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm font-bold text-brand-text outline-none transition focus:border-rose-300 focus:ring-4 focus:ring-rose-100"
               />
             </label>
+            <label className="block">
+              <span className="text-xs font-black text-gray-500">ジャンル（複数可・カンマ区切り）</span>
+              <input
+                value={form.category}
+                onChange={(event) => updateForm('category', event.target.value)}
+                placeholder="チャット, 画像, 動画"
+                className="mt-1 w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm font-bold text-brand-text outline-none transition focus:border-rose-300 focus:ring-4 focus:ring-rose-100"
+              />
+            </label>
             <div className="grid gap-3 sm:grid-cols-2">
-              <label className="block">
-                <span className="text-xs font-black text-gray-500">カテゴリ</span>
-                <select
-                  value={form.category}
-                  onChange={(event) => updateForm('category', event.target.value)}
-                  className="mt-1 w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm font-bold text-brand-text outline-none transition focus:border-rose-300 focus:ring-4 focus:ring-rose-100"
-                >
-                  {categoryOptions.map((category) => (
-                    <option key={category} value={category}>
-                      {category}
-                    </option>
-                  ))}
-                </select>
-              </label>
               <label className="block">
                 <span className="text-xs font-black text-gray-500">月額換算 USD</span>
                 <input
@@ -580,8 +509,6 @@ function AuthenticatedSubscriptionManager() {
                   className="mt-1 w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm font-bold text-brand-text outline-none transition focus:border-rose-300 focus:ring-4 focus:ring-rose-100"
                 />
               </label>
-            </div>
-            <div className="grid gap-3 sm:grid-cols-2">
               <label className="block">
                 <span className="text-xs font-black text-gray-500">請求周期</span>
                 <select
@@ -596,6 +523,8 @@ function AuthenticatedSubscriptionManager() {
                   ))}
                 </select>
               </label>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
               <label className="block">
                 <span className="text-xs font-black text-gray-500">更新日</span>
                 <input
@@ -605,21 +534,21 @@ function AuthenticatedSubscriptionManager() {
                   className="mt-1 w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm font-bold text-brand-text outline-none transition focus:border-rose-300 focus:ring-4 focus:ring-rose-100"
                 />
               </label>
+              <label className="block">
+                <span className="text-xs font-black text-gray-500">ステータス</span>
+                <select
+                  value={form.status}
+                  onChange={(event) => updateForm('status', event.target.value as SubscriptionInput['status'])}
+                  className="mt-1 w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm font-bold text-brand-text outline-none transition focus:border-rose-300 focus:ring-4 focus:ring-rose-100"
+                >
+                  {statusOptions.map((item) => (
+                    <option key={item.value} value={item.value}>
+                      {item.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
             </div>
-            <label className="block">
-              <span className="text-xs font-black text-gray-500">ステータス</span>
-              <select
-                value={form.status}
-                onChange={(event) => updateForm('status', event.target.value as SubscriptionInput['status'])}
-                className="mt-1 w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm font-bold text-brand-text outline-none transition focus:border-rose-300 focus:ring-4 focus:ring-rose-100"
-              >
-                {statusOptions.map((item) => (
-                  <option key={item.value} value={item.value}>
-                    {item.label}
-                  </option>
-                ))}
-              </select>
-            </label>
             <label className="block">
               <span className="text-xs font-black text-gray-500">メモ</span>
               <textarea
@@ -666,7 +595,7 @@ function AuthenticatedSubscriptionManager() {
           </section>
 
           <section className="rounded-[24px] border border-white/80 bg-white/90 p-5 shadow-sm shadow-rose-900/5 backdrop-blur">
-            <h2 className="text-lg font-black text-brand-text">カテゴリ別コスト</h2>
+            <h2 className="text-lg font-black text-brand-text">ジャンル別コスト</h2>
             <div className="mt-4 space-y-3">
               {categoryTotals.length === 0 && <p className="text-sm font-bold text-gray-500">契約中のサブスクはまだありません。</p>}
               {categoryTotals.map((entry) => (
@@ -694,12 +623,12 @@ function AuthenticatedSubscriptionManager() {
             <div className="grid gap-3 md:grid-cols-2">
               {subscriptions.length === 0 && (
                 <div className="rounded-2xl border border-dashed border-gray-200 bg-white/70 p-5 text-sm font-bold text-gray-500 md:col-span-2">
-                  まずは主要サービスカードから、契約中のAIサブスクをコレクションに追加してください。
+                  まずは上のサービスカードから、契約中または気になるAIサブスクをコレクションに追加してください。
                 </div>
               )}
               {subscriptions.map((item) => (
                 <article key={item.id} className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm shadow-slate-900/5">
-                  <div className={`h-2 bg-gradient-to-r ${getAccentForSubscription(item)}`} />
+                  <div className={`h-2 bg-gradient-to-r ${getAccentForSubscription(item, catalog)}`} />
                   <div className="p-4">
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
@@ -709,9 +638,14 @@ function AuthenticatedSubscriptionManager() {
                             {statusOptions.find((status) => status.value === item.status)?.label || item.status}
                           </span>
                         </div>
-                        <p className="mt-1 text-xs font-bold text-gray-400">
-                          {item.planName || 'プラン未設定'} / {item.category}
-                        </p>
+                        <p className="mt-1 text-xs font-bold text-gray-400">{item.planName || 'プラン未設定'}</p>
+                        <div className="mt-2 flex flex-wrap gap-1.5">
+                          {splitCategories(item.category).map((category) => (
+                            <span key={category} className="rounded-full bg-slate-50 px-2 py-1 text-[10px] font-black text-gray-500">
+                              {category}
+                            </span>
+                          ))}
+                        </div>
                       </div>
                       <div className="shrink-0 text-right">
                         <p className="text-lg font-black text-brand-text">{formatUsd(item.monthlyCostUsd)}</p>
