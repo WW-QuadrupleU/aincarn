@@ -2,6 +2,7 @@
 
 import { SignInButton, UserButton, useUser } from '@clerk/nextjs'
 import { useEffect, useMemo, useState } from 'react'
+import type { CSSProperties } from 'react'
 import {
   categoryOptions,
   defaultSubscriptionCatalog,
@@ -102,6 +103,75 @@ function getAccentForSubscription(subscription: SavedSubscription, catalog: Subs
 function getCollectionMark(subscription: SavedSubscription, catalog: SubscriptionCatalogService[]) {
   const service = catalog.find((item) => item.name.toLowerCase() === subscription.serviceName.toLowerCase())
   return service?.mark || subscription.serviceName.slice(0, 2).toUpperCase()
+}
+
+function getServiceTone(serviceId: string) {
+  const tones: Record<string, { soft: string; border: string; ink: string; shadow: string }> = {
+    chatgpt: {
+      soft: 'rgba(21,245,186,0.12)',
+      border: 'rgba(21,245,186,0.34)',
+      ink: '#0f766e',
+      shadow: 'rgba(21,245,186,0.18)',
+    },
+    claude: {
+      soft: 'rgba(255,154,60,0.13)',
+      border: 'rgba(255,95,109,0.34)',
+      ink: '#c2410c',
+      shadow: 'rgba(255,95,109,0.18)',
+    },
+    gemini: {
+      soft: 'rgba(48,213,255,0.13)',
+      border: 'rgba(123,97,255,0.32)',
+      ink: '#2563eb',
+      shadow: 'rgba(123,97,255,0.18)',
+    },
+    perplexity: {
+      soft: 'rgba(0,229,255,0.13)',
+      border: 'rgba(0,196,140,0.34)',
+      ink: '#047857',
+      shadow: 'rgba(0,196,140,0.18)',
+    },
+    'github-copilot': {
+      soft: 'rgba(109,40,217,0.1)',
+      border: 'rgba(34,211,238,0.3)',
+      ink: '#4338ca',
+      shadow: 'rgba(34,211,238,0.14)',
+    },
+    cursor: {
+      soft: 'rgba(14,165,233,0.1)',
+      border: 'rgba(249,115,22,0.28)',
+      ink: '#0369a1',
+      shadow: 'rgba(14,165,233,0.16)',
+    },
+    midjourney: {
+      soft: 'rgba(240,24,122,0.1)',
+      border: 'rgba(240,24,122,0.28)',
+      ink: '#be185d',
+      shadow: 'rgba(240,24,122,0.15)',
+    },
+    runway: {
+      soft: 'rgba(124,60,255,0.1)',
+      border: 'rgba(124,60,255,0.28)',
+      ink: '#6d28d9',
+      shadow: 'rgba(124,60,255,0.15)',
+    },
+  }
+
+  return tones[serviceId] || {
+    soft: 'rgba(57,167,255,0.1)',
+    border: 'rgba(57,167,255,0.26)',
+    ink: '#2563eb',
+    shadow: 'rgba(57,167,255,0.14)',
+  }
+}
+
+function getServiceFrameStyle(serviceId: string, isSelected: boolean): CSSProperties {
+  const tone = getServiceTone(serviceId)
+  return {
+    borderColor: isSelected ? tone.border : 'rgba(255,255,255,0.84)',
+    background: `linear-gradient(135deg, ${tone.soft} 0%, rgba(255,255,255,0.97) 34%, rgba(255,255,255,0.99) 100%)`,
+    boxShadow: isSelected ? `0 22px 48px ${tone.shadow}` : undefined,
+  }
 }
 
 function AccountUnavailable() {
@@ -467,44 +537,51 @@ function AuthenticatedSubscriptionManager() {
         <div className="mt-5 space-y-3">
           {filteredCatalog.map((service) => {
             const isSelected = selectedService?.id === service.id
+            const tone = getServiceTone(service.id)
             return (
               <article
                 key={service.id}
-                className={`overflow-visible rounded-3xl border bg-white shadow-sm shadow-rose-900/5 transition ${
-                  isSelected ? 'border-white ring-2 ring-rose-200 shadow-xl shadow-rose-900/10' : 'border-white/80'
-                }`}
+                className="relative isolate max-w-full overflow-hidden rounded-[30px] border shadow-sm shadow-slate-900/5 transition hover:-translate-y-0.5"
+                style={getServiceFrameStyle(service.id, isSelected)}
               >
                 <button type="button" onClick={() => setSelectedServiceId(service.id)} className="block w-full text-left">
-                  <div className={`h-2 rounded-t-3xl bg-gradient-to-r ${service.accent}`} />
-                  <div className="grid gap-4 p-4 md:grid-cols-[220px_1fr_auto] md:items-center">
-                    <div className="flex items-center gap-3">
-                      <div className={`flex size-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br ${service.accent} text-xs font-black text-white`}>
+                  <div className={`absolute inset-y-0 left-0 w-2 bg-gradient-to-b ${service.accent}`} />
+                  <div className={`absolute right-0 top-0 h-16 w-32 rounded-bl-[42px] bg-gradient-to-br ${service.accent} opacity-10`} />
+                  <div className="flex max-w-full flex-col gap-4 p-4 pl-6 lg:flex-row lg:items-center">
+                    <div className="flex min-w-0 items-center gap-3 lg:w-[240px] lg:shrink-0">
+                      <div className={`flex size-12 shrink-0 items-center justify-center rounded-[18px] bg-gradient-to-br ${service.accent} text-xs font-black text-white shadow-md shadow-slate-900/10`}>
                         {service.mark}
                       </div>
-                      <div>
-                        <h3 className="text-lg font-black text-brand-text">{service.name}</h3>
-                        <span className="mt-1 inline-flex rounded-full bg-slate-100 px-2 py-1 text-[10px] font-black text-gray-500">
+                      <div className="min-w-0">
+                        <h3 className="truncate text-lg font-black text-brand-text">{service.name}</h3>
+                        <span
+                          className="mt-1 inline-flex rounded-full border px-2 py-1 text-[10px] font-black"
+                          style={{ borderColor: tone.border, color: tone.ink, backgroundColor: 'rgba(255,255,255,0.72)' }}
+                        >
                           {service.vibe}
                         </span>
                       </div>
                     </div>
-                    <div className="flex flex-wrap gap-1.5">
+                    <div className="flex min-w-0 flex-1 flex-wrap gap-1.5">
                       {service.categories.map((category) => (
-                        <span key={category} className="rounded-full bg-slate-50 px-2.5 py-1.5 text-[11px] font-black text-gray-500">
+                        <span
+                          key={category}
+                          className="rounded-full border border-white/70 bg-white/80 px-2.5 py-1.5 text-[11px] font-black text-gray-600 shadow-sm shadow-slate-900/5"
+                        >
                           {category}
                         </span>
                       ))}
                     </div>
                     <span className={`rounded-full px-4 py-2 text-center text-xs font-black text-white shadow-sm ${
                       isSelected ? `bg-gradient-to-r ${service.accent}` : 'bg-brand-text'
-                    }`}>
+                    } lg:ml-auto lg:shrink-0`}>
                       {isSelected ? 'プランを表示中' : 'プランを見る'}
                     </span>
                   </div>
                 </button>
 
                 {isSelected && (
-                  <div className="border-t border-slate-100 bg-slate-50/70 p-4">
+                  <div className="border-t border-white/80 bg-white/64 p-4 pl-6">
                     <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                       <p className="max-w-3xl text-sm font-bold leading-relaxed text-gray-600">{service.description}</p>
                       <a
@@ -525,10 +602,19 @@ function AuthenticatedSubscriptionManager() {
                             item.status !== 'cancelled',
                         )
                         return (
-                          <article key={plan.id} className="overflow-hidden rounded-2xl border border-white bg-white shadow-sm shadow-slate-900/5">
+                          <article
+                            key={plan.id}
+                            className="overflow-hidden rounded-2xl border bg-white shadow-sm shadow-slate-900/5"
+                            style={{
+                              borderColor: tone.border,
+                              background: `linear-gradient(180deg, ${tone.soft} 0%, rgba(255,255,255,0.98) 22%, #fff 100%)`,
+                            }}
+                          >
                             <div className={`h-1.5 bg-gradient-to-r ${service.accent}`} />
                             <div className="p-4">
-                              <p className="text-xs font-black uppercase tracking-[0.14em] text-rose-500">{service.name}</p>
+                              <p className="text-xs font-black uppercase tracking-[0.14em]" style={{ color: tone.ink }}>
+                                {service.name}
+                              </p>
                               <h4 className="mt-2 text-lg font-black text-brand-text">{plan.name}</h4>
                               <p className="mt-2 text-3xl font-black text-brand-text">{formatUsd(plan.monthlyCostUsd)}</p>
                               <p className="text-xs font-bold text-gray-400">
