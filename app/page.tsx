@@ -1,6 +1,5 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import AiModelCompareTool from '@/components/AiModelCompareTool'
 import SmoothHashLink from '@/components/SmoothHashLink'
 
 export const revalidate = 3600
@@ -11,15 +10,9 @@ export const metadata: Metadata = {
     'Aincarnは、AIモデルの公開ベンチマーク、料金、用途別の使いどころを整理し、どのAIに課金すべきかを判断しやすくする比較サイトです。',
 }
 
-const signals = [
-  ['Metric views', '賢さ、速度、価格効率を横並びで比較'],
-  ['Use-case lens', 'テキスト、画像、動画から用途を細分化'],
-  ['Live data', '公開データをもとにランキングを自動更新'],
-]
-
 const tools = [
   {
-    href: '#compare',
+    href: '/tools/ai-model-compare',
     label: 'AIモデル比較',
     body: '賢さ、速度、価格効率を横並びで見て、用途に合うAIを探します。',
     accent: 'from-[#f0187a] via-[#ff6b28] to-[#ffe431]',
@@ -38,6 +31,36 @@ const tools = [
     body: '契約中のAIサービス、更新日、月額換算コストをアカウントごとに保存します。',
     accent: 'from-[#15f5ba] via-[#39a7ff] to-[#7c3cff]',
     tag: 'Collection',
+  },
+]
+
+const toolStories = [
+  {
+    href: '/tools/ai-model-compare',
+    label: 'AIモデル比較',
+    eyebrow: 'Performance Lens',
+    title: 'モデルの強さを、用途ごとに眺める。',
+    body: '賢さ、速度、価格効率を並べ、文章、コード、リサーチ、画像、動画などの用途に合わせて見比べます。ランキングだけでなく、どの指標が自分の使い方に効くかを掴むための入口です。',
+    accent: 'from-[#f0187a] via-[#ff6b28] to-[#ffe431]',
+    metrics: ['Intelligence', 'Speed', 'Price'],
+  },
+  {
+    href: '/tools/ai-pricing',
+    label: 'AI料金比較',
+    eyebrow: 'Cost Simulator',
+    title: 'サブスクとAPI料金を、月額感覚に変換する。',
+    body: 'チャット型の月額プランと、API、画像生成、動画生成の従量課金は比較しづらいもの。利用量を入れて月額の目安に変換し、課金判断をしやすくします。',
+    accent: 'from-[#39a7ff] via-[#7c3cff] to-[#f0187a]',
+    metrics: ['Plan', 'API', 'Usage'],
+  },
+  {
+    href: '/tools/subscriptions',
+    label: 'AIサブスク管理',
+    eyebrow: 'Subscription Collection',
+    title: '契約中のAIを、カードで集めて管理する。',
+    body: 'ChatGPT、Claude、Gemini、Midjourneyなどのプランをコレクションとして保存。更新日、月額換算、ジャンル別コストを見ながら、増えがちなAIサブスクを整理できます。',
+    accent: 'from-[#15f5ba] via-[#39a7ff] to-[#7c3cff]',
+    metrics: ['Cards', 'Renewal', 'Total'],
   },
 ]
 
@@ -144,18 +167,6 @@ export default function HomePage() {
               </>
             )
 
-            if (tool.href.startsWith('#')) {
-              return (
-                <SmoothHashLink
-                  key={tool.href}
-                  href={tool.href}
-                  className="group rounded-[24px] border border-white/80 bg-white/88 p-5 shadow-sm shadow-rose-900/5 backdrop-blur transition hover:-translate-y-1 hover:bg-white hover:shadow-xl hover:shadow-rose-900/10"
-                >
-                  {content}
-                </SmoothHashLink>
-              )
-            }
-
             return (
               <Link
                 key={tool.href}
@@ -167,42 +178,58 @@ export default function HomePage() {
             )
           })}
         </div>
-        <div className="grid gap-3 md:grid-cols-3">
-          {signals.map(([title, body], index) => (
+      </section>
+
+      <section className="mx-auto max-w-6xl px-4 pb-16">
+        <div className="grid gap-5">
+          {toolStories.map((tool, index) => (
             <article
-              key={title}
-              className="rounded-2xl border border-white/75 bg-white/86 p-5 shadow-sm shadow-rose-900/5 backdrop-blur"
+              key={tool.href}
+              className="overflow-hidden rounded-[32px] border border-white/80 bg-white/88 shadow-xl shadow-rose-900/8 backdrop-blur"
             >
-              <div
-                className={`mb-4 h-1.5 w-16 rounded-full ${
-                  index === 0
-                    ? 'bg-gradient-to-r from-yellow-300 to-orange-400'
-                    : index === 1
-                      ? 'bg-gradient-to-r from-rose-500 to-fuchsia-500'
-                      : 'bg-gradient-to-r from-sky-400 to-cyan-300'
-                }`}
-              />
-              <p className="text-xs font-black uppercase tracking-[0.16em] text-[#d33472]">{title}</p>
-              <p className="mt-3 text-sm font-bold leading-relaxed text-gray-600">{body}</p>
+              <div className={`grid gap-0 lg:grid-cols-[1fr_420px] ${index % 2 === 1 ? 'lg:[&>*:first-child]:order-2' : ''}`}>
+                <div className="p-6 sm:p-8">
+                  <p className="text-xs font-black uppercase tracking-[0.2em] text-rose-500">{tool.eyebrow}</p>
+                  <h2 className="mt-3 max-w-2xl text-3xl font-black tracking-tight text-brand-text sm:text-4xl">{tool.title}</h2>
+                  <p className="mt-4 max-w-3xl text-sm font-bold leading-relaxed text-gray-600">{tool.body}</p>
+                  <Link
+                    href={tool.href}
+                    className="mt-6 inline-flex rounded-full bg-brand-text px-5 py-3 text-sm font-black text-white shadow-sm shadow-slate-900/10 transition hover:-translate-y-0.5 hover:bg-rose-500"
+                  >
+                    {tool.label}を開く
+                  </Link>
+                </div>
+                <div className={`relative min-h-[240px] bg-gradient-to-br ${tool.accent} p-6 text-white`}>
+                  <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/18 to-transparent" />
+                  <div className="relative grid h-full content-between gap-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="rounded-full border border-white/35 bg-white/16 px-3 py-1.5 text-xs font-black uppercase tracking-[0.16em] backdrop-blur">
+                        Aincarn
+                      </span>
+                      <span className="rounded-full bg-white px-3 py-1.5 text-xs font-black text-brand-text">{tool.label}</span>
+                    </div>
+                    <div className="grid gap-3">
+                      {tool.metrics.map((metric, metricIndex) => (
+                        <div key={metric} className="rounded-2xl border border-white/24 bg-white/16 p-3 backdrop-blur">
+                          <div className="flex items-center justify-between gap-3">
+                            <span className="text-xs font-black uppercase tracking-[0.14em] text-white/74">{metric}</span>
+                            <span className="text-sm font-black">{metricIndex === 0 ? 'High' : metricIndex === 1 ? 'Compare' : 'Track'}</span>
+                          </div>
+                          <div className="mt-3 h-2 overflow-hidden rounded-full bg-white/18">
+                            <div
+                              className="h-full rounded-full bg-white"
+                              style={{ width: `${86 - metricIndex * 18}%` }}
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
             </article>
           ))}
         </div>
-      </section>
-
-      <section id="compare" className="mx-auto max-w-6xl px-4 pb-16">
-        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="text-xs font-black uppercase tracking-[0.2em] text-rose-500">Model Compare</p>
-            <h2 className="mt-2 text-3xl font-black tracking-tight text-brand-text">AIモデル比較</h2>
-            <p className="mt-3 max-w-3xl text-sm font-bold leading-relaxed text-gray-500">
-              公開ベンチマーク、料金、速度、文脈長、用途別の強みを項目別に整理します。独自の実測データ、サブスク制限、UIの使い勝手も順次追加します。
-            </p>
-          </div>
-          <div className="rounded-2xl border border-white/75 bg-white/76 px-4 py-3 text-xs font-black text-gray-500 shadow-sm shadow-rose-900/5 backdrop-blur">
-            Live ranking / updated hourly
-          </div>
-        </div>
-        <AiModelCompareTool />
       </section>
     </>
   )
