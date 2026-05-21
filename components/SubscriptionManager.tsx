@@ -341,6 +341,94 @@ function AuthenticatedSubscriptionManager() {
       <section className="rounded-[28px] border border-white/80 bg-white/90 p-5 shadow-sm shadow-rose-900/5 backdrop-blur sm:p-6">
         <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
           <div>
+            <p className="text-xs font-black uppercase tracking-[0.2em] text-rose-500">My Collection</p>
+            <h2 className="mt-2 text-2xl font-black tracking-tight text-brand-text">契約中のAIサブスク</h2>
+            <p className="mt-2 text-sm font-bold text-gray-500">
+              いま持っているサブスクを先に確認できます。カードの色はサービスごとのアクセントに合わせています。
+            </p>
+          </div>
+          {loading && <span className="text-xs font-bold text-gray-400">読み込み中...</span>}
+        </div>
+
+        <div className="mt-5 grid gap-3 md:grid-cols-3">
+          {[
+            ['契約中', `${activeSubscriptions.length}件`],
+            ['月額合計', formatUsd(totalMonthly)],
+            ['年額目安', formatUsd(yearlyEstimate)],
+          ].map(([label, value]) => (
+            <article key={label} className="rounded-2xl border border-white/80 bg-white/88 p-4 shadow-sm shadow-rose-900/5 backdrop-blur">
+              <p className="text-xs font-black uppercase tracking-[0.14em] text-rose-500">{label}</p>
+              <p className="mt-2 text-xl font-black text-brand-text">{value}</p>
+            </article>
+          ))}
+        </div>
+
+        <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+          {subscriptions.length === 0 && (
+            <div className="rounded-2xl border border-dashed border-gray-200 bg-white/70 p-5 text-sm font-bold text-gray-500 md:col-span-2 xl:col-span-3">
+              まずは下のサービスカードから、契約中または気になるAIサブスクをコレクションに追加してください。
+            </div>
+          )}
+          {subscriptions.map((item) => (
+            <article
+              key={item.id}
+              className={`overflow-hidden rounded-3xl bg-gradient-to-br ${getAccentForSubscription(item, catalog)} p-[1px] shadow-lg shadow-rose-900/10`}
+            >
+              <div className="h-full rounded-[23px] bg-white/92 p-4 backdrop-blur">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h3 className="truncate text-base font-black text-brand-text">{item.serviceName}</h3>
+                      <span className="rounded-full bg-white px-2 py-1 text-[10px] font-black text-gray-500 shadow-sm">
+                        {statusOptions.find((status) => status.value === item.status)?.label || item.status}
+                      </span>
+                    </div>
+                    <p className="mt-1 text-xs font-bold text-gray-400">{item.planName || 'プラン未設定'}</p>
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {splitCategories(item.category).map((category) => (
+                        <span key={category} className="rounded-full bg-slate-50 px-2 py-1 text-[10px] font-black text-gray-500">
+                          {category}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="shrink-0 text-right">
+                    <p className="text-lg font-black text-brand-text">{formatUsd(item.monthlyCostUsd)}</p>
+                    <p className="text-xs font-bold text-gray-400">
+                      {billingCycleOptions.find((cycle) => cycle.value === item.billingCycle)?.label || item.billingCycle}
+                    </p>
+                  </div>
+                </div>
+                <p className="mt-3 text-xs font-bold text-gray-400">更新日 {formatDate(item.renewalDate)}</p>
+                {item.notes && <p className="mt-2 text-xs font-bold leading-relaxed text-gray-500">{item.notes}</p>}
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditingId(item.id)
+                      setForm(toInput(item))
+                    }}
+                    className="rounded-full border border-gray-200 bg-white px-3 py-2 text-xs font-black text-gray-500 transition hover:border-brand-text hover:text-brand-text"
+                  >
+                    編集
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => removeSubscription(item.id)}
+                    className="rounded-full border border-rose-200 bg-white px-3 py-2 text-xs font-black text-rose-500 transition hover:border-rose-500 hover:bg-rose-50"
+                  >
+                    削除
+                  </button>
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="rounded-[28px] border border-white/80 bg-white/90 p-5 shadow-sm shadow-rose-900/5 backdrop-blur sm:p-6">
+        <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+          <div>
             <p className="text-xs font-black uppercase tracking-[0.2em] text-rose-500">Choose Service</p>
             <h2 className="mt-2 text-2xl font-black tracking-tight text-brand-text">サービスを選んで、その場でプランを選択</h2>
             <p className="mt-2 text-sm font-bold text-gray-500">
@@ -582,19 +670,6 @@ function AuthenticatedSubscriptionManager() {
         </form>
 
         <div className="space-y-4">
-          <section className="grid gap-3 md:grid-cols-3">
-            {[
-              ['契約中', `${activeSubscriptions.length}件`],
-              ['月額合計', formatUsd(totalMonthly)],
-              ['年額目安', formatUsd(yearlyEstimate)],
-            ].map(([label, value]) => (
-              <article key={label} className="rounded-2xl border border-white/80 bg-white/88 p-4 shadow-sm shadow-rose-900/5 backdrop-blur">
-                <p className="text-xs font-black uppercase tracking-[0.14em] text-rose-500">{label}</p>
-                <p className="mt-2 text-xl font-black text-brand-text">{value}</p>
-              </article>
-            ))}
-          </section>
-
           <section className="rounded-[24px] border border-white/80 bg-white/90 p-5 shadow-sm shadow-rose-900/5 backdrop-blur">
             <h2 className="text-lg font-black text-brand-text">ジャンル別コスト</h2>
             <div className="mt-4 space-y-3">
@@ -612,72 +687,6 @@ function AuthenticatedSubscriptionManager() {
                     />
                   </div>
                 </div>
-              ))}
-            </div>
-          </section>
-
-          <section className="rounded-[24px] border border-white/80 bg-white/90 p-5 shadow-sm shadow-rose-900/5 backdrop-blur">
-            <div className="mb-4 flex items-center justify-between gap-3">
-              <h2 className="text-lg font-black text-brand-text">My Collection</h2>
-              {loading && <span className="text-xs font-bold text-gray-400">読み込み中...</span>}
-            </div>
-            <div className="grid gap-3 md:grid-cols-2">
-              {subscriptions.length === 0 && (
-                <div className="rounded-2xl border border-dashed border-gray-200 bg-white/70 p-5 text-sm font-bold text-gray-500 md:col-span-2">
-                  まずは上のサービスカードから、契約中または気になるAIサブスクをコレクションに追加してください。
-                </div>
-              )}
-              {subscriptions.map((item) => (
-                <article key={item.id} className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm shadow-slate-900/5">
-                  <div className={`h-2 bg-gradient-to-r ${getAccentForSubscription(item, catalog)}`} />
-                  <div className="p-4">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <h3 className="truncate text-base font-black text-brand-text">{item.serviceName}</h3>
-                          <span className="rounded-full bg-slate-100 px-2 py-1 text-[10px] font-black text-gray-500">
-                            {statusOptions.find((status) => status.value === item.status)?.label || item.status}
-                          </span>
-                        </div>
-                        <p className="mt-1 text-xs font-bold text-gray-400">{item.planName || 'プラン未設定'}</p>
-                        <div className="mt-2 flex flex-wrap gap-1.5">
-                          {splitCategories(item.category).map((category) => (
-                            <span key={category} className="rounded-full bg-slate-50 px-2 py-1 text-[10px] font-black text-gray-500">
-                              {category}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                      <div className="shrink-0 text-right">
-                        <p className="text-lg font-black text-brand-text">{formatUsd(item.monthlyCostUsd)}</p>
-                        <p className="text-xs font-bold text-gray-400">
-                          {billingCycleOptions.find((cycle) => cycle.value === item.billingCycle)?.label || item.billingCycle}
-                        </p>
-                      </div>
-                    </div>
-                    <p className="mt-3 text-xs font-bold text-gray-400">更新日 {formatDate(item.renewalDate)}</p>
-                    {item.notes && <p className="mt-2 text-xs font-bold leading-relaxed text-gray-500">{item.notes}</p>}
-                    <div className="mt-4 flex flex-wrap gap-2">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setEditingId(item.id)
-                          setForm(toInput(item))
-                        }}
-                        className="rounded-full border border-gray-200 bg-white px-3 py-2 text-xs font-black text-gray-500 transition hover:border-brand-text hover:text-brand-text"
-                      >
-                        編集
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => removeSubscription(item.id)}
-                        className="rounded-full border border-rose-200 bg-white px-3 py-2 text-xs font-black text-rose-500 transition hover:border-rose-500 hover:bg-rose-50"
-                      >
-                        削除
-                      </button>
-                    </div>
-                  </div>
-                </article>
               ))}
             </div>
           </section>

@@ -18,14 +18,14 @@ export default function Header() {
           />
           Aincarn
         </Link>
-        <nav className="flex items-center gap-2 text-xs font-black">
+        <nav className="hidden items-center gap-2 text-xs font-black sm:flex">
           <SmoothHashLink href="/#compare" className="rounded-full px-3 py-2 text-gray-500 transition hover:bg-white hover:text-brand-text hover:shadow-sm">
             比較ツール
           </SmoothHashLink>
-          <Link href="/tools/ai-pricing" className="hidden rounded-full px-3 py-2 text-gray-500 transition hover:bg-white hover:text-brand-text hover:shadow-sm sm:inline-flex">
+          <Link href="/tools/ai-pricing" className="rounded-full px-3 py-2 text-gray-500 transition hover:bg-white hover:text-brand-text hover:shadow-sm">
             料金比較
           </Link>
-          <Link href="/tools/subscriptions" className="hidden rounded-full px-3 py-2 text-gray-500 transition hover:bg-white hover:text-brand-text hover:shadow-sm md:inline-flex">
+          <Link href="/tools/subscriptions" className="rounded-full px-3 py-2 text-gray-500 transition hover:bg-white hover:text-brand-text hover:shadow-sm">
             サブスク
           </Link>
           <Link href="/about" className="rounded-full border border-brand-text bg-brand-text px-4 py-2 text-white shadow-sm shadow-slate-900/10 transition hover:-translate-y-0.5 hover:bg-white hover:text-brand-text">
@@ -33,7 +33,24 @@ export default function Header() {
           </Link>
           <AuthNav />
         </nav>
+        <div className="sm:hidden">
+          <AuthNav />
+        </div>
       </div>
+      <nav className="mx-auto flex max-w-6xl gap-2 overflow-x-auto px-4 pb-3 text-xs font-black sm:hidden">
+        <SmoothHashLink href="/#compare" className="shrink-0 rounded-full bg-white px-3 py-2 text-gray-600 shadow-sm shadow-rose-900/5">
+          比較ツール
+        </SmoothHashLink>
+        <Link href="/tools/ai-pricing" className="shrink-0 rounded-full bg-white px-3 py-2 text-gray-600 shadow-sm shadow-rose-900/5">
+          料金比較
+        </Link>
+        <Link href="/tools/subscriptions" className="shrink-0 rounded-full bg-brand-text px-3 py-2 text-white shadow-sm shadow-slate-900/10">
+          サブスク
+        </Link>
+        <Link href="/tools" className="shrink-0 rounded-full bg-white px-3 py-2 text-gray-600 shadow-sm shadow-rose-900/5">
+          Tools
+        </Link>
+      </nav>
     </header>
   )
 }
