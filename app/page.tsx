@@ -17,6 +17,30 @@ const signals = [
   ['Live data', '公開データをもとにランキングを自動更新'],
 ]
 
+const tools = [
+  {
+    href: '#compare',
+    label: 'AIモデル比較',
+    body: '賢さ、速度、価格効率を横並びで見て、用途に合うAIを探します。',
+    accent: 'from-[#f0187a] via-[#ff6b28] to-[#ffe431]',
+    tag: 'Model',
+  },
+  {
+    href: '/tools/ai-pricing',
+    label: 'AI料金比較',
+    body: 'サブスク料金とAPI利用料を分けて、月額の目安を比較します。',
+    accent: 'from-[#39a7ff] via-[#7c3cff] to-[#f0187a]',
+    tag: 'Price',
+  },
+  {
+    href: '/tools/subscriptions',
+    label: 'AIサブスク管理',
+    body: '契約中のAIサービス、更新日、月額換算コストをアカウントごとに保存します。',
+    accent: 'from-[#15f5ba] via-[#39a7ff] to-[#7c3cff]',
+    tag: 'Collection',
+  },
+]
+
 export default function HomePage() {
   return (
     <>
@@ -41,10 +65,10 @@ export default function HomePage() {
             </p>
             <div className="relative mt-8 flex flex-wrap gap-3">
               <SmoothHashLink
-                href="#compare"
+                href="#tools"
                 className="rounded-full bg-white px-5 py-3 text-sm font-black text-brand-text shadow-2xl shadow-rose-600/20 transition hover:-translate-y-0.5 hover:bg-yellow-50"
               >
-                比較ツールを見る
+                ツールを選ぶ
               </SmoothHashLink>
               <Link
                 href="/about"
@@ -97,6 +121,52 @@ export default function HomePage() {
       </section>
 
       <section className="mx-auto max-w-6xl px-4 pb-10">
+        <div id="tools" className="mb-6 scroll-mt-28">
+          <p className="text-xs font-black uppercase tracking-[0.2em] text-rose-500">Choose Tool</p>
+          <h2 className="mt-2 text-3xl font-black tracking-tight text-brand-text">何を比較しますか？</h2>
+          <p className="mt-3 max-w-3xl text-sm font-bold leading-relaxed text-gray-500">
+            Aincarnのトップページから、モデル性能、料金、サブスク管理へそのまま移動できます。
+          </p>
+        </div>
+        <div className="mb-8 grid gap-4 md:grid-cols-3">
+          {tools.map((tool) => {
+            const content = (
+              <>
+                <div className={`mb-5 h-2 w-24 rounded-full bg-gradient-to-r ${tool.accent}`} />
+                <span className="rounded-full bg-slate-100 px-3 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-gray-500">
+                  {tool.tag}
+                </span>
+                <h3 className="mt-4 text-xl font-black text-brand-text">{tool.label}</h3>
+                <p className="mt-3 text-sm font-bold leading-relaxed text-gray-500">{tool.body}</p>
+                <span className="mt-6 inline-flex rounded-full bg-brand-text px-4 py-2 text-xs font-black text-white transition group-hover:bg-rose-500">
+                  開く
+                </span>
+              </>
+            )
+
+            if (tool.href.startsWith('#')) {
+              return (
+                <SmoothHashLink
+                  key={tool.href}
+                  href={tool.href}
+                  className="group rounded-[24px] border border-white/80 bg-white/88 p-5 shadow-sm shadow-rose-900/5 backdrop-blur transition hover:-translate-y-1 hover:bg-white hover:shadow-xl hover:shadow-rose-900/10"
+                >
+                  {content}
+                </SmoothHashLink>
+              )
+            }
+
+            return (
+              <Link
+                key={tool.href}
+                href={tool.href}
+                className="group rounded-[24px] border border-white/80 bg-white/88 p-5 shadow-sm shadow-rose-900/5 backdrop-blur transition hover:-translate-y-1 hover:bg-white hover:shadow-xl hover:shadow-rose-900/10"
+              >
+                {content}
+              </Link>
+            )
+          })}
+        </div>
         <div className="grid gap-3 md:grid-cols-3">
           {signals.map(([title, body], index) => (
             <article
