@@ -95,65 +95,72 @@ function planToInput(service: SubscriptionCatalogService, plan: SubscriptionCata
   }
 }
 
-function getAccentForSubscription(subscription: SavedSubscription, catalog: SubscriptionCatalogService[]) {
-  const service = catalog.find((item) => item.name.toLowerCase() === subscription.serviceName.toLowerCase())
-  return service?.accent || 'from-[#f0187a] via-[#ff6b28] to-[#ffe431]'
+function getCatalogServiceForSubscription(subscription: SavedSubscription, catalog: SubscriptionCatalogService[]) {
+  return catalog.find((item) => item.name.toLowerCase() === subscription.serviceName.toLowerCase())
 }
 
 function getCollectionMark(subscription: SavedSubscription, catalog: SubscriptionCatalogService[]) {
-  const service = catalog.find((item) => item.name.toLowerCase() === subscription.serviceName.toLowerCase())
+  const service = getCatalogServiceForSubscription(subscription, catalog)
   return service?.mark || subscription.serviceName.slice(0, 2).toUpperCase()
 }
 
 function getServiceTone(serviceId: string) {
-  const tones: Record<string, { soft: string; border: string; ink: string; shadow: string }> = {
+  const tones: Record<string, { soft: string; border: string; ink: string; shadow: string; gradient: string }> = {
     chatgpt: {
       soft: 'rgba(21,245,186,0.12)',
       border: 'rgba(21,245,186,0.34)',
       ink: '#0f766e',
       shadow: 'rgba(21,245,186,0.18)',
+      gradient: 'linear-gradient(135deg, #15f5ba 0%, #39a7ff 48%, #7c3cff 100%)',
     },
     claude: {
       soft: 'rgba(255,154,60,0.13)',
       border: 'rgba(255,95,109,0.34)',
       ink: '#c2410c',
       shadow: 'rgba(255,95,109,0.18)',
+      gradient: 'linear-gradient(135deg, #ff9a3c 0%, #ff5f6d 48%, #8f3cff 100%)',
     },
     gemini: {
       soft: 'rgba(48,213,255,0.13)',
       border: 'rgba(123,97,255,0.32)',
       ink: '#2563eb',
       shadow: 'rgba(123,97,255,0.18)',
+      gradient: 'linear-gradient(135deg, #30d5ff 0%, #7b61ff 48%, #ff4ecd 100%)',
     },
     perplexity: {
       soft: 'rgba(0,229,255,0.13)',
       border: 'rgba(0,196,140,0.34)',
       ink: '#047857',
       shadow: 'rgba(0,196,140,0.18)',
+      gradient: 'linear-gradient(135deg, #00e5ff 0%, #00c48c 48%, #7dff6a 100%)',
     },
     'github-copilot': {
       soft: 'rgba(109,40,217,0.1)',
       border: 'rgba(34,211,238,0.3)',
       ink: '#4338ca',
       shadow: 'rgba(34,211,238,0.14)',
+      gradient: 'linear-gradient(135deg, #1f2937 0%, #6d28d9 48%, #22d3ee 100%)',
     },
     cursor: {
       soft: 'rgba(14,165,233,0.1)',
       border: 'rgba(249,115,22,0.28)',
       ink: '#0369a1',
       shadow: 'rgba(14,165,233,0.16)',
+      gradient: 'linear-gradient(135deg, #111827 0%, #0ea5e9 48%, #f97316 100%)',
     },
     midjourney: {
       soft: 'rgba(240,24,122,0.1)',
       border: 'rgba(240,24,122,0.28)',
       ink: '#be185d',
       shadow: 'rgba(240,24,122,0.15)',
+      gradient: 'linear-gradient(135deg, #f0187a 0%, #ff6b28 48%, #ffe431 100%)',
     },
     runway: {
       soft: 'rgba(124,60,255,0.1)',
       border: 'rgba(124,60,255,0.28)',
       ink: '#6d28d9',
       shadow: 'rgba(124,60,255,0.15)',
+      gradient: 'linear-gradient(135deg, #7c3cff 0%, #39a7ff 48%, #15f5ba 100%)',
     },
   }
 
@@ -162,6 +169,7 @@ function getServiceTone(serviceId: string) {
     border: 'rgba(57,167,255,0.26)',
     ink: '#2563eb',
     shadow: 'rgba(57,167,255,0.14)',
+    gradient: 'linear-gradient(135deg, #39a7ff 0%, #7c3cff 52%, #f0187a 100%)',
   }
 }
 
@@ -444,16 +452,24 @@ function AuthenticatedSubscriptionManager() {
               まずは下のサービスカードから、契約中または気になるAIサブスクをコレクションに追加してください。
             </div>
           )}
-          {subscriptions.map((item) => (
+          {subscriptions.map((item) => {
+            const service = getCatalogServiceForSubscription(item, catalog)
+            const tone = getServiceTone(service?.id || item.serviceName.toLowerCase())
+            return (
             <article
               key={item.id}
-              className="group overflow-hidden rounded-3xl border border-white/80 bg-white shadow-lg shadow-rose-900/8 transition hover:-translate-y-0.5 hover:shadow-xl"
+              className="group relative isolate overflow-hidden rounded-3xl border p-4 pl-5 shadow-lg shadow-slate-900/8 transition hover:-translate-y-0.5 hover:shadow-xl"
+              style={getServiceFrameStyle(service?.id || item.serviceName.toLowerCase(), false)}
             >
-              <div className={`h-2 bg-gradient-to-r ${getAccentForSubscription(item, catalog)}`} />
-              <div className="h-full p-4">
+              <div className="absolute inset-y-0 left-0 w-1.5" style={{ background: tone.gradient }} />
+              <div className="absolute right-0 top-0 h-14 w-24 rounded-bl-[34px] opacity-10" style={{ background: tone.gradient }} />
+              <div className="h-full">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex min-w-0 items-start gap-3">
-                    <div className={`flex size-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br ${getAccentForSubscription(item, catalog)} text-xs font-black text-white shadow-md shadow-slate-900/10`}>
+                    <div
+                      className="flex size-12 shrink-0 items-center justify-center rounded-[18px] text-xs font-black text-white shadow-md shadow-slate-900/10"
+                      style={{ background: tone.gradient }}
+                    >
                       {getCollectionMark(item, catalog)}
                     </div>
                     <div className="min-w-0">
@@ -466,7 +482,11 @@ function AuthenticatedSubscriptionManager() {
                       <p className="mt-1 text-xs font-bold text-gray-400">{item.planName || 'プラン未設定'}</p>
                       <div className="mt-2 flex flex-wrap gap-1.5">
                         {splitCategories(item.category).map((category) => (
-                          <span key={category} className="rounded-full bg-slate-50 px-2 py-1 text-[10px] font-black text-gray-500">
+                          <span
+                            key={category}
+                            className="rounded-full border bg-white/80 px-2 py-1 text-[10px] font-black text-gray-600"
+                            style={{ borderColor: tone.border }}
+                          >
                             {category}
                           </span>
                         ))}
@@ -503,7 +523,8 @@ function AuthenticatedSubscriptionManager() {
                 </div>
               </div>
             </article>
-          ))}
+            )
+          })}
         </div>
       </section>
 
@@ -545,11 +566,14 @@ function AuthenticatedSubscriptionManager() {
                 style={getServiceFrameStyle(service.id, isSelected)}
               >
                 <button type="button" onClick={() => setSelectedServiceId(service.id)} className="block w-full text-left">
-                  <div className={`absolute inset-y-0 left-0 w-2 bg-gradient-to-b ${service.accent}`} />
-                  <div className={`absolute right-0 top-0 h-16 w-32 rounded-bl-[42px] bg-gradient-to-br ${service.accent} opacity-10`} />
+                  <div className="absolute inset-y-0 left-0 w-2" style={{ background: tone.gradient }} />
+                  <div className="absolute right-0 top-0 h-16 w-32 rounded-bl-[42px] opacity-10" style={{ background: tone.gradient }} />
                   <div className="flex max-w-full flex-col gap-4 p-4 pl-6 lg:flex-row lg:items-center">
                     <div className="flex min-w-0 items-center gap-3 lg:w-[240px] lg:shrink-0">
-                      <div className={`flex size-12 shrink-0 items-center justify-center rounded-[18px] bg-gradient-to-br ${service.accent} text-xs font-black text-white shadow-md shadow-slate-900/10`}>
+                      <div
+                        className="flex size-12 shrink-0 items-center justify-center rounded-[18px] text-xs font-black text-white shadow-md shadow-slate-900/10"
+                        style={{ background: tone.gradient }}
+                      >
                         {service.mark}
                       </div>
                       <div className="min-w-0">
@@ -572,9 +596,10 @@ function AuthenticatedSubscriptionManager() {
                         </span>
                       ))}
                     </div>
-                    <span className={`rounded-full px-4 py-2 text-center text-xs font-black text-white shadow-sm ${
-                      isSelected ? `bg-gradient-to-r ${service.accent}` : 'bg-brand-text'
-                    } lg:ml-auto lg:shrink-0`}>
+                    <span
+                      className="rounded-full px-4 py-2 text-center text-xs font-black text-white shadow-sm lg:ml-auto lg:shrink-0"
+                      style={{ background: isSelected ? tone.gradient : '#191724' }}
+                    >
                       {isSelected ? 'プランを表示中' : 'プランを見る'}
                     </span>
                   </div>
@@ -610,7 +635,7 @@ function AuthenticatedSubscriptionManager() {
                               background: `linear-gradient(180deg, ${tone.soft} 0%, rgba(255,255,255,0.98) 22%, #fff 100%)`,
                             }}
                           >
-                            <div className={`h-1.5 bg-gradient-to-r ${service.accent}`} />
+                            <div className="h-1.5" style={{ background: tone.gradient }} />
                             <div className="p-4">
                               <p className="text-xs font-black uppercase tracking-[0.14em]" style={{ color: tone.ink }}>
                                 {service.name}
