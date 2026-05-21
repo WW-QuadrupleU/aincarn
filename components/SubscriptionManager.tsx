@@ -99,6 +99,11 @@ function getAccentForSubscription(subscription: SavedSubscription, catalog: Subs
   return service?.accent || 'from-[#f0187a] via-[#ff6b28] to-[#ffe431]'
 }
 
+function getCollectionMark(subscription: SavedSubscription, catalog: SubscriptionCatalogService[]) {
+  const service = catalog.find((item) => item.name.toLowerCase() === subscription.serviceName.toLowerCase())
+  return service?.mark || subscription.serviceName.slice(0, 2).toUpperCase()
+}
+
 function AccountUnavailable() {
   return (
     <section className="overflow-hidden rounded-[28px] border border-white/80 bg-white/90 shadow-sm shadow-rose-900/5 backdrop-blur">
@@ -352,13 +357,13 @@ function AuthenticatedSubscriptionManager() {
 
         <div className="mt-5 grid gap-3 md:grid-cols-3">
           {[
-            ['契約中', `${activeSubscriptions.length}件`],
-            ['月額合計', formatUsd(totalMonthly)],
-            ['年額目安', formatUsd(yearlyEstimate)],
-          ].map(([label, value]) => (
-            <article key={label} className="rounded-2xl border border-white/80 bg-white/88 p-4 shadow-sm shadow-rose-900/5 backdrop-blur">
-              <p className="text-xs font-black uppercase tracking-[0.14em] text-rose-500">{label}</p>
-              <p className="mt-2 text-xl font-black text-brand-text">{value}</p>
+            ['契約中', `${activeSubscriptions.length}件`, 'from-[#111827] to-[#334155]'],
+            ['月額合計', formatUsd(totalMonthly), 'from-[#00d5ff] to-[#7c3cff]'],
+            ['年額目安', formatUsd(yearlyEstimate), 'from-[#f0187a] to-[#ff8a00]'],
+          ].map(([label, value, accent]) => (
+            <article key={label} className={`rounded-2xl bg-gradient-to-br ${accent} p-4 text-white shadow-lg shadow-slate-900/10`}>
+              <p className="text-xs font-black uppercase tracking-[0.14em] text-white/70">{label}</p>
+              <p className="mt-2 text-xl font-black">{value}</p>
             </article>
           ))}
         </div>
@@ -372,24 +377,30 @@ function AuthenticatedSubscriptionManager() {
           {subscriptions.map((item) => (
             <article
               key={item.id}
-              className={`overflow-hidden rounded-3xl bg-gradient-to-br ${getAccentForSubscription(item, catalog)} p-[1px] shadow-lg shadow-rose-900/10`}
+              className="group overflow-hidden rounded-3xl border border-white/80 bg-white shadow-lg shadow-rose-900/8 transition hover:-translate-y-0.5 hover:shadow-xl"
             >
-              <div className="h-full rounded-[23px] bg-white/92 p-4 backdrop-blur">
+              <div className={`h-2 bg-gradient-to-r ${getAccentForSubscription(item, catalog)}`} />
+              <div className="h-full p-4">
                 <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <h3 className="truncate text-base font-black text-brand-text">{item.serviceName}</h3>
-                      <span className="rounded-full bg-white px-2 py-1 text-[10px] font-black text-gray-500 shadow-sm">
-                        {statusOptions.find((status) => status.value === item.status)?.label || item.status}
-                      </span>
+                  <div className="flex min-w-0 items-start gap-3">
+                    <div className={`flex size-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br ${getAccentForSubscription(item, catalog)} text-xs font-black text-white shadow-md shadow-slate-900/10`}>
+                      {getCollectionMark(item, catalog)}
                     </div>
-                    <p className="mt-1 text-xs font-bold text-gray-400">{item.planName || 'プラン未設定'}</p>
-                    <div className="mt-2 flex flex-wrap gap-1.5">
-                      {splitCategories(item.category).map((category) => (
-                        <span key={category} className="rounded-full bg-slate-50 px-2 py-1 text-[10px] font-black text-gray-500">
-                          {category}
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h3 className="truncate text-base font-black text-brand-text">{item.serviceName}</h3>
+                        <span className="rounded-full bg-slate-100 px-2 py-1 text-[10px] font-black text-gray-500">
+                          {statusOptions.find((status) => status.value === item.status)?.label || item.status}
                         </span>
-                      ))}
+                      </div>
+                      <p className="mt-1 text-xs font-bold text-gray-400">{item.planName || 'プラン未設定'}</p>
+                      <div className="mt-2 flex flex-wrap gap-1.5">
+                        {splitCategories(item.category).map((category) => (
+                          <span key={category} className="rounded-full bg-slate-50 px-2 py-1 text-[10px] font-black text-gray-500">
+                            {category}
+                          </span>
+                        ))}
+                      </div>
                     </div>
                   </div>
                   <div className="shrink-0 text-right">
@@ -432,11 +443,11 @@ function AuthenticatedSubscriptionManager() {
             <p className="text-xs font-black uppercase tracking-[0.2em] text-rose-500">Choose Service</p>
             <h2 className="mt-2 text-2xl font-black tracking-tight text-brand-text">サービスを選んで、その場でプランを選択</h2>
             <p className="mt-2 text-sm font-bold text-gray-500">
-              料金は公式ページをもとにした目安です。外部カタログURLを設定すると、デプロイなしで最新プランに差し替えられます。
+              料金は公式ページをもとにした目安です。プラン情報はカタログ更新にあわせて差し替えます。
               {catalogLoading && ' 最新カタログを確認中...'}
             </p>
           </div>
-          <div className="flex gap-2 overflow-x-auto pb-1">
+          <div className="flex flex-wrap gap-2">
             {[allFilter, ...categoryOptions].map((category) => (
               <button
                 key={category}
@@ -460,7 +471,7 @@ function AuthenticatedSubscriptionManager() {
               <article
                 key={service.id}
                 className={`overflow-visible rounded-3xl border bg-white shadow-sm shadow-rose-900/5 transition ${
-                  isSelected ? 'border-brand-text shadow-lg shadow-rose-900/10' : 'border-white/80'
+                  isSelected ? 'border-white ring-2 ring-rose-200 shadow-xl shadow-rose-900/10' : 'border-white/80'
                 }`}
               >
                 <button type="button" onClick={() => setSelectedServiceId(service.id)} className="block w-full text-left">
@@ -484,14 +495,16 @@ function AuthenticatedSubscriptionManager() {
                         </span>
                       ))}
                     </div>
-                    <span className="rounded-full bg-brand-text px-4 py-2 text-center text-xs font-black text-white">
+                    <span className={`rounded-full px-4 py-2 text-center text-xs font-black text-white shadow-sm ${
+                      isSelected ? `bg-gradient-to-r ${service.accent}` : 'bg-brand-text'
+                    }`}>
                       {isSelected ? 'プランを表示中' : 'プランを見る'}
                     </span>
                   </div>
                 </button>
 
                 {isSelected && (
-                  <div className="border-t border-gray-100 bg-white/92 p-4">
+                  <div className="border-t border-slate-100 bg-slate-50/70 p-4">
                     <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                       <p className="max-w-3xl text-sm font-bold leading-relaxed text-gray-600">{service.description}</p>
                       <a
@@ -512,30 +525,33 @@ function AuthenticatedSubscriptionManager() {
                             item.status !== 'cancelled',
                         )
                         return (
-                          <article key={plan.id} className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm shadow-slate-900/5">
-                            <p className="text-xs font-black uppercase tracking-[0.14em] text-rose-500">{service.name}</p>
-                            <h4 className="mt-2 text-lg font-black text-brand-text">{plan.name}</h4>
-                            <p className="mt-2 text-3xl font-black text-brand-text">{formatUsd(plan.monthlyCostUsd)}</p>
-                            <p className="text-xs font-bold text-gray-400">
-                              {billingCycleOptions.find((cycle) => cycle.value === plan.billingCycle)?.label || plan.billingCycle}
-                            </p>
-                            <p className="mt-3 min-h-[54px] text-xs font-bold leading-relaxed text-gray-500">{plan.summary}</p>
-                            <div className="mt-4 flex flex-wrap gap-2">
-                              <button
-                                type="button"
-                                disabled={saving || exists}
-                                onClick={() => addPlan(service, plan)}
-                                className="rounded-full bg-brand-text px-4 py-2.5 text-xs font-black text-white transition hover:-translate-y-0.5 hover:bg-gray-700 disabled:cursor-not-allowed disabled:bg-gray-300"
-                              >
-                                {exists ? '登録済み' : 'そのまま追加'}
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => choosePlan(service, plan)}
-                                className="rounded-full border border-gray-200 bg-white px-4 py-2.5 text-xs font-black text-gray-500 transition hover:border-brand-text hover:text-brand-text"
-                              >
-                                編集して追加
-                              </button>
+                          <article key={plan.id} className="overflow-hidden rounded-2xl border border-white bg-white shadow-sm shadow-slate-900/5">
+                            <div className={`h-1.5 bg-gradient-to-r ${service.accent}`} />
+                            <div className="p-4">
+                              <p className="text-xs font-black uppercase tracking-[0.14em] text-rose-500">{service.name}</p>
+                              <h4 className="mt-2 text-lg font-black text-brand-text">{plan.name}</h4>
+                              <p className="mt-2 text-3xl font-black text-brand-text">{formatUsd(plan.monthlyCostUsd)}</p>
+                              <p className="text-xs font-bold text-gray-400">
+                                {billingCycleOptions.find((cycle) => cycle.value === plan.billingCycle)?.label || plan.billingCycle}
+                              </p>
+                              <p className="mt-3 min-h-[54px] text-xs font-bold leading-relaxed text-gray-500">{plan.summary}</p>
+                              <div className="mt-4 flex flex-wrap gap-2">
+                                <button
+                                  type="button"
+                                  disabled={saving || exists}
+                                  onClick={() => addPlan(service, plan)}
+                                  className="rounded-full bg-brand-text px-4 py-2.5 text-xs font-black text-white transition hover:-translate-y-0.5 hover:bg-gray-700 disabled:cursor-not-allowed disabled:bg-gray-300"
+                                >
+                                  {exists ? '登録済み' : 'そのまま追加'}
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => choosePlan(service, plan)}
+                                  className="rounded-full border border-gray-200 bg-white px-4 py-2.5 text-xs font-black text-gray-500 transition hover:border-brand-text hover:text-brand-text"
+                                >
+                                  編集して追加
+                                </button>
+                              </div>
                             </div>
                           </article>
                         )
