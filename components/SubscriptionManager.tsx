@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { SignInButton, UserButton, useUser } from '@clerk/nextjs'
 import { useEffect, useMemo, useState } from 'react'
@@ -184,8 +184,8 @@ function getServiceFrameStyle(serviceId: string, isSelected: boolean): CSSProper
 
 function AccountUnavailable() {
   return (
-    <section className="overflow-hidden rounded-[28px] border border-white/80 bg-white/90 shadow-sm shadow-rose-900/5 backdrop-blur">
-      <div className="bg-gradient-to-br from-[#f0187a] via-[#ff6b28] to-[#ffe431] p-6 text-white">
+    <section className="overflow-hidden rounded-[28px] border border-white/80 bg-white/90 shadow-sm shadow-slate-950/5 backdrop-blur">
+      <div className="bg-slate-950 p-6 text-white">
         <p className="text-xs font-black uppercase tracking-[0.2em] text-white/75">Subscription Collection</p>
         <h1 className="mt-2 text-3xl font-black tracking-tight">AIサブスク管理</h1>
         <p className="mt-3 max-w-2xl text-sm font-bold leading-relaxed text-white/80">
@@ -198,11 +198,11 @@ function AccountUnavailable() {
 
 function SignInPrompt() {
   return (
-    <section className="overflow-hidden rounded-[32px] border border-white/80 bg-white/92 shadow-xl shadow-rose-900/10 backdrop-blur">
+    <section className="overflow-hidden rounded-[32px] border border-white/80 bg-white/92 shadow-xl shadow-slate-950/10 backdrop-blur">
       <div className="grid gap-0 lg:grid-cols-[1fr_380px]">
         <div className="p-6 sm:p-8">
-          <p className="text-xs font-black uppercase tracking-[0.2em] text-rose-500">Subscription Collection</p>
-          <h1 className="mt-3 max-w-2xl text-4xl font-black tracking-tight text-brand-text sm:text-5xl">
+          <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">Subscription Collection</p>
+          <h1 className="mt-3 max-w-2xl text-4xl font-black tracking-tight text-slate-950 sm:text-5xl">
             AIサブスクを選んで、集めて、育てる。
           </h1>
           <p className="mt-4 max-w-2xl text-sm font-bold leading-relaxed text-gray-600">
@@ -212,17 +212,17 @@ function SignInPrompt() {
           <SignInButton mode="modal">
             <button
               type="button"
-              className="mt-6 rounded-full bg-brand-text px-6 py-3 text-sm font-black text-white shadow-lg shadow-slate-900/15 transition hover:-translate-y-0.5 hover:bg-gray-700"
+              className="mt-6 rounded-full bg-slate-950 px-6 py-3 text-sm font-black text-white shadow-lg shadow-slate-950/15 transition hover:-translate-y-0.5 hover:bg-slate-800"
             >
               ログインしてコレクションを作る
             </button>
           </SignInButton>
         </div>
-        <div className="min-h-[300px] bg-[linear-gradient(135deg,#f0187a_0%,#ff6b28_38%,#ffe431_70%,#39a7ff_100%)] p-6">
+        <div className="min-h-[300px] bg-slate-950 p-6">
           <div className="grid grid-cols-2 gap-3">
             {defaultSubscriptionCatalog.slice(0, 6).map((service) => (
               <div key={service.id} className="rounded-2xl border border-white/45 bg-white/18 p-3 text-white shadow-lg shadow-black/10 backdrop-blur">
-                <div className="flex size-10 items-center justify-center rounded-xl bg-white text-xs font-black text-brand-text">{service.mark}</div>
+                <div className="flex size-10 items-center justify-center rounded-xl bg-white text-xs font-black text-slate-950">{service.mark}</div>
                 <p className="mt-3 text-sm font-black">{service.name}</p>
                 <p className="text-xs font-bold text-white/75">{service.categories.slice(0, 2).join(' / ')}</p>
               </div>
@@ -390,16 +390,16 @@ function AuthenticatedSubscriptionManager() {
 
   return (
     <div className="space-y-6">
-      <section className="overflow-hidden rounded-[32px] border border-white/80 bg-white/92 shadow-xl shadow-rose-900/10 backdrop-blur">
+      <section className="overflow-hidden rounded-[32px] border border-white/80 bg-white/92 shadow-xl shadow-slate-950/10 backdrop-blur">
         <div className="grid gap-0 lg:grid-cols-[1fr_340px]">
           <div className="p-5 sm:p-7">
             <div className="flex flex-wrap items-center gap-3">
-              <p className="rounded-full bg-rose-50 px-3 py-1.5 text-xs font-black uppercase tracking-[0.18em] text-rose-500">
+              <p className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-black uppercase tracking-[0.18em] text-slate-500">
                 Subscription Collection
               </p>
               <UserButton />
             </div>
-            <h1 className="mt-4 max-w-3xl text-4xl font-black tracking-tight text-brand-text sm:text-5xl">
+            <h1 className="mt-4 max-w-3xl text-4xl font-black tracking-tight text-slate-950 sm:text-5xl">
               AIサブスクを、カードで集める。
             </h1>
             <p className="mt-4 max-w-3xl text-sm font-bold leading-relaxed text-gray-600">
@@ -407,7 +407,7 @@ function AuthenticatedSubscriptionManager() {
               サービスを選んでからプランを選択でき、画像と動画など複数ジャンルのサービスもそのままタグ化します。
             </p>
           </div>
-          <div className="bg-[linear-gradient(135deg,#f0187a_0%,#ff6b28_40%,#ffe431_72%,#39a7ff_100%)] p-5 text-white sm:p-6">
+          <div className="bg-slate-950 p-5 text-white sm:p-6">
             <p className="text-xs font-black uppercase tracking-[0.18em] text-white/75">Monthly total</p>
             <p className="mt-3 text-4xl font-black">{formatUsd(totalMonthly)}</p>
             <p className="mt-2 text-sm font-bold text-white/82">年換算目安 {formatUsd(yearlyEstimate)}</p>
@@ -421,11 +421,11 @@ function AuthenticatedSubscriptionManager() {
         </div>
       </section>
 
-      <section className="rounded-[28px] border border-white/80 bg-white/90 p-5 shadow-sm shadow-rose-900/5 backdrop-blur sm:p-6">
+      <section className="rounded-[28px] border border-white/80 bg-white/90 p-5 shadow-sm shadow-slate-950/5 backdrop-blur sm:p-6">
         <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.2em] text-rose-500">My Collection</p>
-            <h2 className="mt-2 text-2xl font-black tracking-tight text-brand-text">契約中のAIサブスク</h2>
+            <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">My Collection</p>
+            <h2 className="mt-2 text-2xl font-black tracking-tight text-slate-950">契約中のAIサブスク</h2>
             <p className="mt-2 text-sm font-bold text-gray-500">
               いま持っているサブスクを先に確認できます。カードの色はサービスごとのアクセントに合わせています。
             </p>
@@ -436,8 +436,8 @@ function AuthenticatedSubscriptionManager() {
         <div className="mt-5 grid gap-3 md:grid-cols-3">
           {[
             ['契約中', `${activeSubscriptions.length}件`, 'from-[#111827] to-[#334155]'],
-            ['月額合計', formatUsd(totalMonthly), 'from-[#00d5ff] to-[#7c3cff]'],
-            ['年額目安', formatUsd(yearlyEstimate), 'from-[#f0187a] to-[#ff8a00]'],
+            ['月額合計', formatUsd(totalMonthly), 'from-[#334155] to-[#64748b]'],
+            ['年額目安', formatUsd(yearlyEstimate), 'from-[#475569] to-[#94a3b8]'],
           ].map(([label, value, accent]) => (
             <article key={label} className={`rounded-2xl bg-gradient-to-br ${accent} p-4 text-white shadow-lg shadow-slate-900/10`}>
               <p className="text-xs font-black uppercase tracking-[0.14em] text-white/70">{label}</p>
@@ -516,7 +516,7 @@ function AuthenticatedSubscriptionManager() {
                   <button
                     type="button"
                     onClick={() => removeSubscription(item.id)}
-                    className="rounded-full border border-rose-200 bg-white px-3 py-2 text-xs font-black text-rose-500 transition hover:border-rose-500 hover:bg-rose-50"
+                    className="rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-black text-slate-400 transition hover:border-slate-400 hover:bg-slate-50"
                   >
                     削除
                   </button>
@@ -528,11 +528,11 @@ function AuthenticatedSubscriptionManager() {
         </div>
       </section>
 
-      <section className="rounded-[28px] border border-white/80 bg-white/90 p-5 shadow-sm shadow-rose-900/5 backdrop-blur sm:p-6">
+      <section className="rounded-[28px] border border-white/80 bg-white/90 p-5 shadow-sm shadow-slate-950/5 backdrop-blur sm:p-6">
         <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.2em] text-rose-500">Choose Service</p>
-            <h2 className="mt-2 text-2xl font-black tracking-tight text-brand-text">サービスを選んで、その場でプランを選択</h2>
+            <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">Choose Service</p>
+            <h2 className="mt-2 text-2xl font-black tracking-tight text-slate-950">サービスを選んで、その場でプランを選択</h2>
             <p className="mt-2 text-sm font-bold text-gray-500">
               料金は公式ページをもとにした目安です。プラン情報はカタログ更新にあわせて差し替えます。
               {catalogLoading && ' 最新カタログを確認中...'}
@@ -546,8 +546,8 @@ function AuthenticatedSubscriptionManager() {
                 onClick={() => setServiceFilter(category)}
                 className={`shrink-0 rounded-full px-3 py-2 text-xs font-black transition ${
                   serviceFilter === category
-                    ? 'bg-brand-text text-white shadow-sm shadow-slate-900/15'
-                    : 'border border-gray-200 bg-white text-gray-500 hover:border-brand-text hover:text-brand-text'
+                    ? 'bg-slate-950 text-white shadow-sm shadow-slate-900/15'
+                    : 'border border-gray-200 bg-white text-gray-500 hover:border-slate-300 hover:text-slate-950'
                 }`}
               >
                 {category}
@@ -678,7 +678,7 @@ function AuthenticatedSubscriptionManager() {
 
       <section className="grid gap-4 lg:grid-cols-[360px_1fr]">
         <form
-          className="rounded-[28px] border border-white/80 bg-white/90 p-5 shadow-sm shadow-rose-900/5 backdrop-blur"
+          className="rounded-[28px] border border-white/80 bg-white/90 p-5 shadow-sm shadow-slate-950/5 backdrop-blur"
           onSubmit={(event) => {
             event.preventDefault()
             saveSubscription()
@@ -692,7 +692,7 @@ function AuthenticatedSubscriptionManager() {
                 value={form.serviceName}
                 onChange={(event) => updateForm('serviceName', event.target.value)}
                 placeholder="ChatGPT, Claude, Gemini..."
-                className="mt-1 w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm font-bold text-brand-text outline-none transition focus:border-rose-300 focus:ring-4 focus:ring-rose-100"
+                className="mt-1 w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm font-bold text-brand-text outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
               />
             </label>
             <label className="block">
@@ -701,7 +701,7 @@ function AuthenticatedSubscriptionManager() {
                 value={form.planName}
                 onChange={(event) => updateForm('planName', event.target.value)}
                 placeholder="Pro, Team, API..."
-                className="mt-1 w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm font-bold text-brand-text outline-none transition focus:border-rose-300 focus:ring-4 focus:ring-rose-100"
+                className="mt-1 w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm font-bold text-brand-text outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
               />
             </label>
             <label className="block">
@@ -710,7 +710,7 @@ function AuthenticatedSubscriptionManager() {
                 value={form.category}
                 onChange={(event) => updateForm('category', event.target.value)}
                 placeholder="チャット, 画像, 動画"
-                className="mt-1 w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm font-bold text-brand-text outline-none transition focus:border-rose-300 focus:ring-4 focus:ring-rose-100"
+                className="mt-1 w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm font-bold text-brand-text outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
               />
             </label>
             <div className="grid gap-3 sm:grid-cols-2">
@@ -722,7 +722,7 @@ function AuthenticatedSubscriptionManager() {
                   step="0.01"
                   value={form.monthlyCostUsd}
                   onChange={(event) => updateForm('monthlyCostUsd', Number(event.target.value))}
-                  className="mt-1 w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm font-bold text-brand-text outline-none transition focus:border-rose-300 focus:ring-4 focus:ring-rose-100"
+                  className="mt-1 w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm font-bold text-brand-text outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
                 />
               </label>
               <label className="block">
@@ -730,7 +730,7 @@ function AuthenticatedSubscriptionManager() {
                 <select
                   value={form.billingCycle}
                   onChange={(event) => updateForm('billingCycle', event.target.value as SubscriptionInput['billingCycle'])}
-                  className="mt-1 w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm font-bold text-brand-text outline-none transition focus:border-rose-300 focus:ring-4 focus:ring-rose-100"
+                  className="mt-1 w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm font-bold text-brand-text outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
                 >
                   {billingCycleOptions.map((item) => (
                     <option key={item.value} value={item.value}>
@@ -747,7 +747,7 @@ function AuthenticatedSubscriptionManager() {
                   type="date"
                   value={form.renewalDate}
                   onChange={(event) => updateForm('renewalDate', event.target.value)}
-                  className="mt-1 w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm font-bold text-brand-text outline-none transition focus:border-rose-300 focus:ring-4 focus:ring-rose-100"
+                  className="mt-1 w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm font-bold text-brand-text outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
                 />
               </label>
               <label className="block">
@@ -755,7 +755,7 @@ function AuthenticatedSubscriptionManager() {
                 <select
                   value={form.status}
                   onChange={(event) => updateForm('status', event.target.value as SubscriptionInput['status'])}
-                  className="mt-1 w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm font-bold text-brand-text outline-none transition focus:border-rose-300 focus:ring-4 focus:ring-rose-100"
+                  className="mt-1 w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm font-bold text-brand-text outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
                 >
                   {statusOptions.map((item) => (
                     <option key={item.value} value={item.value}>
@@ -771,7 +771,7 @@ function AuthenticatedSubscriptionManager() {
                 value={form.notes}
                 onChange={(event) => updateForm('notes', event.target.value)}
                 rows={3}
-                className="mt-1 w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm font-bold text-brand-text outline-none transition focus:border-rose-300 focus:ring-4 focus:ring-rose-100"
+                className="mt-1 w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm font-bold text-brand-text outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
               />
             </label>
           </div>
@@ -797,7 +797,7 @@ function AuthenticatedSubscriptionManager() {
         </form>
 
         <div className="space-y-4">
-          <section className="rounded-[24px] border border-white/80 bg-white/90 p-5 shadow-sm shadow-rose-900/5 backdrop-blur">
+          <section className="rounded-[24px] border border-white/80 bg-white/90 p-5 shadow-sm shadow-slate-950/5 backdrop-blur">
             <h2 className="text-lg font-black text-brand-text">ジャンル別コスト</h2>
             <div className="mt-4 space-y-3">
               {categoryTotals.length === 0 && <p className="text-sm font-bold text-gray-500">契約中のサブスクはまだありません。</p>}
@@ -809,7 +809,7 @@ function AuthenticatedSubscriptionManager() {
                   </div>
                   <div className="h-2.5 overflow-hidden rounded-full bg-slate-100">
                     <div
-                      className="h-full rounded-full bg-gradient-to-r from-[#f0187a] via-[#ff6b28] to-[#ffe431]"
+                      className="h-full rounded-full bg-gradient-to-r from-[#111827] via-[#334155] to-[#94a3b8]"
                       style={{ width: `${Math.max(8, Math.min(100, (entry.total / Math.max(1, totalMonthly)) * 100))}%` }}
                     />
                   </div>
@@ -822,3 +822,4 @@ function AuthenticatedSubscriptionManager() {
     </div>
   )
 }
+

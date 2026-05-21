@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+﻿import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
   title: '広告・アフィリエイト開示',
@@ -9,7 +9,7 @@ export default function DisclosurePage() {
   return (
     <main className="mx-auto max-w-3xl px-4 py-12">
       <section className="rounded-[28px] border border-white bg-white/84 p-8 shadow-sm backdrop-blur">
-        <p className="text-xs font-black uppercase tracking-[0.2em] text-rose-500">Disclosure</p>
+        <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">Disclosure</p>
         <h1 className="mt-2 text-3xl font-black tracking-tight text-brand-text">広告・アフィリエイト開示</h1>
         <p className="mt-5 text-sm font-bold leading-relaxed text-gray-600">
           Aincarnでは、今後AIサブスクや関連サービスの紹介リンクを掲載する場合があります。
@@ -19,3 +19,4 @@ export default function DisclosurePage() {
     </main>
   )
 }
+

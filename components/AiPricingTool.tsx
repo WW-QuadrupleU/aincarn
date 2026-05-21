@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useMemo, useState } from 'react'
 import {
@@ -232,17 +232,17 @@ function PlanComparison({ query }: { query: string }) {
           ['年払い目安', yearlyCheapest ? `${yearlyCheapest.service} ${yearlyCheapest.plan}` : '-', yearlyCheapest ? `${formatUsd(yearlyCheapest.yearlyUsd ?? yearlyCheapest.monthlyUsd * 12)} / 年` : '-'],
           ['掲載プラン', `${plans.length}件`, '主要AIサブスク'],
         ].map(([label, name, value]) => (
-          <article key={label} className="rounded-2xl border border-white/80 bg-white/88 p-5 shadow-sm shadow-rose-900/5 backdrop-blur">
-            <p className="text-xs font-black uppercase tracking-[0.14em] text-rose-500">{label}</p>
-            <p className="mt-2 truncate text-lg font-black text-brand-text">{name}</p>
+          <article key={label} className="rounded-2xl border border-white/80 bg-white/88 p-5 shadow-sm shadow-slate-950/5 backdrop-blur">
+            <p className="text-xs font-black uppercase tracking-[0.14em] text-slate-400">{label}</p>
+            <p className="mt-2 truncate text-lg font-black text-slate-950">{name}</p>
             <p className="mt-1 text-sm font-bold text-gray-500">{value}</p>
           </article>
         ))}
       </section>
 
-      <section className="overflow-hidden rounded-[24px] border border-white/80 bg-white/90 p-5 shadow-sm shadow-rose-900/5 backdrop-blur">
+      <section className="overflow-hidden rounded-[24px] border border-white/80 bg-white/90 p-5 shadow-sm shadow-slate-950/5 backdrop-blur">
         <div className="mb-4">
-          <h2 className="text-xl font-black text-brand-text">月額プラン比較</h2>
+          <h2 className="text-xl font-black text-slate-950">月額プラン比較</h2>
           <p className="mt-1 text-xs font-bold leading-relaxed text-gray-500">
             まずはサブスク料金を単純に並べています。無料枠、利用上限、チーム料金、為替、税金は契約前に公式ページで確認してください。
           </p>
@@ -253,9 +253,9 @@ function PlanComparison({ query }: { query: string }) {
               <div className="grid gap-4 lg:grid-cols-[1fr_180px] lg:items-start">
                 <div>
                   <div className="flex flex-wrap items-center gap-2">
-                    <h3 className="text-lg font-black text-brand-text">{plan.service}</h3>
+                    <h3 className="text-lg font-black text-slate-950">{plan.service}</h3>
                     <span className="rounded-full bg-slate-100 px-2 py-1 text-[10px] font-black text-gray-500">{plan.plan}</span>
-                    <span className="rounded-full bg-rose-50 px-2 py-1 text-[10px] font-black text-rose-500">{plan.category}</span>
+                    <span className="rounded-full bg-slate-50 px-2 py-1 text-[10px] font-black text-slate-400">{plan.category}</span>
                   </div>
                   <p className="mt-2 text-sm font-bold leading-relaxed text-gray-600">{plan.bestFor}</p>
                   <div className="mt-3 flex flex-wrap gap-2">
@@ -267,13 +267,13 @@ function PlanComparison({ query }: { query: string }) {
                   </div>
                   <p className="mt-3 text-xs font-bold leading-relaxed text-amber-700">{plan.cautions}</p>
                 </div>
-                <div className="rounded-2xl bg-gradient-to-br from-[#f0187a] via-[#ff6b28] to-[#ffe431] p-4 text-white">
+                <div className="rounded-2xl bg-gradient-to-br from-[#111827] via-[#334155] to-[#94a3b8] p-4 text-white">
                   <p className="text-xs font-black uppercase tracking-[0.14em] text-white/70">Monthly</p>
                   <p className="mt-2 text-2xl font-black">{formatUsd(plan.monthlyUsd)}</p>
                   <p className="mt-1 text-xs font-bold text-white/78">
                     年額目安 {formatUsd(plan.yearlyUsd ?? plan.monthlyUsd * 12)}
                   </p>
-                  <a href={plan.sourceUrl} target="_blank" rel="noopener noreferrer" className="mt-4 inline-flex rounded-full bg-white px-3 py-2 text-xs font-black text-brand-text">
+                  <a href={plan.sourceUrl} target="_blank" rel="noopener noreferrer" className="mt-4 inline-flex rounded-full bg-white px-3 py-2 text-xs font-black text-slate-950">
                     公式料金を見る
                   </a>
                 </div>
@@ -353,17 +353,17 @@ export default function AiPricingTool() {
 
   return (
     <div className="space-y-6">
-      <section className="overflow-hidden rounded-[28px] border border-white/80 bg-white/90 shadow-sm shadow-rose-900/5 backdrop-blur">
+      <section className="overflow-hidden rounded-[28px] border border-white/80 bg-white/90 shadow-sm shadow-slate-950/5 backdrop-blur">
         <div className="grid gap-0 lg:grid-cols-[1fr_360px]">
           <div className="p-5 sm:p-6">
-            <p className="text-xs font-black uppercase tracking-[0.2em] text-rose-500">AI Pricing</p>
-            <h1 className="mt-2 text-3xl font-black tracking-tight text-brand-text">AI料金比較ツール</h1>
+            <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">AI Pricing</p>
+            <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-950">AI料金比較ツール</h1>
             <p className="mt-3 max-w-3xl text-sm font-bold leading-relaxed text-gray-500">
               まず月額プランを単純比較し、必要に応じてAPI・画像生成・動画生成の従量課金も見積もれます。
               サブスク契約とAPI利用を分けて見られるようにしました。
             </p>
           </div>
-          <div className="bg-gradient-to-br from-[#f0187a] via-[#ff6b28] to-[#ffe431] p-5 text-white sm:p-6">
+          <div className="bg-gradient-to-br from-[#111827] via-[#334155] to-[#94a3b8] p-5 text-white sm:p-6">
             <p className="text-xs font-black uppercase tracking-[0.18em] text-white/70">Current view</p>
             <p className="mt-3 text-2xl font-black">
               {mode === 'plans'
@@ -393,7 +393,7 @@ export default function AiPricingTool() {
             onClick={() => setMode(item.id)}
             className={`rounded-2xl border p-4 text-left transition-all ${
               mode === item.id
-                ? 'border-rose-400 bg-brand-text text-white shadow-lg shadow-rose-900/10'
+                ? 'border-slate-300 bg-slate-950 text-white shadow-lg shadow-slate-950/10'
                 : 'border-white/80 bg-white/86 text-gray-500 hover:-translate-y-0.5 hover:bg-white'
             }`}
           >
@@ -405,7 +405,7 @@ export default function AiPricingTool() {
         ))}
       </section>
 
-      <section className="rounded-[24px] border border-white/80 bg-white/88 p-5 shadow-sm shadow-rose-900/5 backdrop-blur">
+      <section className="rounded-[24px] border border-white/80 bg-white/88 p-5 shadow-sm shadow-slate-950/5 backdrop-blur">
         <div className="grid gap-4 lg:grid-cols-[1fr_1fr]">
           {mode === 'llm' && (
             <label className="block">
@@ -416,7 +416,7 @@ export default function AiPricingTool() {
                 step="0.5"
                 value={tokenMillions}
                 onChange={(event) => setTokenMillions(Number(event.target.value))}
-                className="mt-2 w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm font-black text-brand-text outline-none transition focus:border-rose-300 focus:ring-4 focus:ring-rose-100"
+                className="mt-2 w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm font-black text-slate-950 outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
               />
             </label>
           )}
@@ -429,7 +429,7 @@ export default function AiPricingTool() {
                 step="10"
                 value={imageCount}
                 onChange={(event) => setImageCount(Number(event.target.value))}
-                className="mt-2 w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm font-black text-brand-text outline-none transition focus:border-rose-300 focus:ring-4 focus:ring-rose-100"
+                className="mt-2 w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm font-black text-slate-950 outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
               />
             </label>
           )}
@@ -442,7 +442,7 @@ export default function AiPricingTool() {
                 step="1"
                 value={videoMinutes}
                 onChange={(event) => setVideoMinutes(Number(event.target.value))}
-                className="mt-2 w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm font-black text-brand-text outline-none transition focus:border-rose-300 focus:ring-4 focus:ring-rose-100"
+                className="mt-2 w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm font-black text-slate-950 outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
               />
             </label>
           )}
@@ -452,7 +452,7 @@ export default function AiPricingTool() {
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="ChatGPT, Claude, Gemini, OpenAI..."
-              className="mt-2 w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm font-black text-brand-text outline-none transition focus:border-rose-300 focus:ring-4 focus:ring-rose-100"
+              className="mt-2 w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm font-black text-slate-950 outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
             />
           </label>
         </div>
@@ -468,18 +468,18 @@ export default function AiPricingTool() {
               ['性能上位', strongest?.model.name, strongest ? `${strongest.performance} pt` : '-'],
               ['費用対効果', bestBalance?.model.name, bestBalance ? formatUsd(bestBalance.estimatedCost) : '-'],
             ].map(([label, name, value]) => (
-              <article key={label} className="rounded-2xl border border-white/80 bg-white/88 p-5 shadow-sm shadow-rose-900/5 backdrop-blur">
-                <p className="text-xs font-black uppercase tracking-[0.14em] text-rose-500">{label}</p>
-                <p className="mt-2 truncate text-lg font-black text-brand-text">{name || '-'}</p>
+              <article key={label} className="rounded-2xl border border-white/80 bg-white/88 p-5 shadow-sm shadow-slate-950/5 backdrop-blur">
+                <p className="text-xs font-black uppercase tracking-[0.14em] text-slate-400">{label}</p>
+                <p className="mt-2 truncate text-lg font-black text-slate-950">{name || '-'}</p>
                 <p className="mt-1 text-sm font-bold text-gray-500">{value}</p>
               </article>
             ))}
           </section>
 
-          <section className="overflow-hidden rounded-[24px] border border-white/80 bg-white/90 p-5 shadow-sm shadow-rose-900/5 backdrop-blur">
+          <section className="overflow-hidden rounded-[24px] border border-white/80 bg-white/90 p-5 shadow-sm shadow-slate-950/5 backdrop-blur">
             <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
               <div>
-                <h2 className="text-xl font-black text-brand-text">推定コスト順</h2>
+                <h2 className="text-xl font-black text-slate-950">推定コスト順</h2>
                 <p className="mt-1 text-xs font-bold leading-relaxed text-gray-500">
                   公開されている単価データをもとにした概算です。無料枠、サブスク枠、従量課金の細かな条件は各サービス側で確認してください。
                 </p>
@@ -501,15 +501,15 @@ export default function AiPricingTool() {
                   {rows.map((row) => (
                     <tr key={row.model.id} className="border-b border-gray-100 transition hover:bg-white/70">
                       <td className="py-3 pr-3">
-                        <p className="font-black text-brand-text">{row.model.name}</p>
+                        <p className="font-black text-slate-950">{row.model.name}</p>
                         <p className="text-xs font-bold text-gray-400">{row.model.creator} / {row.model.family}</p>
                       </td>
-                      <td className="px-3 py-3 text-right text-base font-black text-brand-text">{formatUsd(row.estimatedCost)}</td>
+                      <td className="px-3 py-3 text-right text-base font-black text-slate-950">{formatUsd(row.estimatedCost)}</td>
                       <td className="px-3 py-3 text-right text-xs font-bold text-gray-500">
                         {formatUsd(row.unitPrice)} / {row.unitLabel}
                       </td>
-                      <td className="px-3 py-3 text-right font-bold text-brand-text">{row.performance}</td>
-                      <td className="px-3 py-3 text-right font-bold text-brand-text">{row.model.speed}</td>
+                      <td className="px-3 py-3 text-right font-bold text-slate-950">{row.performance}</td>
+                      <td className="px-3 py-3 text-right font-bold text-slate-950">{row.model.speed}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -521,3 +521,5 @@ export default function AiPricingTool() {
     </div>
   )
 }
+
+

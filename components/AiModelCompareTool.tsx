@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useMemo, useState } from 'react'
 import {
@@ -10,9 +10,9 @@ import {
 } from '@/lib/ai-model-compare-data'
 
 function scoreTone(score: number): string {
-  if (score >= 90) return 'bg-gradient-to-r from-fuchsia-500 via-rose-500 to-orange-400'
-  if (score >= 80) return 'bg-gradient-to-r from-sky-400 to-cyan-300'
-  if (score >= 70) return 'bg-gradient-to-r from-yellow-300 to-orange-400'
+  if (score >= 90) return 'bg-gradient-to-r from-slate-950 to-slate-600'
+  if (score >= 80) return 'bg-gradient-to-r from-slate-700 to-slate-400'
+  if (score >= 70) return 'bg-gradient-to-r from-slate-500 to-slate-300'
   return 'bg-gradient-to-r from-slate-300 to-slate-400'
 }
 
@@ -88,7 +88,7 @@ function ScoreBar({ label, score }: { label: string; score: number }) {
     <div>
       <div className="mb-1 flex items-center justify-between gap-3">
         <span className="text-xs font-bold text-gray-500">{label}</span>
-        <span className="text-xs font-black text-brand-text">{score}</span>
+        <span className="text-xs font-black text-slate-950">{score}</span>
       </div>
       <div className="h-2.5 overflow-hidden rounded-full bg-slate-100">
         <div className={`h-full rounded-full ${scoreTone(score)}`} style={{ width: `${percent(score)}%` }} />
@@ -101,7 +101,7 @@ function MiniStat({ label, value }: { label: string; value: number | string }) {
   return (
     <div className="rounded-xl border border-slate-100 bg-white/72 px-2 py-2 text-center shadow-sm shadow-slate-900/5">
       <p className="text-[10px] font-bold text-gray-400">{label}</p>
-      <p className="mt-0.5 font-black text-brand-text">{value}</p>
+      <p className="mt-0.5 font-black text-slate-950">{value}</p>
     </div>
   )
 }
@@ -131,10 +131,10 @@ function MetricLeaderboard({
   )
 
   return (
-    <section className="overflow-hidden rounded-[22px] border border-white/75 bg-white/90 p-4 shadow-sm shadow-rose-900/5 backdrop-blur">
+    <section className="overflow-hidden rounded-[22px] border border-white/75 bg-white/90 p-4 shadow-sm shadow-slate-950/5 backdrop-blur">
       <div className="mb-4">
         <div className="border-b border-slate-100 pb-4">
-          <h2 className="text-lg font-extrabold text-brand-text">{title}</h2>
+          <h2 className="text-lg font-extrabold text-slate-950">{title}</h2>
           <p className="mt-1 text-xs font-bold leading-relaxed text-gray-500">{caption}</p>
         </div>
       </div>
@@ -153,16 +153,16 @@ function MetricLeaderboard({
               <div className="mb-2 flex min-w-0 items-start justify-between gap-3">
                 <div className="flex min-w-0 items-center gap-2">
                   <span className={`grid size-6 shrink-0 place-items-center rounded-full text-[11px] font-black ${
-                    index < 3 ? 'bg-brand-text text-white' : 'bg-gray-100 text-gray-500'
+                    index < 3 ? 'bg-slate-950 text-white' : 'bg-gray-100 text-gray-500'
                   }`}>
                     {index + 1}
                   </span>
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-black text-brand-text">{model.name}</p>
+                    <p className="truncate text-sm font-black text-slate-950">{model.name}</p>
                     <p className="truncate text-[11px] font-bold text-gray-400">{model.creator}</p>
                   </div>
                 </div>
-                <p className="shrink-0 text-lg font-black text-brand-text">{score}</p>
+                <p className="shrink-0 text-lg font-black text-slate-950">{score}</p>
               </div>
               <div className="h-3.5 overflow-hidden rounded-full bg-slate-100 ring-1 ring-slate-200/70">
                 <div className={`h-full rounded-full ${scoreTone(score)}`} style={{ width: `${width}%` }} />
@@ -197,7 +197,7 @@ function ModelSelect({
       <select
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm font-bold text-brand-text outline-none transition-colors focus:border-rose-300 focus:ring-4 focus:ring-rose-100"
+        className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm font-bold text-slate-950 outline-none transition-colors focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
       >
         {Object.entries(groups).map(([family, familyModels]) => (
           <optgroup key={family} label={family}>
@@ -216,7 +216,7 @@ function ModelSelect({
 function TextPanel({ title, items, tone }: { title: string; items: string[]; tone: 'green' | 'amber' }) {
   return (
     <div className={`rounded-xl border p-3 ${tone === 'green' ? 'border-sky-200 bg-sky-50/80' : 'border-amber-200 bg-amber-50/80'}`}>
-      <p className="mb-2 text-xs font-black text-brand-text">{title}</p>
+      <p className="mb-2 text-xs font-black text-slate-950">{title}</p>
       <ul className="space-y-1 text-xs leading-relaxed text-gray-600">
         {items.map((item) => (
           <li key={item}>・{item}</li>
@@ -228,10 +228,10 @@ function TextPanel({ title, items, tone }: { title: string; items: string[]; ton
 
 function ModelSummary({ model, genreId }: { model: AiModel; genreId: AiGenreId }) {
   return (
-    <div className="rounded-[22px] border border-white/75 bg-white/90 p-4 shadow-sm shadow-rose-900/5 backdrop-blur">
+    <div className="rounded-[22px] border border-white/75 bg-white/90 p-4 shadow-sm shadow-slate-950/5 backdrop-blur">
       <div className="mb-4">
-        <p className="text-xs font-black text-[#f0187a]">{model.creator} / {model.family}</p>
-        <h3 className="text-lg font-extrabold text-brand-text">{model.name}</h3>
+        <p className="text-xs font-black text-slate-500">{model.creator} / {model.family}</p>
+        <h3 className="text-lg font-extrabold text-slate-950">{model.name}</h3>
         <p className="mt-1 text-xs text-gray-400">
           賢さ: {model.performance[genreId]} / 速度: {model.speed} / 価格効率: {priceEfficiencyScore(model, genreId)} / コスト感: {costLabel(model.costLevel)}
         </p>
@@ -247,9 +247,9 @@ function ModelSummary({ model, genreId }: { model: AiModel; genreId: AiGenreId }
         <TextPanel title="注意点" items={model.cautions} tone="amber" />
       </div>
       <div className="mt-4 rounded-xl border border-slate-100 bg-white/72 p-3 text-xs leading-relaxed text-gray-500">
-        <span className="font-bold text-brand-text">向いている人：</span>{model.bestFor}
+        <span className="font-bold text-slate-950">向いている人：</span>{model.bestFor}
         <br />
-        <span className="font-bold text-brand-text">向きにくい人：</span>{model.avoidFor}
+        <span className="font-bold text-slate-950">向きにくい人：</span>{model.avoidFor}
       </div>
     </div>
   )
@@ -324,16 +324,16 @@ export default function AiModelCompareTool() {
 
   return (
     <div className="space-y-8">
-      <section className="rounded-[24px] border border-white/75 bg-white/88 p-5 shadow-sm shadow-rose-900/5 backdrop-blur">
+      <section className="rounded-[24px] border border-white/75 bg-white/88 p-5 shadow-sm shadow-slate-950/5 backdrop-blur">
         <div className="mb-4">
           <div className="flex flex-wrap items-center gap-2">
-            <p className="text-xs font-black uppercase tracking-[0.16em] text-[#f0187a]">Model Metrics</p>
-            <span className="rounded-full bg-gradient-to-r from-yellow-100 to-rose-100 px-2 py-1 text-[10px] font-bold text-rose-600">
+            <p className="text-xs font-black uppercase tracking-[0.16em] text-slate-500">Model Metrics</p>
+            <span className="rounded-full bg-gradient-to-r from-slate-100 to-white px-2 py-1 text-[10px] font-bold text-slate-500">
               {payload.isLive ? '自動更新' : '編集データ'}
             </span>
             {loading && <span className="text-[10px] font-bold text-gray-400">更新確認中...</span>}
           </div>
-          <h2 className="mt-1 text-xl font-extrabold text-brand-text">ジャンルごとにAIモデルを比較</h2>
+          <h2 className="mt-1 text-xl font-extrabold text-slate-950">ジャンルごとにAIモデルを比較</h2>
           <p className="mt-2 text-sm leading-relaxed text-gray-500">{genre.description}</p>
           <p className="mt-2 text-xs leading-relaxed text-gray-500">
             賢さ、速度、価格効率を分けて表示します。用途によって重視すべき指標が変わるため、単一の総合点ではなく項目別に比較します。
@@ -347,8 +347,8 @@ export default function AiModelCompareTool() {
               onClick={() => setGenreId(group.genreIds[0])}
               className={`rounded-2xl border px-4 py-3 text-left transition-all ${
                 activeGroup.id === group.id
-                  ? 'border-rose-400 bg-gradient-to-r from-[#f0187a] to-[#ff6b28] text-white shadow-sm shadow-rose-500/20'
-                  : 'border-gray-200 bg-white/82 text-gray-500 hover:border-rose-300 hover:bg-white hover:text-brand-text'
+                  ? 'border-slate-300 bg-gradient-to-r from-[#111827] to-[#64748b] text-white shadow-sm shadow-slate-950/10'
+                  : 'border-gray-200 bg-white/82 text-gray-500 hover:border-slate-300 hover:bg-white hover:text-slate-950'
               }`}
             >
               <span className="block text-sm font-black">{group.label}</span>
@@ -368,8 +368,8 @@ export default function AiModelCompareTool() {
               onClick={() => setGenreId(item.id)}
               className={`rounded-full border px-3 py-2 text-xs font-black transition-all ${
                 genreId === item.id
-                  ? 'border-brand-text bg-brand-text text-white shadow-sm shadow-slate-900/10'
-                  : 'border-gray-200 bg-white/72 text-gray-500 hover:border-rose-300 hover:bg-white hover:text-brand-text'
+                  ? 'border-brand-text bg-slate-950 text-white shadow-sm shadow-slate-900/10'
+                  : 'border-gray-200 bg-white/72 text-gray-500 hover:border-slate-300 hover:bg-white hover:text-slate-950'
               }`}
             >
               {item.shortLabel}
@@ -410,7 +410,7 @@ export default function AiModelCompareTool() {
         />
       </section>
 
-      <section className="rounded-[24px] border border-white/75 bg-white/88 p-5 shadow-sm shadow-rose-900/5 backdrop-blur">
+      <section className="rounded-[24px] border border-white/75 bg-white/88 p-5 shadow-sm shadow-slate-950/5 backdrop-blur">
         <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end">
           <div className="flex-1">
             <ModelSelect label="比較するモデル 1" value={first.id} models={genreModels} onChange={setFirstId} />
@@ -418,7 +418,7 @@ export default function AiModelCompareTool() {
           <div className="flex-1">
             <ModelSelect label="比較するモデル 2" value={second.id} models={genreModels} onChange={setSecondId} />
           </div>
-          <div className="rounded-2xl bg-gradient-to-br from-[#f0187a] via-[#ff6b28] to-[#ffe431] px-4 py-3 text-white shadow-lg shadow-rose-500/20 sm:w-44">
+          <div className="rounded-2xl bg-gradient-to-br from-[#111827] via-[#334155] to-[#94a3b8] px-4 py-3 text-white shadow-lg shadow-slate-950/10 sm:w-44">
             <p className="text-[10px] font-bold text-white/75">賢さ比較の優位</p>
             <p className="text-sm font-black">{winner}</p>
           </div>
@@ -429,8 +429,8 @@ export default function AiModelCompareTool() {
         </div>
       </section>
 
-      <section className="rounded-[24px] border border-white/75 bg-white/88 p-5 shadow-sm shadow-rose-900/5 backdrop-blur">
-        <h2 className="text-lg font-extrabold text-brand-text">{genre.shortLabel}モデル一覧</h2>
+      <section className="rounded-[24px] border border-white/75 bg-white/88 p-5 shadow-sm shadow-slate-950/5 backdrop-blur">
+        <h2 className="text-lg font-extrabold text-slate-950">{genre.shortLabel}モデル一覧</h2>
         <div className="mt-4 overflow-x-auto">
           <table className="w-full min-w-[860px] border-collapse text-sm">
             <thead>
@@ -447,13 +447,13 @@ export default function AiModelCompareTool() {
               {performanceRanking.map((model) => (
                 <tr key={model.id} className="border-b border-gray-100 transition hover:bg-white/70">
                   <td className="py-3 pr-3">
-                    <p className="font-black text-brand-text">{model.name}</p>
+                    <p className="font-black text-slate-950">{model.name}</p>
                     <p className="text-xs text-gray-400">{model.creator} / {model.releaseLabel}</p>
                   </td>
                   <td className="px-3 py-3 text-right text-xs font-bold text-gray-500">{model.metric ?? '-'}</td>
-                  <td className="px-3 py-3 text-right font-bold text-brand-text">{model.performance[genreId]}</td>
-                  <td className="px-3 py-3 text-right font-bold text-brand-text">{model.speed}</td>
-                  <td className="px-3 py-3 text-right font-bold text-brand-text">{priceEfficiencyScore(model, genreId)}</td>
+                  <td className="px-3 py-3 text-right font-bold text-slate-950">{model.performance[genreId]}</td>
+                  <td className="px-3 py-3 text-right font-bold text-slate-950">{model.speed}</td>
+                  <td className="px-3 py-3 text-right font-bold text-slate-950">{priceEfficiencyScore(model, genreId)}</td>
                   <td className="px-3 py-3 text-right text-xs font-bold text-gray-500">{model.priceLabel ?? costLabel(model.costLevel)}</td>
                 </tr>
               ))}
@@ -476,3 +476,5 @@ export default function AiModelCompareTool() {
     </div>
   )
 }
+
+

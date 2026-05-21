@@ -22,7 +22,7 @@ function SignedInState() {
       <SignInButton mode="modal">
         <button
           type="button"
-          className="rounded-full border border-rose-200 bg-white px-3 py-2 text-xs font-black text-brand-text shadow-sm transition hover:-translate-y-0.5 hover:border-brand-text"
+          className="rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-black text-slate-900 shadow-sm shadow-slate-950/5 transition hover:-translate-y-0.5 hover:border-slate-300"
         >
           Login
         </button>

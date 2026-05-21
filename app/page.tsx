@@ -15,22 +15,22 @@ const tools = [
     href: '/tools/ai-model-compare',
     label: 'AIモデル比較',
     body: '賢さ、速度、価格効率を横並びで見て、用途に合うAIを探します。',
-    accent: 'from-[#f0187a] via-[#ff6b28] to-[#ffe431]',
-    tag: 'Model',
+    tag: 'Compare',
+    metric: '3指標',
   },
   {
     href: '/tools/ai-pricing',
     label: 'AI料金比較',
     body: 'サブスク料金とAPI利用料を分けて、月額の目安を比較します。',
-    accent: 'from-[#39a7ff] via-[#7c3cff] to-[#f0187a]',
-    tag: 'Price',
+    tag: 'Pricing',
+    metric: '月額換算',
   },
   {
     href: '/tools/subscriptions',
     label: 'AIサブスク管理',
     body: '契約中のAIサービス、更新日、月額換算コストをアカウントごとに保存します。',
-    accent: 'from-[#15f5ba] via-[#39a7ff] to-[#7c3cff]',
     tag: 'Collection',
+    metric: '個別保存',
   },
 ]
 
@@ -38,193 +38,158 @@ const toolStories = [
   {
     href: '/tools/ai-model-compare',
     label: 'AIモデル比較',
-    eyebrow: 'Performance Lens',
-    title: 'モデルの強さを、用途ごとに眺める。',
-    body: '賢さ、速度、価格効率を並べ、文章、コード、リサーチ、画像、動画などの用途に合わせて見比べます。ランキングだけでなく、どの指標が自分の使い方に効くかを掴むための入口です。',
-    accent: 'from-[#f0187a] via-[#ff6b28] to-[#ffe431]',
-    metrics: ['Intelligence', 'Speed', 'Price'],
+    eyebrow: 'Model Intelligence',
+    title: 'モデルの強さを、用途ごとに静かに比較する。',
+    body: '公開ベンチマーク、速度、価格効率を用途別に整理。文章、コード、リサーチ、画像、動画など、自分の作業に効く指標だけを見やすく並べます。',
+    stats: ['Intelligence', 'Speed', 'Value'],
   },
   {
     href: '/tools/ai-pricing',
     label: 'AI料金比較',
     eyebrow: 'Cost Simulator',
-    title: 'サブスクとAPI料金を、月額感覚に変換する。',
-    body: 'チャット型の月額プランと、API、画像生成、動画生成の従量課金は比較しづらいもの。利用量を入れて月額の目安に変換し、課金判断をしやすくします。',
-    accent: 'from-[#39a7ff] via-[#7c3cff] to-[#f0187a]',
-    metrics: ['Plan', 'API', 'Usage'],
+    title: '複雑なAI料金を、月額感覚に変換する。',
+    body: 'サブスク、API、画像生成、動画生成は単位が違います。利用量を入れて同じ尺度に変換し、課金判断をシンプルにします。',
+    stats: ['Plan', 'API', 'Usage'],
   },
   {
     href: '/tools/subscriptions',
     label: 'AIサブスク管理',
     eyebrow: 'Subscription Collection',
-    title: '契約中のAIを、カードで集めて管理する。',
-    body: 'ChatGPT、Claude、Gemini、Midjourneyなどのプランをコレクションとして保存。更新日、月額換算、ジャンル別コストを見ながら、増えがちなAIサブスクを整理できます。',
-    accent: 'from-[#15f5ba] via-[#39a7ff] to-[#7c3cff]',
-    metrics: ['Cards', 'Renewal', 'Total'],
+    title: '増えていくAIサブスクを、ひとつの場所で管理する。',
+    body: 'ChatGPT、Claude、Gemini、Midjourneyなどをカードとして保存。更新日、月額換算、ジャンルを見ながら、いま契約しているAIを整理できます。',
+    stats: ['Cards', 'Renewal', 'Total'],
   },
 ]
 
 export default function HomePage() {
   return (
     <>
-      <section className="relative isolate overflow-hidden px-4 pb-14 pt-14 sm:pb-16 sm:pt-20">
-        <div className="absolute inset-0 -z-10 bg-aurora" />
-        <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_16%_18%,rgba(255,255,255,0.40),transparent_26%),radial-gradient(circle_at_78%_36%,rgba(255,126,54,0.24),transparent_32%),linear-gradient(90deg,rgba(91,24,113,0.24)_0%,rgba(224,35,107,0.12)_48%,rgba(255,126,24,0.06)_100%)]" />
-        <div className="absolute inset-x-0 bottom-0 -z-10 h-48 bg-gradient-to-t from-[#fbf7ff] via-[#fbf7ff]/82 to-transparent" />
-        <div className="mx-auto grid max-w-6xl gap-8 lg:grid-cols-[1fr_420px] lg:items-stretch">
-          <div className="relative overflow-hidden rounded-[32px] border border-white/48 bg-gradient-to-br from-fuchsia-950/48 via-rose-700/30 to-orange-500/18 p-6 text-white shadow-2xl shadow-fuchsia-900/18 backdrop-blur-lg sm:p-8 lg:p-10">
-            <div className="absolute right-6 top-6 h-28 w-28 rounded-full bg-yellow-300/20 blur-2xl" />
-            <div className="absolute bottom-4 right-24 h-24 w-24 rounded-full bg-sky-300/18 blur-2xl" />
-            <p className="relative mb-5 inline-flex rounded-full border border-white/40 bg-white/18 px-4 py-2 text-xs font-black uppercase tracking-[0.2em] text-white backdrop-blur">
-              AI model intelligence
-            </p>
-            <h1 className="relative max-w-3xl text-4xl font-black leading-tight tracking-tight text-white drop-shadow-[0_2px_18px_rgba(0,0,0,0.24)] sm:text-6xl">
-              AIの違いを、
-              <span className="block text-white">使う前に測る。</span>
-            </h1>
-            <p className="relative mt-6 max-w-2xl text-sm font-bold leading-relaxed text-white/94 sm:text-base">
-              Aincarnは、AIモデルとAIサブスクを用途別に比較するメディアです。
-              公開ベンチマーク、料金、速度、今後の実測データを合わせて、どのAIに課金すべきかを整理します。
-            </p>
-            <div className="relative mt-8 flex flex-wrap gap-3">
-              <SmoothHashLink
-                href="#tools"
-                className="rounded-full bg-white px-5 py-3 text-sm font-black text-brand-text shadow-2xl shadow-rose-600/20 transition hover:-translate-y-0.5 hover:bg-yellow-50"
-              >
-                ツールを選ぶ
-              </SmoothHashLink>
-              <Link
-                href="/about"
-                className="rounded-full border border-white/42 bg-white/18 px-5 py-3 text-sm font-black text-white backdrop-blur transition hover:bg-white/26"
-              >
-                Aincarnについて
-              </Link>
-            </div>
-            <div className="relative mt-8 grid max-w-xl grid-cols-3 gap-3">
-              {['Live', 'Metrics', 'Use cases'].map((item) => (
-                <div key={item} className="rounded-2xl border border-white/20 bg-white/12 px-3 py-3 backdrop-blur">
-                  <p className="text-[10px] font-black uppercase tracking-[0.14em] text-white/64">{item}</p>
-                  <p className="mt-1 text-sm font-black text-white">
-                    {item === 'Live' ? '自動更新' : item === 'Metrics' ? '3指標' : '3カテゴリ'}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="flex flex-col justify-between rounded-[28px] border border-white/70 bg-white/86 p-6 shadow-2xl shadow-rose-900/12 backdrop-blur-xl">
+      <section className="relative overflow-hidden px-4 pb-16 pt-16 sm:pb-20 sm:pt-24">
+        <div className="mx-auto max-w-6xl">
+          <div className="grid gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
             <div>
-              <p className="text-sm font-black text-brand-text">あなたに合うAIは...</p>
-              <h2 className="mt-3 text-3xl font-black text-[#f0187a]">用途で変わる</h2>
-              <div className="mt-4 h-1 w-10 rounded-full bg-gradient-to-r from-yellow-300 via-rose-400 to-sky-400" />
-              <div className="mt-7 space-y-4 text-sm font-bold leading-relaxed text-slate-700">
-                <p>
-                  文章作成に強いAI、コードに強いAI、リサーチに強いAIは同じではありません。
-                  Aincarnではモデルの個性を、賢さ・速度・価格効率に分けて見ます。
-                </p>
-                <p>
-                  迷ったときに「今月どのAIへ課金するか」を決められるサイトへ育てていきます。
-                </p>
+              <p className="inline-flex rounded-full border border-slate-200 bg-white/82 px-4 py-2 text-xs font-bold uppercase tracking-[0.18em] text-slate-500 shadow-sm shadow-slate-950/5">
+                Aincarn
+              </p>
+              <h1 className="mt-7 max-w-4xl text-5xl font-black leading-[1.02] tracking-tight text-slate-950 sm:text-7xl">
+                AIを選ぶ時間を、
+                <span className="block bg-gradient-to-r from-slate-950 via-slate-700 to-slate-400 bg-clip-text text-transparent">
+                  もっと美しく。
+                </span>
+              </h1>
+              <p className="mt-6 max-w-2xl text-base font-semibold leading-relaxed text-slate-600 sm:text-lg">
+                Aincarnは、AIモデルの性能、料金、サブスクをひとつの視点で整理する比較ツールです。
+                迷いを減らし、今月どのAIに課金するかを落ち着いて判断できます。
+              </p>
+              <div className="mt-9 flex flex-wrap gap-3">
+                <SmoothHashLink
+                  href="#tools"
+                  className="rounded-full bg-slate-950 px-6 py-3 text-sm font-black text-white shadow-xl shadow-slate-950/15 transition hover:-translate-y-0.5 hover:bg-slate-800"
+                >
+                  ツールを選ぶ
+                </SmoothHashLink>
+                <Link
+                  href="/about"
+                  className="rounded-full border border-slate-200 bg-white px-6 py-3 text-sm font-black text-slate-800 shadow-sm shadow-slate-950/5 transition hover:-translate-y-0.5 hover:border-slate-300"
+                >
+                  Aincarnについて
+                </Link>
               </div>
             </div>
-            <div className="mt-7 grid gap-3">
-              {[
-                ['Research', '長文、調査、出典確認'],
-                ['Coding', '実装、設計、デバッグ'],
-                ['Creative', '画像、動画、素材制作'],
-              ].map(([label, body]) => (
-                <div key={label} className="rounded-2xl border border-slate-200/70 bg-white/76 px-4 py-3">
-                  <p className="text-xs font-black uppercase tracking-[0.14em] text-[#d33472]">{label}</p>
-                  <p className="mt-1 text-sm font-bold text-slate-600">{body}</p>
+
+            <div className="rounded-[36px] border border-white/80 bg-white/78 p-3 shadow-2xl shadow-slate-950/10 backdrop-blur-2xl">
+              <div className="rounded-[28px] border border-slate-200/70 bg-slate-950 p-5 text-white shadow-inner shadow-white/10">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-[0.18em] text-white/50">Decision Panel</p>
+                    <h2 className="mt-2 text-2xl font-black tracking-tight">AIの選び方を、3つに分ける。</h2>
+                  </div>
+                  <div className="grid size-12 place-items-center rounded-2xl bg-white text-sm font-black text-slate-950">AI</div>
                 </div>
-              ))}
+                <div className="mt-6 grid gap-3">
+                  {[
+                    ['Performance', '賢さ・速度・価格効率'],
+                    ['Pricing', 'サブスク・API・生成単価'],
+                    ['Collection', '契約中サービスと更新日'],
+                  ].map(([label, body], index) => (
+                    <div key={label} className="rounded-2xl border border-white/10 bg-white/[0.06] p-4">
+                      <div className="flex items-center justify-between gap-3">
+                        <div>
+                          <p className="text-xs font-black uppercase tracking-[0.16em] text-white/45">{label}</p>
+                          <p className="mt-1 text-sm font-bold text-white/84">{body}</p>
+                        </div>
+                        <div className="h-2 w-20 overflow-hidden rounded-full bg-white/10">
+                          <div className="h-full rounded-full bg-white" style={{ width: `${86 - index * 16}%` }} />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 pb-10">
-        <div id="tools" className="mb-6 scroll-mt-28">
-          <p className="text-xs font-black uppercase tracking-[0.2em] text-rose-500">Choose Tool</p>
-          <h2 className="mt-2 text-3xl font-black tracking-tight text-brand-text">何を比較しますか？</h2>
-          <p className="mt-3 max-w-3xl text-sm font-bold leading-relaxed text-gray-500">
-            Aincarnのトップページから、モデル性能、料金、サブスク管理へそのまま移動できます。
-          </p>
+      <section className="mx-auto max-w-6xl px-4 pb-12">
+        <div id="tools" className="mb-7 scroll-mt-28">
+          <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">Tools</p>
+          <h2 className="mt-2 text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">必要な比較を選ぶ</h2>
         </div>
-        <div className="mb-8 grid gap-4 md:grid-cols-3">
-          {tools.map((tool) => {
-            const content = (
-              <>
-                <div className={`mb-5 h-2 w-24 rounded-full bg-gradient-to-r ${tool.accent}`} />
-                <span className="rounded-full bg-slate-100 px-3 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-gray-500">
+        <div className="grid gap-4 md:grid-cols-3">
+          {tools.map((tool) => (
+            <Link
+              key={tool.href}
+              href={tool.href}
+              className="group rounded-[28px] border border-white/80 bg-white/82 p-6 shadow-sm shadow-slate-950/5 backdrop-blur-xl transition hover:-translate-y-1 hover:bg-white hover:shadow-2xl hover:shadow-slate-950/10"
+            >
+              <div className="mb-8 flex items-center justify-between gap-3">
+                <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-slate-500">
                   {tool.tag}
                 </span>
-                <h3 className="mt-4 text-xl font-black text-brand-text">{tool.label}</h3>
-                <p className="mt-3 text-sm font-bold leading-relaxed text-gray-500">{tool.body}</p>
-                <span className="mt-6 inline-flex rounded-full bg-brand-text px-4 py-2 text-xs font-black text-white transition group-hover:bg-rose-500">
-                  開く
-                </span>
-              </>
-            )
-
-            return (
-              <Link
-                key={tool.href}
-                href={tool.href}
-                className="group rounded-[24px] border border-white/80 bg-white/88 p-5 shadow-sm shadow-rose-900/5 backdrop-blur transition hover:-translate-y-1 hover:bg-white hover:shadow-xl hover:shadow-rose-900/10"
-              >
-                {content}
-              </Link>
-            )
-          })}
+                <span className="text-xs font-black text-slate-400">{tool.metric}</span>
+              </div>
+              <h3 className="text-2xl font-black tracking-tight text-slate-950">{tool.label}</h3>
+              <p className="mt-3 text-sm font-semibold leading-relaxed text-slate-600">{tool.body}</p>
+              <span className="mt-8 inline-flex rounded-full bg-slate-950 px-4 py-2 text-xs font-black text-white transition group-hover:bg-slate-800">
+                開く
+              </span>
+            </Link>
+          ))}
         </div>
       </section>
 
       <section className="mx-auto max-w-6xl px-4 pb-16">
         <div className="grid gap-5">
-          {toolStories.map((tool, index) => (
+          {toolStories.map((tool) => (
             <article
               key={tool.href}
-              className="overflow-hidden rounded-[32px] border border-white/80 bg-white/88 shadow-xl shadow-rose-900/8 backdrop-blur"
+              className="grid overflow-hidden rounded-[36px] border border-white/80 bg-white/80 shadow-xl shadow-slate-950/5 backdrop-blur-xl lg:grid-cols-[1fr_360px]"
             >
-              <div className={`grid gap-0 lg:grid-cols-[1fr_420px] ${index % 2 === 1 ? 'lg:[&>*:first-child]:order-2' : ''}`}>
-                <div className="p-6 sm:p-8">
-                  <p className="text-xs font-black uppercase tracking-[0.2em] text-rose-500">{tool.eyebrow}</p>
-                  <h2 className="mt-3 max-w-2xl text-3xl font-black tracking-tight text-brand-text sm:text-4xl">{tool.title}</h2>
-                  <p className="mt-4 max-w-3xl text-sm font-bold leading-relaxed text-gray-600">{tool.body}</p>
-                  <Link
-                    href={tool.href}
-                    className="mt-6 inline-flex rounded-full bg-brand-text px-5 py-3 text-sm font-black text-white shadow-sm shadow-slate-900/10 transition hover:-translate-y-0.5 hover:bg-rose-500"
-                  >
-                    {tool.label}を開く
-                  </Link>
-                </div>
-                <div className={`relative min-h-[240px] bg-gradient-to-br ${tool.accent} p-6 text-white`}>
-                  <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/18 to-transparent" />
-                  <div className="relative grid h-full content-between gap-4">
-                    <div className="flex items-center justify-between gap-3">
-                      <span className="rounded-full border border-white/35 bg-white/16 px-3 py-1.5 text-xs font-black uppercase tracking-[0.16em] backdrop-blur">
-                        Aincarn
-                      </span>
-                      <span className="rounded-full bg-white px-3 py-1.5 text-xs font-black text-brand-text">{tool.label}</span>
+              <div className="p-6 sm:p-8">
+                <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">{tool.eyebrow}</p>
+                <h2 className="mt-3 max-w-2xl text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">{tool.title}</h2>
+                <p className="mt-4 max-w-3xl text-sm font-semibold leading-relaxed text-slate-600">{tool.body}</p>
+                <Link
+                  href={tool.href}
+                  className="mt-7 inline-flex rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-900 shadow-sm shadow-slate-950/5 transition hover:-translate-y-0.5 hover:border-slate-300"
+                >
+                  {tool.label}を開く
+                </Link>
+              </div>
+              <div className="border-t border-slate-100 bg-slate-50/80 p-6 lg:border-l lg:border-t-0">
+                <div className="grid h-full content-center gap-3">
+                  {tool.stats.map((stat, index) => (
+                    <div key={stat} className="rounded-2xl border border-slate-200/70 bg-white p-4 shadow-sm shadow-slate-950/5">
+                      <div className="flex items-center justify-between gap-3">
+                        <p className="text-xs font-black uppercase tracking-[0.15em] text-slate-400">{stat}</p>
+                        <p className="text-sm font-black text-slate-950">{index === 0 ? 'High' : index === 1 ? 'Fast' : 'Clear'}</p>
+                      </div>
+                      <div className="mt-4 h-2 overflow-hidden rounded-full bg-slate-100">
+                        <div className="h-full rounded-full bg-slate-950" style={{ width: `${88 - index * 17}%` }} />
+                      </div>
                     </div>
-                    <div className="grid gap-3">
-                      {tool.metrics.map((metric, metricIndex) => (
-                        <div key={metric} className="rounded-2xl border border-white/24 bg-white/16 p-3 backdrop-blur">
-                          <div className="flex items-center justify-between gap-3">
-                            <span className="text-xs font-black uppercase tracking-[0.14em] text-white/74">{metric}</span>
-                            <span className="text-sm font-black">{metricIndex === 0 ? 'High' : metricIndex === 1 ? 'Compare' : 'Track'}</span>
-                          </div>
-                          <div className="mt-3 h-2 overflow-hidden rounded-full bg-white/18">
-                            <div
-                              className="h-full rounded-full bg-white"
-                              style={{ width: `${86 - metricIndex * 18}%` }}
-                            />
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+                  ))}
                 </div>
               </div>
             </article>

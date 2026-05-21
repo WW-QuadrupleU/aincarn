@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+﻿import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
   title: '運営者情報',
@@ -9,7 +9,7 @@ export default function AboutPage() {
   return (
     <main className="mx-auto max-w-3xl px-4 py-12">
       <section className="rounded-[28px] border border-white bg-white/84 p-8 shadow-sm backdrop-blur">
-        <p className="text-xs font-black uppercase tracking-[0.2em] text-rose-500">About</p>
+        <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">About</p>
         <h1 className="mt-2 text-3xl font-black tracking-tight text-brand-text">Aincarnについて</h1>
         <div className="mt-7 space-y-6 text-sm font-bold leading-relaxed text-gray-600">
           <p>
@@ -27,3 +27,4 @@ export default function AboutPage() {
     </main>
   )
 }
+
