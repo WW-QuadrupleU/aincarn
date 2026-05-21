@@ -156,6 +156,13 @@ const modeOptions: Array<{ id: PricingMode; label: string; description: string }
   },
 ]
 
+const modeTone: Record<PricingMode, string> = {
+  plans: 'from-indigo-500 via-sky-400 to-cyan-300',
+  llm: 'from-emerald-400 via-teal-400 to-sky-400',
+  image: 'from-fuchsia-500 via-rose-400 to-orange-300',
+  video: 'from-violet-500 via-indigo-400 to-sky-300',
+}
+
 function parseUsdPrice(label?: string): number | null {
   if (!label) return null
   const match = label.match(/\$([0-9]+(?:\.[0-9]+)?)/)
@@ -267,7 +274,7 @@ function PlanComparison({ query }: { query: string }) {
                   </div>
                   <p className="mt-3 text-xs font-bold leading-relaxed text-amber-700">{plan.cautions}</p>
                 </div>
-                <div className="rounded-2xl bg-gradient-to-br from-[#111827] via-[#334155] to-[#94a3b8] p-4 text-white">
+                <div className="rounded-2xl bg-gradient-to-br from-emerald-400 via-teal-400 to-sky-400 p-4 text-white shadow-lg shadow-teal-500/15">
                   <p className="text-xs font-black uppercase tracking-[0.14em] text-white/70">Monthly</p>
                   <p className="mt-2 text-2xl font-black">{formatUsd(plan.monthlyUsd)}</p>
                   <p className="mt-1 text-xs font-bold text-white/78">
@@ -363,7 +370,7 @@ export default function AiPricingTool() {
               サブスク契約とAPI利用を分けて見られるようにしました。
             </p>
           </div>
-          <div className="bg-gradient-to-br from-[#111827] via-[#334155] to-[#94a3b8] p-5 text-white sm:p-6">
+          <div className={`bg-gradient-to-br ${modeTone[mode]} p-5 text-white sm:p-6`}>
             <p className="text-xs font-black uppercase tracking-[0.18em] text-white/70">Current view</p>
             <p className="mt-3 text-2xl font-black">
               {mode === 'plans'
@@ -393,7 +400,7 @@ export default function AiPricingTool() {
             onClick={() => setMode(item.id)}
             className={`rounded-2xl border p-4 text-left transition-all ${
               mode === item.id
-                ? 'border-slate-300 bg-slate-950 text-white shadow-lg shadow-slate-950/10'
+                ? `border-white bg-gradient-to-br ${modeTone[item.id]} text-white shadow-lg shadow-slate-950/10`
                 : 'border-white/80 bg-white/86 text-gray-500 hover:-translate-y-0.5 hover:bg-white'
             }`}
           >

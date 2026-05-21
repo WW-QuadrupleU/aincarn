@@ -13,6 +13,10 @@
     min-height: 100vh;
     background-color: #f5f5f7;
     background-image:
+      radial-gradient(circle at 14% 4%, rgba(66, 153, 225, 0.16), transparent 28%),
+      radial-gradient(circle at 86% 6%, rgba(168, 85, 247, 0.14), transparent 28%),
+      radial-gradient(circle at 88% 74%, rgba(20, 184, 166, 0.12), transparent 30%),
+      radial-gradient(circle at 12% 86%, rgba(244, 114, 182, 0.12), transparent 30%),
       linear-gradient(180deg, rgba(255,255,255,0.92) 0%, rgba(245,245,247,0.96) 36%, rgba(238,242,247,0.92) 100%);
     color: #1d1d1f;
     text-rendering: optimizeLegibility;

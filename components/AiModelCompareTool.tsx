@@ -10,9 +10,9 @@ import {
 } from '@/lib/ai-model-compare-data'
 
 function scoreTone(score: number): string {
-  if (score >= 90) return 'bg-gradient-to-r from-slate-950 to-slate-600'
-  if (score >= 80) return 'bg-gradient-to-r from-slate-700 to-slate-400'
-  if (score >= 70) return 'bg-gradient-to-r from-slate-500 to-slate-300'
+  if (score >= 90) return 'bg-gradient-to-r from-indigo-500 via-sky-400 to-cyan-300'
+  if (score >= 80) return 'bg-gradient-to-r from-emerald-400 to-teal-300'
+  if (score >= 70) return 'bg-gradient-to-r from-amber-300 to-orange-300'
   return 'bg-gradient-to-r from-slate-300 to-slate-400'
 }
 
