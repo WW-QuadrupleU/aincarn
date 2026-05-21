@@ -403,7 +403,7 @@ function AuthenticatedSubscriptionManager() {
               AIサブスクを、カードで集める。
             </h1>
             <p className="mt-4 max-w-3xl text-sm font-bold leading-relaxed text-gray-600">
-              {user?.primaryEmailAddress?.emailAddress || 'ログイン中のアカウント'} に紐づけて、契約中のAIサービスを保存します。
+              このアカウントに紐づけて、契約中のAIサービスを保存します。
               サービスを選んでからプランを選択でき、画像と動画など複数ジャンルのサービスもそのままタグ化します。
             </p>
           </div>
