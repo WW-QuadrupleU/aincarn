@@ -1,7 +1,6 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import AuthNav from '@/components/AuthNav'
-import SmoothHashLink from '@/components/SmoothHashLink'
 
 export default function Header() {
   return (
@@ -19,9 +18,9 @@ export default function Header() {
           Aincarn
         </Link>
         <nav className="hidden items-center gap-1 rounded-full border border-slate-200/70 bg-white/72 p-1 text-xs font-black shadow-sm shadow-slate-950/5 sm:flex">
-          <SmoothHashLink href="/#tools" className="rounded-full px-3 py-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-950">
+          <Link href="/tools" className="rounded-full px-3 py-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-950">
             比較ツール
-          </SmoothHashLink>
+          </Link>
           <Link href="/tools/ai-pricing" className="rounded-full px-3 py-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-950">
             料金比較
           </Link>
@@ -38,9 +37,9 @@ export default function Header() {
         </div>
       </div>
       <nav className="mx-auto flex max-w-6xl gap-2 overflow-x-auto px-4 pb-3 text-xs font-black sm:hidden">
-        <SmoothHashLink href="/#tools" className="shrink-0 rounded-full border border-slate-200 bg-white px-3 py-2 text-slate-600 shadow-sm shadow-slate-950/5">
+        <Link href="/tools" className="shrink-0 rounded-full border border-slate-200 bg-white px-3 py-2 text-slate-600 shadow-sm shadow-slate-950/5">
           比較ツール
-        </SmoothHashLink>
+        </Link>
         <Link href="/tools/ai-pricing" className="shrink-0 rounded-full border border-slate-200 bg-white px-3 py-2 text-slate-600 shadow-sm shadow-slate-950/5">
           料金比較
         </Link>
