@@ -464,8 +464,7 @@ function AuthenticatedSubscriptionManager() {
               <div className="absolute inset-y-0 left-0 w-1.5" style={{ background: tone.gradient }} />
               <div className="absolute right-0 top-0 h-14 w-24 rounded-bl-[34px] opacity-10" style={{ background: tone.gradient }} />
               <div className="h-full">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex min-w-0 items-start gap-3">
+                <div className="flex min-w-0 items-start gap-3">
                     <div
                       className="flex size-12 shrink-0 items-center justify-center rounded-[18px] text-xs font-black text-white shadow-md shadow-slate-900/10"
                       style={{ background: tone.gradient }}
@@ -492,13 +491,18 @@ function AuthenticatedSubscriptionManager() {
                         ))}
                       </div>
                     </div>
-                  </div>
-                  <div className="shrink-0 text-right">
-                    <p className="text-lg font-black text-brand-text">{formatUsd(item.monthlyCostUsd)}</p>
-                    <p className="text-xs font-bold text-gray-400">
+                </div>
+                <div className="mt-4 grid gap-2 rounded-2xl border border-white/80 bg-white/72 p-3 shadow-sm shadow-slate-950/5 sm:grid-cols-[1fr_auto] sm:items-center">
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-[0.14em] text-gray-400">
+                      {item.billingCycle === 'yearly' ? 'Annual plan' : 'Monthly plan'}
+                    </p>
+                    <p className="mt-1 text-xs font-bold text-gray-500">
                       {billingCycleOptions.find((cycle) => cycle.value === item.billingCycle)?.label || item.billingCycle}
+                      {item.billingCycle === 'yearly' ? '・月額換算' : ''}
                     </p>
                   </div>
+                  <p className="text-2xl font-black tracking-tight text-slate-950">{formatUsd(item.monthlyCostUsd)}</p>
                 </div>
                 <p className="mt-3 text-xs font-bold text-gray-400">更新日 {formatDate(item.renewalDate)}</p>
                 {item.notes && <p className="mt-2 text-xs font-bold leading-relaxed text-gray-500">{item.notes}</p>}

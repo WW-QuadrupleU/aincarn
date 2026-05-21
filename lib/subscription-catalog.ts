@@ -33,7 +33,7 @@ export type SubscriptionCatalogService = {
   plans: SubscriptionCatalogPlan[]
 }
 
-export const catalogUpdatedAt = '2026-05-20'
+export const catalogUpdatedAt = '2026-05-21'
 
 export const categoryOptions: SubscriptionCategory[] = [
   'チャット',
@@ -92,6 +92,13 @@ export const defaultSubscriptionCatalog: SubscriptionCatalogService[] = [
         monthlyCostUsd: 20,
         billingCycle: 'monthly',
         summary: '通常利用向けの標準プラン。年払いでは年額$200の選択肢もある。',
+      },
+      {
+        id: 'pro-yearly',
+        name: 'Pro 年払い',
+        monthlyCostUsd: 16.67,
+        billingCycle: 'yearly',
+        summary: '年額$200の月額換算。Claudeを継続利用する人向け。',
       },
       {
         id: 'max-5x',
@@ -196,11 +203,25 @@ export const defaultSubscriptionCatalog: SubscriptionCatalogService[] = [
         summary: '個人開発者向け。300 premium requestsと主要IDE連携を含む。',
       },
       {
+        id: 'pro-yearly',
+        name: 'Pro 年払い',
+        monthlyCostUsd: 8.33,
+        billingCycle: 'yearly',
+        summary: '年額$100の月額換算。Copilot Proを継続利用する個人開発者向け。',
+      },
+      {
         id: 'pro-plus',
         name: 'Pro+',
         monthlyCostUsd: 39,
         billingCycle: 'monthly',
         summary: 'Proより多いpremium requestsと上位モデルアクセスを重視する人向け。',
+      },
+      {
+        id: 'pro-plus-yearly',
+        name: 'Pro+ 年払い',
+        monthlyCostUsd: 32.5,
+        billingCycle: 'yearly',
+        summary: '年額$390の月額換算。Pro+を継続利用する人向け。',
       },
     ],
   },
@@ -250,11 +271,25 @@ export const defaultSubscriptionCatalog: SubscriptionCatalogService[] = [
         summary: 'まず画像・動画生成を試したい人向けの入口プラン。',
       },
       {
+        id: 'basic-yearly',
+        name: 'Basic 年払い',
+        monthlyCostUsd: 8,
+        billingCycle: 'yearly',
+        summary: '年額$96の月額換算。Basicを継続利用する人向け。',
+      },
+      {
         id: 'standard',
         name: 'Standard',
         monthlyCostUsd: 30,
         billingCycle: 'monthly',
         summary: 'Relax GPU Timeを使い、継続的に生成したい人向け。',
+      },
+      {
+        id: 'standard-yearly',
+        name: 'Standard 年払い',
+        monthlyCostUsd: 24,
+        billingCycle: 'yearly',
+        summary: '年額$288の月額換算。Standardを継続利用する人向け。',
       },
       {
         id: 'pro',
@@ -264,11 +299,25 @@ export const defaultSubscriptionCatalog: SubscriptionCatalogService[] = [
         summary: 'より多いFast GPU Time、Stealth Mode、並列生成を求める人向け。',
       },
       {
+        id: 'pro-yearly',
+        name: 'Pro 年払い',
+        monthlyCostUsd: 48,
+        billingCycle: 'yearly',
+        summary: '年額$576の月額換算。Proを継続利用する人向け。',
+      },
+      {
         id: 'mega',
         name: 'Mega',
         monthlyCostUsd: 120,
         billingCycle: 'monthly',
         summary: '制作量が多い個人・事業者向けの最上位プラン。',
+      },
+      {
+        id: 'mega-yearly',
+        name: 'Mega 年払い',
+        monthlyCostUsd: 96,
+        billingCycle: 'yearly',
+        summary: '年額$1,152の月額換算。Megaを継続利用する制作量の多い人向け。',
       },
     ],
   },
@@ -284,22 +333,43 @@ export const defaultSubscriptionCatalog: SubscriptionCatalogService[] = [
     updatedAt: catalogUpdatedAt,
     plans: [
       {
+        id: 'standard-monthly',
+        name: 'Standard 月払い',
+        monthlyCostUsd: 15,
+        billingCycle: 'monthly',
+        summary: '月払い。625 credits/月で動画・画像生成を始める人向け。',
+      },
+      {
         id: 'standard-yearly',
-        name: 'Standard',
+        name: 'Standard 年払い',
         monthlyCostUsd: 12,
         billingCycle: 'yearly',
         summary: '年払い月額換算。625 credits/月で動画・画像生成を始める人向け。',
       },
       {
+        id: 'pro-monthly',
+        name: 'Pro 月払い',
+        monthlyCostUsd: 35,
+        billingCycle: 'monthly',
+        summary: '月払い。2250 credits/月と高度な制作機能を使いたい人向け。',
+      },
+      {
         id: 'pro-yearly',
-        name: 'Pro',
+        name: 'Pro 年払い',
         monthlyCostUsd: 28,
         billingCycle: 'yearly',
         summary: '年払い月額換算。2250 credits/月と高度な制作機能を使いたい人向け。',
       },
       {
+        id: 'unlimited-monthly',
+        name: 'Unlimited 月払い',
+        monthlyCostUsd: 95,
+        billingCycle: 'monthly',
+        summary: '月払い。Explore Modeで画像・動画生成を多く回したい人向け。',
+      },
+      {
         id: 'unlimited-yearly',
-        name: 'Unlimited',
+        name: 'Unlimited 年払い',
         monthlyCostUsd: 76,
         billingCycle: 'yearly',
         summary: '年払い月額換算。Explore Modeで画像・動画生成を多く回したい人向け。',
