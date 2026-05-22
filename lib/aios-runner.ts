@@ -23,11 +23,15 @@ export type RunResult = {
   fallbackReason?: string
 }
 
+// Default per-run models are tuned for cost. Plan generation in
+// lib/aios-ai.ts intentionally keeps a heavier model so the initial
+// decomposition stays high quality, while individual task execution
+// runs much more frequently and uses cheaper / faster variants.
 const DEFAULT_MODELS: Record<RunProvider, string> = {
-  anthropic: process.env.AINCARN_RUN_ANTHROPIC_MODEL || 'claude-sonnet-4-5',
-  openai: process.env.AINCARN_RUN_OPENAI_MODEL || 'gpt-5',
-  google: process.env.AINCARN_RUN_GOOGLE_MODEL || 'gemini-2.5-pro',
-  perplexity: process.env.AINCARN_RUN_PERPLEXITY_MODEL || 'sonar-pro',
+  anthropic: process.env.AINCARN_RUN_ANTHROPIC_MODEL || 'claude-haiku-4-5',
+  openai: process.env.AINCARN_RUN_OPENAI_MODEL || 'gpt-5-mini',
+  google: process.env.AINCARN_RUN_GOOGLE_MODEL || 'gemini-2.5-flash',
+  perplexity: process.env.AINCARN_RUN_PERPLEXITY_MODEL || 'sonar',
 }
 
 const TOOLS_WITHOUT_API = new Set(['GitHub Copilot', 'Cursor', 'Midjourney', 'Runway', 'NotebookLM'])

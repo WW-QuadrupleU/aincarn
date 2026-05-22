@@ -13,6 +13,15 @@ type LatestPlan = {
   createdAt: string
 } | null
 
+type UsageState = {
+  tier: string
+  tierLabel: string
+  tierDescription?: string
+  used: number
+  limit: number | null
+  resetsAt: string
+} | null
+
 type ClientTask = SavedAiosTask & { toolUrl?: string }
 
 const defaultProfile = {
@@ -134,6 +143,63 @@ function AiosSignInPrompt() {
   )
 }
 
+function UsageMeter({ usage }: { usage: UsageState }) {
+  if (!usage) return null
+  const limit = usage.limit
+  const used = usage.used
+  const isUnlimited = limit === null
+  const pct = isUnlimited ? 0 : Math.min(100, Math.round((used / Math.max(1, limit)) * 100))
+  const reset = new Date(usage.resetsAt)
+  const resetLabel = isNaN(reset.getTime())
+    ? ''
+    : new Intl.DateTimeFormat('ja-JP', { month: '2-digit', day: '2-digit' }).format(reset)
+  const isOver = !isUnlimited && used >= (limit || 0)
+  return (
+    <div className="mt-5 rounded-2xl border border-white/70 bg-white/80 p-4 shadow-sm shadow-slate-950/5">
+      <div className="flex flex-wrap items-center gap-2">
+        <p className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-400">AI Runs (今月)</p>
+        <span className="rounded-full bg-slate-900 px-2 py-0.5 text-[10px] font-black text-white">
+          {usage.tierLabel}
+        </span>
+        {isUnlimited ? (
+          <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-black text-emerald-700">
+            無制限
+          </span>
+        ) : (
+          <span
+            className={`rounded-full px-2 py-0.5 text-[10px] font-black ${
+              isOver ? 'bg-rose-100 text-rose-700' : 'bg-slate-100 text-slate-700'
+            }`}
+          >
+            {used} / {limit}
+          </span>
+        )}
+        {resetLabel && (
+          <span className="ml-auto text-[10px] font-bold text-slate-400">{resetLabel} にリセット</span>
+        )}
+      </div>
+      {!isUnlimited && (
+        <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100">
+          <div
+            className={`h-full rounded-full ${isOver ? 'bg-rose-500' : 'bg-gradient-to-r from-indigo-500 to-sky-400'}`}
+            style={{ width: `${Math.max(pct, 4)}%` }}
+          />
+        </div>
+      )}
+      {isOver && (
+        <p className="mt-3 text-xs font-bold leading-relaxed text-rose-600">
+          今月の枠を使い切りました。プランをアップグレードすると上限が増えます。
+        </p>
+      )}
+      {!isOver && !isUnlimited && (
+        <p className="mt-3 text-[11px] font-bold leading-relaxed text-slate-500">
+          1回のAI実行 = タスクのプロンプトをAincarn内で代理実行する操作。プラン生成や状態の保存は枠を消費しません。
+        </p>
+      )}
+    </div>
+  )
+}
+
 function RouterPanel() {
   const previews: Array<[string, string, string]> = [
     ['Strategy', 'Claude', '目標分解 / 意思決定'],
@@ -177,6 +243,7 @@ function AuthenticatedAiosMvp() {
   const [savedProfile, setSavedProfile] = useState<SavedAiosProfile | null>(null)
   const [tasks, setTasks] = useState<ClientTask[]>([])
   const [latestPlan, setLatestPlan] = useState<LatestPlan>(null)
+  const [usage, setUsage] = useState<UsageState>(null)
   const [aiEnabled, setAiEnabled] = useState(false)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -212,6 +279,7 @@ function AuthenticatedAiosMvp() {
       }
       setTasks(data.tasks || [])
       setLatestPlan(data.latestPlan || null)
+      setUsage(data.usage || null)
       setAiEnabled(Boolean(data.aiEnabled))
     } catch (error) {
       setMessage(error instanceof Error ? error.message : '読み込みに失敗しました')
@@ -239,6 +307,7 @@ function AuthenticatedAiosMvp() {
       setSavedProfile(data.profile)
       setTasks(data.tasks || [])
       setLatestPlan(data.latestPlan || null)
+      setUsage(data.usage || null)
       setAiEnabled(Boolean(data.aiEnabled))
       setMessage(
         action === 'regenerate'
@@ -318,13 +387,14 @@ function AuthenticatedAiosMvp() {
             </h1>
             <p className="mt-5 max-w-3xl text-sm font-bold leading-relaxed text-slate-600">
               Aincarn OSは、あなたの目標から逆算してタスクを作り、各タスクに最適なAI（Claude / ChatGPT / Gemini / Perplexity ほか）と
-              そのまま貼り付けられるプロンプトを割り当てます。
+              そのまま貼り付けられるプロンプトを割り当てます。プロンプトはAincarn内で代理実行され、回答はそのままMemoryに残ります。
               {!aiEnabled && (
                 <span className="ml-2 rounded-full bg-amber-100 px-2 py-1 text-[10px] font-black text-amber-700">
                   AI生成は未設定のためテンプレート起動中
                 </span>
               )}
             </p>
+            <UsageMeter usage={usage} />
           </div>
           <RouterPanel />
         </div>
@@ -511,6 +581,7 @@ function AuthenticatedAiosMvp() {
                   saving={saving}
                   onUpdate={updateTask}
                   onDelete={deleteTask}
+                  onUsageUpdate={setUsage}
                 />
               ))}
             </div>
@@ -531,6 +602,7 @@ function AuthenticatedAiosMvp() {
                       saving={saving}
                       onUpdate={updateTask}
                       onDelete={deleteTask}
+                      onUsageUpdate={setUsage}
                       compact
                     />
                   ))}
@@ -558,6 +630,7 @@ function TaskCard({
   saving,
   onUpdate,
   onDelete,
+  onUsageUpdate,
   compact,
 }: {
   task: ClientTask
@@ -565,6 +638,7 @@ function TaskCard({
   saving: boolean
   onUpdate: (id: string, status: SavedAiosTask['status']) => void
   onDelete: (id: string) => void
+  onUsageUpdate?: (usage: UsageState) => void
   compact?: boolean
 }) {
   const [copied, setCopied] = useState(false)
@@ -618,8 +692,12 @@ function TaskCard({
         body: JSON.stringify({}),
       })
       const data = await response.json()
-      if (!response.ok) throw new Error(data.error || 'AI実行に失敗しました')
+      if (!response.ok) {
+        if (data?.usage && onUsageUpdate) onUsageUpdate(data.usage)
+        throw new Error(data.error || 'AI実行に失敗しました')
+      }
       setRuns((current) => [data.run, ...current])
+      if (data?.usage && onUsageUpdate) onUsageUpdate(data.usage)
     } catch (error) {
       setRunError(error instanceof Error ? error.message : 'AI実行に失敗しました')
     } finally {

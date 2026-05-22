@@ -1,4 +1,4 @@
-import { auth } from '@clerk/nextjs/server'
+import { auth, clerkClient } from '@clerk/nextjs/server'
 
 export function hasSubscriptionAuth() {
   return Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY && process.env.CLERK_SECRET_KEY)
@@ -34,5 +34,15 @@ export async function getSubscriptionUserId() {
       status: 501,
       userId: null,
     }
+  }
+}
+
+export async function getUserEmail(userId: string): Promise<string | null> {
+  try {
+    const client = await clerkClient()
+    const user = await client.users.getUser(userId)
+    return user.primaryEmailAddress?.emailAddress || null
+  } catch {
+    return null
   }
 }

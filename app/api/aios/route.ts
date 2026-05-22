@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
-import { getSubscriptionUserId } from '@/lib/subscription-auth'
+import { getSubscriptionUserId, getUserEmail } from '@/lib/subscription-auth'
 import {
+  countAiosRunsSince,
   createAiosTask,
   deleteAllPendingAiosTasks,
   getAiosState,
@@ -12,6 +13,22 @@ import {
   saveAiosProfile,
 } from '@/lib/aios-store'
 import { enrichTaskForClient, generateAiPlan, hasAiosAi } from '@/lib/aios-ai'
+import { getTierConfig, getTierForUser, getUsageWindowReset, getUsageWindowStart } from '@/lib/aios-tier'
+
+async function computeUsage(userId: string) {
+  const email = await getUserEmail(userId)
+  const tier = getTierForUser({ userId, email })
+  const config = getTierConfig(tier)
+  const used = await countAiosRunsSince(userId, getUsageWindowStart())
+  return {
+    tier: config.tier,
+    tierLabel: config.label,
+    tierDescription: config.description,
+    used,
+    limit: Number.isFinite(config.monthlyRunLimit) ? config.monthlyRunLimit : null,
+    resetsAt: getUsageWindowReset().toISOString(),
+  }
+}
 
 function configurationError() {
   return NextResponse.json(
@@ -31,11 +48,13 @@ export async function GET() {
 
   const state = await getAiosState(authResult.userId)
   const latestPlan = await getLatestAiosPlan(authResult.userId)
+  const usage = await computeUsage(authResult.userId)
   return NextResponse.json({
     profile: state.profile,
     tasks: state.tasks.map(enrichTaskForClient),
     latestPlan,
     aiEnabled: hasAiosAi(),
+    usage,
   })
 }
 
@@ -66,11 +85,13 @@ export async function POST(request: Request) {
         await recordAiosPlan(authResult.userId, plan.rationale, plan.model)
       }
 
+      const usage = await computeUsage(authResult.userId)
       return NextResponse.json({
         profile,
         tasks: tasks.map(enrichTaskForClient),
         latestPlan: plan ? { rationale: plan.rationale, model: plan.model, createdAt: new Date().toISOString() } : await getLatestAiosPlan(authResult.userId),
         aiEnabled: hasAiosAi(),
+        usage,
       })
     }
 

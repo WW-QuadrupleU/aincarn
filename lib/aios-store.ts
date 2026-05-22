@@ -230,6 +230,18 @@ export async function getAiosRunsForTask(userId: string, taskId: string, limit =
   return queryRows(rows).map(rowToRun)
 }
 
+export async function countAiosRunsSince(userId: string, since: Date) {
+  await ensureAiosSchema()
+  const sql = getSql()
+  const rows = await sql`
+    SELECT COUNT(*)::int AS run_count
+    FROM aincarn_aios_runs
+    WHERE user_id = ${userId} AND created_at >= ${since.toISOString()}
+  `
+  const row = queryRows(rows)[0]
+  return Number(row?.run_count || 0)
+}
+
 export async function getAiosRunsByUser(userId: string) {
   await ensureAiosSchema()
   const sql = getSql()
