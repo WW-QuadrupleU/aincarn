@@ -144,6 +144,9 @@ function AiosSignInPrompt() {
 }
 
 function UsageMeter({ usage }: { usage: UsageState }) {
+  const [portalLoading, setPortalLoading] = useState(false)
+  const [portalError, setPortalError] = useState('')
+
   if (!usage) return null
   const limit = usage.limit
   const used = usage.used
@@ -154,6 +157,23 @@ function UsageMeter({ usage }: { usage: UsageState }) {
     ? ''
     : new Intl.DateTimeFormat('ja-JP', { month: '2-digit', day: '2-digit' }).format(reset)
   const isOver = !isUnlimited && used >= (limit || 0)
+  const isPaidLikeTier = usage.tier === 'light' || usage.tier === 'pro' || usage.tier === 'power'
+
+  async function openPortal() {
+    setPortalLoading(true)
+    setPortalError('')
+    try {
+      const response = await fetch('/api/stripe/portal', { method: 'POST' })
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.error || 'ポータルを開けませんでした')
+      if (data.url) window.location.href = data.url
+    } catch (error) {
+      setPortalError(error instanceof Error ? error.message : '不明なエラー')
+    } finally {
+      setPortalLoading(false)
+    }
+  }
+
   return (
     <div className="mt-5 rounded-2xl border border-white/70 bg-white/80 p-4 shadow-sm shadow-slate-950/5">
       <div className="flex flex-wrap items-center gap-2">
@@ -196,6 +216,25 @@ function UsageMeter({ usage }: { usage: UsageState }) {
           1回のAI実行 = タスクのプロンプトをAincarn内で代理実行する操作。プラン生成や状態の保存は枠を消費しません。
         </p>
       )}
+      <div className="mt-3 flex flex-wrap gap-2">
+        <Link
+          href="/tools/aios/pricing"
+          className="rounded-full bg-slate-950 px-3 py-1.5 text-[11px] font-black text-white transition hover:bg-slate-800"
+        >
+          プランを見る
+        </Link>
+        {isPaidLikeTier && (
+          <button
+            type="button"
+            onClick={openPortal}
+            disabled={portalLoading}
+            className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-black text-slate-700 transition hover:border-slate-400 disabled:opacity-50"
+          >
+            {portalLoading ? 'ポータルを開いています...' : 'サブスクを管理'}
+          </button>
+        )}
+      </div>
+      {portalError && <p className="mt-2 text-[11px] font-bold text-rose-600">{portalError}</p>}
     </div>
   )
 }
@@ -480,21 +519,26 @@ function AuthenticatedAiosMvp() {
           </div>
 
           <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-4">
-            <p className="text-xs font-black uppercase tracking-[0.16em] text-slate-500">Free</p>
-            <p className="mt-1 text-sm font-black text-slate-950">テスト中は無料で試せます</p>
+            <p className="text-xs font-black uppercase tracking-[0.16em] text-slate-500">Pricing</p>
+            <p className="mt-1 text-sm font-black text-slate-950">¥480 / ¥980 / ¥1,980 ・月額</p>
             <p className="mt-2 text-xs font-bold leading-relaxed text-slate-500">
-              正式版ではProプラン (¥980/月) で:
-              <br />・複数の目標を並行管理
-              <br />・週次レビューとリプランをAIに依頼
-              <br />・成果物をAincarn Memoryに自動保存
-              <br />・API使用量上限なし
+              Light (60回), Pro (150回), Power (400回) からAI実行回数の上限が選べます。
+              いつでも変更・解約OK（日割り精算）。
             </p>
-            <Link
-              href="/tools/subscriptions"
-              className="mt-3 inline-flex rounded-full border border-slate-300 bg-white px-3 py-1.5 text-xs font-black text-slate-700 transition hover:border-slate-500"
-            >
-              他のAIサブスクとの組み合わせを見る
-            </Link>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <Link
+                href="/tools/aios/pricing"
+                className="rounded-full bg-slate-950 px-3 py-1.5 text-xs font-black text-white transition hover:bg-slate-800"
+              >
+                プランを見る
+              </Link>
+              <Link
+                href="/tools/subscriptions"
+                className="rounded-full border border-slate-300 bg-white px-3 py-1.5 text-xs font-black text-slate-700 transition hover:border-slate-500"
+              >
+                他のAIサブスクとの組み合わせ
+              </Link>
+            </div>
           </div>
         </div>
 

@@ -70,7 +70,8 @@ function parseTierList(env: string | undefined): string[] {
 }
 
 // Allowlists by email or Clerk user id so test users can be promoted
-// without a payment table yet.
+// without a payment record. Used as a fallback when no Stripe
+// subscription row exists for the user yet.
 export function getTierForUser(input: { userId: string; email?: string | null }): AiosTier {
   const lowerEmail = (input.email || '').toLowerCase()
   const lowerId = input.userId.toLowerCase()
@@ -88,6 +89,29 @@ export function getTierForUser(input: { userId: string; email?: string | null })
     return 'light'
   }
   return 'free'
+}
+
+// Resolve the effective tier by combining the Stripe subscription
+// record with the env allowlists. The DB record wins when the
+// subscription is active or trialing; otherwise we fall back to the
+// allowlist tier (for internal accounts) and finally to free.
+export async function resolveEffectiveTier(input: {
+  userId: string
+  email?: string | null
+}): Promise<{ tier: AiosTier; source: 'subscription' | 'allowlist' | 'free' }> {
+  try {
+    const { getSubscriptionByUserId } = await import('@/lib/aios-subscription-store')
+    const record = await getSubscriptionByUserId(input.userId)
+    if (record && ['active', 'trialing'].includes(record.status)) {
+      return { tier: record.tier, source: 'subscription' }
+    }
+  } catch {
+    // DB unavailable; fall through to env allowlist
+  }
+
+  const allowlistTier = getTierForUser(input)
+  if (allowlistTier !== 'free') return { tier: allowlistTier, source: 'allowlist' }
+  return { tier: 'free', source: 'free' }
 }
 
 export function getUsageWindowStart() {

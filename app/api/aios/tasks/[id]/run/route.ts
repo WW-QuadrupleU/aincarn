@@ -10,9 +10,9 @@ import {
 import { runPrompt } from '@/lib/aios-runner'
 import {
   getTierConfig,
-  getTierForUser,
   getUsageWindowReset,
   getUsageWindowStart,
+  resolveEffectiveTier,
 } from '@/lib/aios-tier'
 
 export const runtime = 'nodejs'
@@ -44,7 +44,7 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
 
   // Resolve tier and enforce monthly rate limit
   const email = await getUserEmail(auth.userId)
-  const tier = getTierForUser({ userId: auth.userId, email })
+  const { tier } = await resolveEffectiveTier({ userId: auth.userId, email })
   const config = getTierConfig(tier)
   const windowStart = getUsageWindowStart()
   const used = await countAiosRunsSince(auth.userId, windowStart)

@@ -13,17 +13,18 @@ import {
   saveAiosProfile,
 } from '@/lib/aios-store'
 import { enrichTaskForClient, generateAiPlan, hasAiosAi } from '@/lib/aios-ai'
-import { getTierConfig, getTierForUser, getUsageWindowReset, getUsageWindowStart } from '@/lib/aios-tier'
+import { getTierConfig, getUsageWindowReset, getUsageWindowStart, resolveEffectiveTier } from '@/lib/aios-tier'
 
 async function computeUsage(userId: string) {
   const email = await getUserEmail(userId)
-  const tier = getTierForUser({ userId, email })
+  const { tier, source } = await resolveEffectiveTier({ userId, email })
   const config = getTierConfig(tier)
   const used = await countAiosRunsSince(userId, getUsageWindowStart())
   return {
     tier: config.tier,
     tierLabel: config.label,
     tierDescription: config.description,
+    tierSource: source,
     used,
     limit: Number.isFinite(config.monthlyRunLimit) ? config.monthlyRunLimit : null,
     resetsAt: getUsageWindowReset().toISOString(),
