@@ -543,6 +543,15 @@ function AuthenticatedAiosMvp() {
   )
 }
 
+type RunRecord = {
+  id: string
+  provider: string
+  model: string
+  output: string
+  fallbackReason?: string
+  createdAt: string
+}
+
 function TaskCard({
   task,
   index,
@@ -560,10 +569,32 @@ function TaskCard({
 }) {
   const [copied, setCopied] = useState(false)
   const [expanded, setExpanded] = useState(false)
+  const [runs, setRuns] = useState<RunRecord[]>([])
+  const [runsLoaded, setRunsLoaded] = useState(false)
+  const [running, setRunning] = useState(false)
+  const [runError, setRunError] = useState('')
   const tool = task.recommendedTool || ''
   const badge = getToolBadge(tool)
   const toolUrl = task.toolUrl || (tool && TOOL_FALLBACK_URLS[tool]) || ''
   const hasPrompt = Boolean((task.prompt || '').trim())
+
+  async function loadRuns() {
+    if (runsLoaded) return
+    try {
+      const response = await fetch(`/api/aios/tasks/${task.id}/run`, { cache: 'no-store' })
+      if (response.ok) {
+        const data = await response.json()
+        setRuns(Array.isArray(data.runs) ? data.runs : [])
+      }
+    } finally {
+      setRunsLoaded(true)
+    }
+  }
+
+  useEffect(() => {
+    if (hasPrompt) loadRuns()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [task.id])
 
   async function copyPrompt() {
     if (!hasPrompt) return
@@ -576,10 +607,27 @@ function TaskCard({
     }
   }
 
-  async function handoff() {
-    if (hasPrompt) await copyPrompt()
-    if (toolUrl) window.open(toolUrl, '_blank', 'noopener')
+  async function runInAincarn() {
+    if (!hasPrompt) return
+    setRunning(true)
+    setRunError('')
+    try {
+      const response = await fetch(`/api/aios/tasks/${task.id}/run`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      })
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.error || 'AI実行に失敗しました')
+      setRuns((current) => [data.run, ...current])
+    } catch (error) {
+      setRunError(error instanceof Error ? error.message : 'AI実行に失敗しました')
+    } finally {
+      setRunning(false)
+    }
   }
+
+  const latestRun = runs[0]
 
   return (
     <article className={`rounded-2xl border border-slate-200/70 bg-white p-4 shadow-sm shadow-slate-950/5 ${compact ? 'opacity-95' : ''}`}>
@@ -607,6 +655,11 @@ function TaskCard({
             <span className="rounded-full bg-amber-50 px-2 py-1 text-[10px] font-black text-amber-700">
               effort {task.effort}
             </span>
+            {runs.length > 0 && (
+              <span className="rounded-full bg-indigo-50 px-2 py-1 text-[10px] font-black text-indigo-700">
+                実行 {runs.length}回
+              </span>
+            )}
           </div>
           <h3 className="mt-3 text-lg font-black text-slate-950">{task.title}</h3>
           <p className="mt-2 text-sm font-bold leading-relaxed text-slate-600">{task.reason}</p>
@@ -629,14 +682,15 @@ function TaskCard({
       </div>
 
       <div className="mt-3 flex flex-wrap gap-2">
-        {hasPrompt && toolUrl && (
+        {hasPrompt && (
           <button
             type="button"
-            onClick={handoff}
-            className="rounded-full text-xs font-black text-white shadow-sm transition hover:-translate-y-0.5"
+            onClick={runInAincarn}
+            disabled={running}
+            className="rounded-full text-xs font-black shadow-sm transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60"
             style={{ background: badge.bg, color: badge.ink, padding: '0.5rem 0.875rem' }}
           >
-            {tool}に渡す（プロンプトコピー）
+            {running ? `${tool || 'AI'}が実行中…` : `Aincarn内で${tool || 'AI'}を実行`}
           </button>
         )}
         {hasPrompt && (
@@ -647,6 +701,16 @@ function TaskCard({
           >
             {copied ? 'コピーしました' : 'プロンプトをコピー'}
           </button>
+        )}
+        {hasPrompt && toolUrl && (
+          <a
+            href={toolUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-black text-slate-500 transition hover:border-slate-400"
+          >
+            外部の{tool}を開く
+          </a>
         )}
         <button
           type="button"
@@ -673,6 +737,75 @@ function TaskCard({
           削除
         </button>
       </div>
+
+      {runError && (
+        <p className="mt-3 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-bold text-rose-700">
+          {runError}
+        </p>
+      )}
+
+      {latestRun && (
+        <RunResultPanel runs={runs} />
+      )}
     </article>
+  )
+}
+
+function RunResultPanel({ runs }: { runs: RunRecord[] }) {
+  const [showHistory, setShowHistory] = useState(false)
+  const latest = runs[0]
+  if (!latest) return null
+
+  return (
+    <div className="mt-4 rounded-2xl border border-slate-200 bg-gradient-to-br from-white via-slate-50 to-white">
+      <div className="flex flex-wrap items-center gap-2 border-b border-slate-200 px-4 py-2">
+        <p className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-400">Aincarn Run</p>
+        <span className="rounded-full bg-slate-950 px-2 py-0.5 text-[10px] font-black text-white">
+          {latest.provider}
+        </span>
+        <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-black text-slate-600">
+          {latest.model}
+        </span>
+        <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-black text-slate-500">
+          {formatDateTime(latest.createdAt)}
+        </span>
+        {latest.fallbackReason && (
+          <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-black text-amber-700">
+            代理実行
+          </span>
+        )}
+        {runs.length > 1 && (
+          <button
+            type="button"
+            onClick={() => setShowHistory((value) => !value)}
+            className="ml-auto rounded-full border border-slate-200 bg-white px-2 py-0.5 text-[10px] font-black text-slate-500 transition hover:border-slate-400"
+          >
+            {showHistory ? '履歴を閉じる' : `過去の実行 ${runs.length - 1}件`}
+          </button>
+        )}
+      </div>
+      {latest.fallbackReason && (
+        <p className="border-b border-slate-200 bg-amber-50/70 px-4 py-2 text-[11px] font-bold leading-relaxed text-amber-800">
+          {latest.fallbackReason}
+        </p>
+      )}
+      <pre className="whitespace-pre-wrap break-words px-4 py-3 text-xs font-bold leading-relaxed text-slate-700">
+        {latest.output || '(空の応答)'}
+      </pre>
+      {showHistory && runs.length > 1 && (
+        <div className="space-y-2 border-t border-slate-200 bg-slate-50 px-4 py-3">
+          {runs.slice(1).map((run) => (
+            <details key={run.id} className="rounded-lg border border-slate-200 bg-white">
+              <summary className="cursor-pointer list-none px-3 py-2 text-[11px] font-black text-slate-500">
+                {run.provider}・{run.model}・{formatDateTime(run.createdAt)}
+              </summary>
+              <pre className="whitespace-pre-wrap break-words border-t border-slate-200 px-3 py-2 text-xs font-bold leading-relaxed text-slate-700">
+                {run.output}
+              </pre>
+            </details>
+          ))}
+        </div>
+      )}
+    </div>
   )
 }

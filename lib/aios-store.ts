@@ -139,7 +139,108 @@ export async function ensureAiosSchema() {
     )
   `
 
+  // Task execution runs (proxy executions of recommended AI)
+  await sql`
+    CREATE TABLE IF NOT EXISTS aincarn_aios_runs (
+      id text PRIMARY KEY,
+      task_id text NOT NULL,
+      user_id text NOT NULL,
+      provider text NOT NULL,
+      model text NOT NULL,
+      prompt text NOT NULL,
+      output text NOT NULL,
+      fallback_reason text,
+      created_at timestamptz NOT NULL DEFAULT now()
+    )
+  `
+  await sql`
+    CREATE INDEX IF NOT EXISTS aincarn_aios_runs_task_idx
+    ON aincarn_aios_runs (task_id, created_at DESC)
+  `
+
   schemaReady = true
+}
+
+export type SavedAiosRun = {
+  id: string
+  taskId: string
+  userId: string
+  provider: string
+  model: string
+  prompt: string
+  output: string
+  fallbackReason: string
+  createdAt: string
+}
+
+function rowToRun(row: Record<string, unknown>): SavedAiosRun {
+  return {
+    id: String(row.id),
+    taskId: String(row.task_id),
+    userId: String(row.user_id),
+    provider: String(row.provider),
+    model: String(row.model),
+    prompt: String(row.prompt),
+    output: String(row.output),
+    fallbackReason: row.fallback_reason ? String(row.fallback_reason) : '',
+    createdAt: new Date(String(row.created_at)).toISOString(),
+  }
+}
+
+export async function recordAiosRun(input: {
+  taskId: string
+  userId: string
+  provider: string
+  model: string
+  prompt: string
+  output: string
+  fallbackReason?: string
+}) {
+  await ensureAiosSchema()
+  const sql = getSql()
+  const rows = await sql`
+    INSERT INTO aincarn_aios_runs (
+      id, task_id, user_id, provider, model, prompt, output, fallback_reason
+    )
+    VALUES (
+      ${crypto.randomUUID()},
+      ${input.taskId},
+      ${input.userId},
+      ${input.provider},
+      ${input.model},
+      ${input.prompt},
+      ${input.output},
+      ${input.fallbackReason || null}
+    )
+    RETURNING *
+  `
+  return rowToRun(queryRows(rows)[0])
+}
+
+export async function getAiosRunsForTask(userId: string, taskId: string, limit = 5) {
+  await ensureAiosSchema()
+  const sql = getSql()
+  const rows = await sql`
+    SELECT *
+    FROM aincarn_aios_runs
+    WHERE task_id = ${taskId} AND user_id = ${userId}
+    ORDER BY created_at DESC
+    LIMIT ${limit}
+  `
+  return queryRows(rows).map(rowToRun)
+}
+
+export async function getAiosRunsByUser(userId: string) {
+  await ensureAiosSchema()
+  const sql = getSql()
+  const rows = await sql`
+    SELECT *
+    FROM aincarn_aios_runs
+    WHERE user_id = ${userId}
+    ORDER BY created_at DESC
+    LIMIT 200
+  `
+  return queryRows(rows).map(rowToRun)
 }
 
 export function normalizeAiosProfileInput(value: unknown): AiosProfileInput {

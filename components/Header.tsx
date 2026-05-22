@@ -18,6 +18,12 @@ export default function Header() {
           Aincarn
         </Link>
         <nav className="hidden items-center gap-1 rounded-full border border-slate-200/70 bg-white/72 p-1 text-xs font-black shadow-sm shadow-slate-950/5 sm:flex">
+          <Link
+            href="/tools/aios"
+            className="rounded-full bg-gradient-to-r from-indigo-500 via-sky-500 to-rose-400 px-3 py-2 text-white shadow-sm shadow-indigo-500/20 transition hover:-translate-y-0.5"
+          >
+            Aincarn OS
+          </Link>
           <Link href="/tools/ai-model-compare" className="rounded-full px-3 py-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-950">
             比較ツール
           </Link>
@@ -37,6 +43,12 @@ export default function Header() {
         </div>
       </div>
       <nav className="mx-auto flex max-w-6xl gap-2 overflow-x-auto px-4 pb-3 text-xs font-black sm:hidden">
+        <Link
+          href="/tools/aios"
+          className="shrink-0 rounded-full bg-gradient-to-r from-indigo-500 via-sky-500 to-rose-400 px-3 py-2 text-white shadow-sm shadow-indigo-500/15"
+        >
+          Aincarn OS
+        </Link>
         <Link href="/tools/ai-model-compare" className="shrink-0 rounded-full border border-slate-200 bg-white px-3 py-2 text-slate-600 shadow-sm shadow-slate-950/5">
           比較ツール
         </Link>
