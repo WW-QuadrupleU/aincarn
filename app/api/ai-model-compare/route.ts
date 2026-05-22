@@ -68,7 +68,8 @@ const ZERO_PERFORMANCE: Record<AiGenreId, number> = {
   coding: 0,
   analysis: 0,
   agent: 0,
-  image: 0,
+  textImage: 0,
+  imageImage: 0,
   textVideo: 0,
   imageVideo: 0,
 }
@@ -233,11 +234,11 @@ function mediaPrice(model: AaMediaModel): number | undefined {
   )
 }
 
-function mapMediaModel(model: AaMediaModel, type: 'image' | 'textVideo' | 'imageVideo', fallbackRank: number): AiModel | null {
+function mapMediaModel(model: AaMediaModel, type: 'textImage' | 'imageImage' | 'textVideo' | 'imageVideo', fallbackRank: number): AiModel | null {
   if (!model.name) return null
 
   const creator = model.model_creator?.name || 'Unknown'
-  const performance = type === 'image' ? normalizeMedia(model.elo, 1050, 1350) : normalizeMedia(model.elo, 1050, 1400)
+  const performance = type === 'textImage' || type === 'imageImage' ? normalizeMedia(model.elo, 1050, 1350) : normalizeMedia(model.elo, 1050, 1400)
   const rank = model.rank ?? fallbackRank
   const price = mediaPrice(model)
   const cost = mediaCostScore(price)
@@ -250,12 +251,14 @@ function mapMediaModel(model: AaMediaModel, type: 'image' | 'textVideo' | 'image
     family: mediaFamily(model.name, creator),
     releaseLabel: model.release_date
       ? `Released ${model.release_date}`
-      : type === 'image'
+      : type === 'textImage'
         ? 'Text to Image'
-        : type === 'textVideo'
-          ? 'Text to Video'
-          : 'Image to Video',
-    modality: type === 'image' ? 'Image' : 'Video',
+        : type === 'imageImage'
+          ? 'Image Editing'
+          : type === 'textVideo'
+            ? 'Text to Video'
+            : 'Image to Video',
+    modality: type === 'textImage' || type === 'imageImage' ? 'Image' : 'Video',
     accessType: 'Specialized',
     costLevel: price == null ? 3 : costLevel(price),
     speed: 55,
@@ -264,24 +267,26 @@ function mapMediaModel(model: AaMediaModel, type: 'image' | 'textVideo' | 'image
     visibleIn: [genre],
     rank,
     metric: model.elo == null ? undefined : `Elo ${Math.round(model.elo)}`,
-    priceLabel: price == null ? '価格情報なし' : type === 'image' ? `$${price}` : `$${price} / min`,
+    priceLabel: price == null ? '価格情報なし' : type === 'textImage' || type === 'imageImage' ? `$${price}` : `$${price} / min`,
     sourceUrl:
-      type === 'image'
+      type === 'textImage'
         ? 'https://artificialanalysis.ai/image/leaderboard/text-to-image'
-        : type === 'textVideo'
-          ? 'https://artificialanalysis.ai/video/leaderboard/text-to-video'
-          : 'https://artificialanalysis.ai/video/leaderboard/image-to-video',
+        : type === 'imageImage'
+          ? 'https://artificialanalysis.ai/image/leaderboard/image-editing'
+          : type === 'textVideo'
+            ? 'https://artificialanalysis.ai/video/leaderboard/text-to-video'
+            : 'https://artificialanalysis.ai/video/leaderboard/image-to-video',
     performance: scores({ [genre]: performance }),
     costPerformance: scores({ [genre]: costPerformanceScore(performance, cost) }),
     strengths: [
-      type === 'image' ? '画像生成品質の比較に使いやすい' : '動画生成品質の比較に使いやすい',
+      type === 'textImage' || type === 'imageImage' ? '画像生成・編集の比較に使いやすい' : '動画生成品質の比較に使いやすい',
       'Eloベースで順位を追いやすい',
     ],
     cautions: ['文章や調査の汎用AIではありません', '商用利用条件と生成物の権利は公式情報を確認してください'],
-    bestFor: type === 'image' ? '記事画像、サムネイル、広告素材の生成。' : '短尺動画、Bロール、SNS向け映像素材の生成。',
+    bestFor: type === 'textImage' || type === 'imageImage' ? '記事画像、サムネイル、広告素材の生成・編集。' : '短尺動画、Bロール、SNS向け映像素材の生成。',
     avoidFor: '文章作成、調査、コード補助を主目的にする人。',
     note: `${
-      type === 'image' ? 'Text to Image' : type === 'textVideo' ? 'Text to Video' : 'Image to Video'
+      type === 'textImage' ? 'Text to Image' : type === 'imageImage' ? 'Image Editing' : type === 'textVideo' ? 'Text to Video' : 'Image to Video'
     }系の公開評価、価格、用途適性をもとに自動反映しています。`,
   }
 }
@@ -320,9 +325,10 @@ export async function GET() {
   }
 
   try {
-    const [llms, images, textVideos, imageVideos] = await Promise.all([
+    const [llms, textImages, imageImages, textVideos, imageVideos] = await Promise.all([
       fetchAa<AaLlmModel>('/data/llms/models', key),
       fetchAa<AaMediaModel>('/data/media/text-to-image', key),
+      fetchAa<AaMediaModel>('/data/media/image-editing', key),
       fetchAa<AaMediaModel>('/data/media/text-to-video', key),
       fetchAa<AaMediaModel>('/data/media/image-to-video', key),
     ])
@@ -338,11 +344,18 @@ export async function GET() {
       .map(mapLlmModel)
       .filter((model): model is AiModel => Boolean(model))
 
-    const imageModels = images
+    const textImageModels = textImages
       .filter((model) => model.elo != null)
       .sort((a, b) => (a.rank ?? 9999) - (b.rank ?? 9999))
       .slice(0, 30)
-      .map((model, index) => mapMediaModel(model, 'image', index + 1))
+      .map((model, index) => mapMediaModel(model, 'textImage', index + 1))
+      .filter((model): model is AiModel => Boolean(model))
+
+    const imageImageModels = imageImages
+      .filter((model) => model.elo != null)
+      .sort((a, b) => (a.rank ?? 9999) - (b.rank ?? 9999))
+      .slice(0, 30)
+      .map((model, index) => mapMediaModel(model, 'imageImage', index + 1))
       .filter((model): model is AiModel => Boolean(model))
 
     const textVideoModels = textVideos
@@ -360,7 +373,7 @@ export async function GET() {
       .filter((model): model is AiModel => Boolean(model))
 
     const payload: AiModelComparePayload = {
-      models: uniqueModels([...llmModels, ...imageModels, ...textVideoModels, ...imageVideoModels]),
+      models: uniqueModels([...llmModels, ...textImageModels, ...imageImageModels, ...textVideoModels, ...imageVideoModels]),
       updatedAt: new Date().toISOString(),
       source: 'live',
       sourceLabel: '公開ベンチマーク・料金情報・公式情報',

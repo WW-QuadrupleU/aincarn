@@ -258,7 +258,7 @@ function parseUsdPrice(label?: string): number | null {
 }
 
 function genrePerformance(model: AiModel, mode: PricingMode): number {
-  if (mode === 'image') return model.performance.image || 0
+  if (mode === 'image') return Math.max(model.performance.textImage || 0, model.performance.imageImage || 0)
   if (mode === 'video') return Math.max(model.performance.textVideo || 0, model.performance.imageVideo || 0)
   return Math.max(
     model.performance.research || 0,
@@ -277,7 +277,7 @@ function unitLabel(mode: PricingMode) {
 
 function eligibleForMode(model: AiModel, mode: PricingMode) {
   if (mode === 'llm') return model.modality === 'LLM'
-  if (mode === 'image') return model.visibleIn.includes('image')
+  if (mode === 'image') return model.visibleIn.includes('textImage') || model.visibleIn.includes('imageImage')
   return model.visibleIn.includes('textVideo') || model.visibleIn.includes('imageVideo')
 }
 

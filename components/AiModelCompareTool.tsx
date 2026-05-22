@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useEffect, useMemo, useState } from 'react'
 import {
@@ -72,8 +72,8 @@ const AI_GENRE_GROUPS: Array<{
   {
     id: 'image',
     label: '画像AI',
-    description: '画像生成、デザイン、素材制作',
-    genreIds: ['image'],
+    description: '画像生成、編集、素材制作',
+    genreIds: ['textImage', 'imageImage'],
   },
   {
     id: 'video',
