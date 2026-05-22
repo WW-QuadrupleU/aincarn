@@ -50,12 +50,38 @@ const AI_PLANS: PlanRow[] = [
   },
   {
     service: 'ChatGPT',
-    plan: 'Pro',
+    plan: 'Go',
+    provider: 'OpenAI',
+    monthlyUsd: 8,
+    category: '総合AI (ライト)',
+    includes: ['Plusより少なめの利用枠', '画像生成', '高度な機能の制限'],
+    bestFor: '無料版の制限に不満だが20ドルは高いと感じるライトユーザー',
+    cautions: 'Deep Researchなどの一部高度な機能は含まれていません。',
+    sourceUrl: 'https://openai.com/chatgpt/pricing/',
+    matrixX: 'general',
+    matrixY: 'low',
+  },
+  {
+    service: 'ChatGPT',
+    plan: 'Pro ($100)',
+    provider: 'OpenAI',
+    monthlyUsd: 100,
+    category: '高負荷AI',
+    includes: ['Plusの5倍の利用枠', 'o1 pro mode等', '優先アクセス'],
+    bestFor: '日常業務や開発でAIをヘビーに使い、Plusの制限にすぐ到達する人',
+    cautions: '単独で元を取れる業務ワークフローが求められます。',
+    sourceUrl: 'https://openai.com/chatgpt/pricing/',
+    matrixX: 'general',
+    matrixY: 'high',
+  },
+  {
+    service: 'ChatGPT',
+    plan: 'Pro ($200)',
     provider: 'OpenAI',
     monthlyUsd: 200,
     category: '超高負荷AI',
-    includes: ['o1 pro mode等', '最優先の利用枠', '無制限レベルの推論'],
-    bestFor: '研究、先端エンジニアリング、ビジネス推進で高負荷に使うプロ向け',
+    includes: ['Plusの20倍の利用枠', 'o1 pro mode等', '最優先の利用枠'],
+    bestFor: '研究、先端エンジニアリング、ビジネス推進で限界まで使うプロ向け',
     cautions: '一般の文章作成や単純なコード作成では費用過剰になりやすいです。',
     sourceUrl: 'https://openai.com/chatgpt/pricing/',
     matrixX: 'general',
@@ -1111,42 +1137,7 @@ export default function AiPricingTool() {
 
                         {/* 各マトリックスセル */}
                         {Object.keys(matrixXLabels).map((xKey) => {
-                          const getModelMatrixX = (model: AiModel): string => {
-                            if (model.modality === 'Image' || model.modality === 'Video') return 'media'
-                            if (model.visibleIn.includes('coding')) return 'coding'
-                            if (model.visibleIn.includes('writing') || model.visibleIn.includes('research')) return 'writing'
-                            return 'general'
-                          }
-                          const getModelMatrixY = (model: AiModel): string => {
-                            if (model.costLevel === 1) return 'free'
-                            if (model.costLevel === 2) return 'low'
-                            if (model.costLevel === 3) return 'mid'
-                            if (model.costLevel === 4) return 'high'
-                            return 'premium'
-                          }
-
-                          // Convert payload API models into plan-like objects
-                          const apiPlans = payload.models.map(model => {
-                            // Extract price from label if possible
-                            const unitPrice = parseUsdPrice(model.priceLabel) || 0
-                            // Map costLevel 1->free, 2->low, 3->mid, 4->high, 5->premium
-                            return {
-                              service: model.name,
-                              plan: 'API',
-                              provider: model.creator,
-                              monthlyUsd: unitPrice, // not exactly monthly, but used for sorting/display
-                              category: model.family || 'API Model',
-                              includes: [model.metric || 'Score', model.priceLabel || 'API Usage'],
-                              bestFor: model.bestFor,
-                              cautions: model.cautions[0] || 'API連携による従量課金',
-                              sourceUrl: model.sourceUrl,
-                              matrixX: getModelMatrixX(model),
-                              matrixY: getModelMatrixY(model),
-                              isApi: true
-                            }
-                          })
-
-                          const combinedPlans = [...AI_PLANS, ...apiPlans]
+                          const combinedPlans = [...AI_PLANS]
                           
                           const matchedPlans = combinedPlans.filter(
                             (plan) => plan.matrixX === xKey && plan.matrixY === yKey
@@ -1154,12 +1145,6 @@ export default function AiPricingTool() {
                             const isMatch = !query.trim() || 
                               `${plan.service} ${plan.plan} ${plan.category}`.toLowerCase().includes(query.trim().toLowerCase())
                             return { ...plan, isMatch }
-                          })
-                          // Sort API models after Subscriptions
-                          .sort((a, b) => {
-                            if (a.isApi && !b.isApi) return 1;
-                            if (!a.isApi && b.isApi) return -1;
-                            return 0;
                           })
 
                           return (
