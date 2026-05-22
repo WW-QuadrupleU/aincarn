@@ -104,7 +104,7 @@ export const AI_GENRES: AiGenre[] = [
   {
     id: 'textImage',
     label: '画像生成（Text to Image）',
-    shortLabel: 'Text→Image',
+    shortLabel: '画像生成',
     description:
       'テキストプロンプトから画像を生成するモデルを比較します。',
     primaryMetrics: ['Text to Image Elo', '画質', '指示追従', '商用運用'],
@@ -113,7 +113,7 @@ export const AI_GENRES: AiGenre[] = [
   {
     id: 'imageImage',
     label: '画像編集（Image Editing）',
-    shortLabel: 'Image→Image',
+    shortLabel: '画像編集',
     description:
       '画像をもとに編集やバリエーション生成を行うモデルを比較します。',
     primaryMetrics: ['Image Editing Elo', '画質', '指示追従', '商用運用'],
@@ -122,7 +122,7 @@ export const AI_GENRES: AiGenre[] = [
   {
     id: 'textVideo',
     label: '動画生成（Text to Video）',
-    shortLabel: 'Text→Video',
+    shortLabel: 'テキストから動画',
     description:
       'テキストプロンプトだけから動画を生成するモデルを比較します。',
     primaryMetrics: ['Text to Video Elo', '映像品質', '動き', '素材化'],
@@ -131,7 +131,7 @@ export const AI_GENRES: AiGenre[] = [
   {
     id: 'imageVideo',
     label: '動画生成（Image to Video）',
-    shortLabel: 'Image→Video',
+    shortLabel: '画像から動画',
     description:
       '参照画像をもとに動画を生成するモデルを比較します。',
     primaryMetrics: ['Image to Video Elo', '映像品質', '動き', '素材化'],
