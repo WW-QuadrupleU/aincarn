@@ -8,7 +8,7 @@ import {
 } from '@/lib/ai-model-compare-data'
 
 type PricingMode = 'plans' | 'llm' | 'image' | 'video'
-type ViewMode = 'list' | 'matrix' | 'breakeven' | 'diagnosis'
+type ViewMode = 'matrix' | 'breakeven' | 'diagnosis'
 
 type PricingRow = {
   model: AiModel
@@ -31,6 +31,7 @@ type PlanRow = {
   sourceUrl: string
   matrixX: 'general' | 'writing' | 'coding' | 'media'
   matrixY: 'free' | 'low' | 'mid' | 'high' | 'premium'
+  isApi?: boolean
 }
 
 const AI_PLANS: PlanRow[] = [
@@ -291,8 +292,7 @@ export default function AiPricingTool() {
   const [loading, setLoading] = useState(true)
   const [mode, setMode] = useState<PricingMode>('plans')
   const [viewMode, setViewMode] = useState<ViewMode>('matrix')
-  const [usdToJpyRate, setUsdToJpyRate] = useState(155) // 為替レート
-
+  
   // API 従量課金シミュレータパラメータ
   const [tokenMillions, setTokenMillions] = useState(10)
   const [imageCount, setImageCount] = useState(200)
@@ -361,23 +361,16 @@ export default function AiPricingTool() {
 
   // 金額フォーマットヘルパー（USD + JPY併記）
   const formatCost = (usdValue: number) => {
-    const jpyValue = usdValue * usdToJpyRate
     const usdStr = new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
       maximumFractionDigits: usdValue >= 100 ? 0 : 2,
     }).format(usdValue)
 
-    const jpyStr = new Intl.NumberFormat('ja-JP', {
-      style: 'currency',
-      currency: 'JPY',
-      maximumFractionDigits: 0,
-    }).format(jpyValue)
-
     return {
       usd: usdStr,
-      jpy: jpyStr,
-      combined: `${usdStr} (約 ${jpyStr})`,
+      jpy: usdStr, // fallback to prevent undefined errors initially
+      combined: usdStr,
     }
   }
 
@@ -603,22 +596,11 @@ export default function AiPricingTool() {
             <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">Premium AI Estimator</p>
             <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-950">AI料金比較＆為替シミュレーター</h1>
             <p className="mt-3 max-w-3xl text-sm font-bold leading-relaxed text-gray-500">
-              定額サブスクプランとAPI従量課金を一括比較。為替レート（JPY）を動的に反映し、最適なAIの構成をコンシェルジュが提案します。
+              定額サブスクプランとAPI従量課金を一括比較。最適なAIの構成をコンシェルジュが提案します。
             </p>
             
             {/* 動的ビュー切り替えトグル */}
             <div className="mt-6 flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={() => setViewMode('list')}
-                className={`rounded-full px-5 py-2.5 text-xs font-black transition-all ${
-                  viewMode === 'list'
-                    ? 'bg-slate-950 text-white shadow-md shadow-slate-950/15'
-                    : 'bg-white hover:bg-slate-100 text-gray-600 border border-slate-200'
-                }`}
-              >
-                📋 リスト比較
-              </button>
               <button
                 type="button"
                 onClick={() => setViewMode('matrix')}
@@ -657,28 +639,7 @@ export default function AiPricingTool() {
 
           {/* 右側：為替レート動的コントロールパネル */}
           <div className="flex flex-col justify-between bg-gradient-to-br from-slate-900 to-slate-950 p-5 text-white sm:p-6">
-            <div>
-              <p className="text-xs font-black uppercase tracking-[0.18em] text-white/70">Dynamic Exchange Rate</p>
-              <p className="mt-2 text-2xl font-black text-white">1ドル = <span className="text-emerald-400 text-3xl">{usdToJpyRate}</span> 円</p>
-              
-              <div className="mt-3">
-                <input
-                  type="range"
-                  min="130"
-                  max="165"
-                  value={usdToJpyRate}
-                  onChange={(e) => setUsdToJpyRate(Number(e.target.value))}
-                  className="h-2 w-full cursor-pointer appearance-none rounded-lg bg-white/20 accent-emerald-400"
-                />
-                <div className="mt-1 flex justify-between text-[10px] font-bold text-white/60">
-                  <span>130円 (円高)</span>
-                  <span>150円</span>
-                  <span>165円 (円安)</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-4 border-t border-white/10 pt-4">
+            <div className="border-white/10 pt-4">
               <p className="text-[10px] font-black uppercase tracking-[0.15em] text-white/50">My Keep List</p>
               <div className="mt-2 flex flex-wrap gap-1.5 max-h-16 overflow-y-auto scrollbar-hide">
                 {keepList.length === 0 ? (
@@ -772,7 +733,7 @@ export default function AiPricingTool() {
               {/* シミュレーション結果表示 */}
               <div className="space-y-4">
                 <div className="rounded-2xl border border-gray-100 bg-white/60 p-4">
-                  <h3 className="text-sm font-black text-slate-950">💰 月額コストシミュレーション結果 (為替連動)</h3>
+                  <h3 className="text-sm font-black text-slate-950">💰 月額コストシミュレーション結果</h3>
                   <p className="mt-1 text-[11px] font-bold text-gray-400">
                     定額サブスク（月額 $20）と各API単価に基づく従量課金を比較した結果です。
                   </p>
@@ -785,7 +746,7 @@ export default function AiPricingTool() {
                       </div>
                       <h4 className="text-xs font-black text-slate-900">定額サブスク (個人プロ向け)</h4>
                       <p className="text-[10px] text-gray-500 mt-0.5">ChatGPT Plus / Claude Pro等</p>
-                      <p className="mt-3 text-2xl font-black text-slate-900">{formatCost(breakevenSim.subUsd).jpy}</p>
+                      <p className="mt-3 text-2xl font-black text-slate-900">{formatCost(breakevenSim.subUsd).usd}</p>
                       <p className="text-xs font-bold text-gray-400 mt-1">{formatCost(breakevenSim.subUsd).usd} / 月 (固定)</p>
                     </div>
 
@@ -797,7 +758,7 @@ export default function AiPricingTool() {
                     }`}>
                       <h4 className="text-xs font-black text-slate-900">スピード・軽量モデル API</h4>
                       <p className="text-[10px] text-gray-500 mt-0.5">GPT-4o-mini / Claude Haiku等</p>
-                      <p className="mt-3 text-2xl font-black text-slate-900">{formatCost(breakevenSim.liteUsd).jpy}</p>
+                      <p className="mt-3 text-2xl font-black text-slate-900">{formatCost(breakevenSim.liteUsd).usd}</p>
                       <p className="text-xs font-bold text-gray-400 mt-1">{formatCost(breakevenSim.liteUsd).usd} / 月</p>
                       <span className={`inline-block mt-2 rounded px-1.5 py-0.5 text-[9px] font-black ${
                         breakevenSim.liteUsd < breakevenSim.subUsd
@@ -816,7 +777,7 @@ export default function AiPricingTool() {
                     }`}>
                       <h4 className="text-xs font-black text-slate-900">ハイエンドモデル API</h4>
                       <p className="text-[10px] text-gray-500 mt-0.5">GPT-4o / Claude Sonnet等</p>
-                      <p className="mt-3 text-2xl font-black text-slate-900">{formatCost(breakevenSim.highEndUsd).jpy}</p>
+                      <p className="mt-3 text-2xl font-black text-slate-900">{formatCost(breakevenSim.highEndUsd).usd}</p>
                       <p className="text-xs font-bold text-gray-400 mt-1">{formatCost(breakevenSim.highEndUsd).usd} / 月</p>
                       <span className={`inline-block mt-2 rounded px-1.5 py-0.5 text-[9px] font-black ${
                         breakevenSim.highEndUsd < breakevenSim.subUsd
@@ -835,7 +796,7 @@ export default function AiPricingTool() {
                     }`}>
                       <h4 className="text-xs font-black text-slate-900">推論特化モデル API</h4>
                       <p className="text-[10px] text-gray-500 mt-0.5">o1 / o3-high等</p>
-                      <p className="mt-3 text-2xl font-black text-slate-900">{formatCost(breakevenSim.reasoningUsd).jpy}</p>
+                      <p className="mt-3 text-2xl font-black text-slate-900">{formatCost(breakevenSim.reasoningUsd).usd}</p>
                       <p className="text-xs font-bold text-gray-400 mt-1">{formatCost(breakevenSim.reasoningUsd).usd} / 月</p>
                       <span className={`inline-block mt-2 rounded px-1.5 py-0.5 text-[9px] font-black ${
                         breakevenSim.reasoningUsd < breakevenSim.subUsd
@@ -853,13 +814,13 @@ export default function AiPricingTool() {
                     <div className="mt-1.5 text-xs font-bold leading-relaxed text-gray-600">
                       {breakevenSim.highEndUsd > breakevenSim.subUsd ? (
                         <p>
-                          現在の利用頻度と文字数では、GPT-4o級のハイエンドモデルをAPIで使うと <strong className="text-rose-600">{formatCost(breakevenSim.highEndUsd).jpy}</strong> に達し、定額サブスク（{formatCost(breakevenSim.subUsd).jpy}）の上限を超えてしまいます。
+                          現在の利用頻度と文字数では、GPT-4o級のハイエンドモデルをAPIで使うと <strong className="text-rose-600">{formatCost(breakevenSim.highEndUsd).usd}</strong> に達し、定額サブスク（{formatCost(breakevenSim.subUsd).usd}）の上限を超えてしまいます。
                           したがって、<strong>月額定額サブスク（ChatGPT PlusやClaude Proなど）を契約したほうが圧倒的にお得</strong>です！
                         </p>
                       ) : (
                         <p>
-                          現在の利用頻度であれば、GPT-4o級のハイエンドモデルをAPI経由で使っても <strong className="text-emerald-600">{formatCost(breakevenSim.highEndUsd).jpy}</strong> 程度に収まります。
-                          定額サブスク（{formatCost(breakevenSim.subUsd).jpy}）より安いため、<strong>API経由（Cursorや各種クライアントアプリ等）での従量課金利用がおすすめ</strong>です！
+                          現在の利用頻度であれば、GPT-4o級のハイエンドモデルをAPI経由で使っても <strong className="text-emerald-600">{formatCost(breakevenSim.highEndUsd).usd}</strong> 程度に収まります。
+                          定額サブスク（{formatCost(breakevenSim.subUsd).usd}）より安いため、<strong>API経由（Cursorや各種クライアントアプリ等）での従量課金利用がおすすめ</strong>です！
                         </p>
                       )}
                     </div>
@@ -1029,7 +990,7 @@ export default function AiPricingTool() {
                               <p className="mt-2 text-xs font-bold leading-relaxed text-slate-300">{plan.bestFor}</p>
                             </div>
                             <div className="mt-4 pt-3 border-t border-white/5 flex items-center justify-between">
-                              <span className="text-xs font-black text-emerald-400">{formatCost(plan.monthlyUsd).jpy}</span>
+                              <span className="text-xs font-black text-emerald-400">{formatCost(plan.monthlyUsd).usd}</span>
                               <button
                                 type="button"
                                 onClick={() => toggleKeep(plan.service, plan.plan, plan.monthlyUsd)}
@@ -1150,12 +1111,55 @@ export default function AiPricingTool() {
 
                         {/* 各マトリックスセル */}
                         {Object.keys(matrixXLabels).map((xKey) => {
-                          const matchedPlans = AI_PLANS.filter(
+                          const getModelMatrixX = (model: AiModel): string => {
+                            if (model.modality === 'Image' || model.modality === 'Video') return 'media'
+                            if (model.visibleIn.includes('coding')) return 'coding'
+                            if (model.visibleIn.includes('writing') || model.visibleIn.includes('research')) return 'writing'
+                            return 'general'
+                          }
+                          const getModelMatrixY = (model: AiModel): string => {
+                            if (model.costLevel === 1) return 'free'
+                            if (model.costLevel === 2) return 'low'
+                            if (model.costLevel === 3) return 'mid'
+                            if (model.costLevel === 4) return 'high'
+                            return 'premium'
+                          }
+
+                          // Convert payload API models into plan-like objects
+                          const apiPlans = payload.models.map(model => {
+                            // Extract price from label if possible
+                            const unitPrice = parseUsdPrice(model.priceLabel) || 0
+                            // Map costLevel 1->free, 2->low, 3->mid, 4->high, 5->premium
+                            return {
+                              service: model.name,
+                              plan: 'API',
+                              provider: model.creator,
+                              monthlyUsd: unitPrice, // not exactly monthly, but used for sorting/display
+                              category: model.family || 'API Model',
+                              includes: [model.metric || 'Score', model.priceLabel || 'API Usage'],
+                              bestFor: model.bestFor,
+                              cautions: model.cautions[0] || 'API連携による従量課金',
+                              sourceUrl: model.sourceUrl,
+                              matrixX: getModelMatrixX(model),
+                              matrixY: getModelMatrixY(model),
+                              isApi: true
+                            }
+                          })
+
+                          const combinedPlans = [...AI_PLANS, ...apiPlans]
+                          
+                          const matchedPlans = combinedPlans.filter(
                             (plan) => plan.matrixX === xKey && plan.matrixY === yKey
                           ).map((plan) => {
                             const isMatch = !query.trim() || 
                               `${plan.service} ${plan.plan} ${plan.category}`.toLowerCase().includes(query.trim().toLowerCase())
                             return { ...plan, isMatch }
+                          })
+                          // Sort API models after Subscriptions
+                          .sort((a, b) => {
+                            if (a.isApi && !b.isApi) return 1;
+                            if (!a.isApi && b.isApi) return -1;
+                            return 0;
                           })
 
                           return (
@@ -1180,7 +1184,7 @@ export default function AiPricingTool() {
                                         <div className="flex items-start justify-between gap-1">
                                           <div className="min-w-0">
                                             <h4 className="text-xs font-black text-slate-900 truncate">{plan.service}</h4>
-                                            <span className="inline-block rounded bg-slate-100 px-1 py-0.5 text-[9px] font-black text-gray-500 leading-none">
+                                            <span className={`inline-block rounded px-1 py-0.5 text-[9px] font-black leading-none ${plan.isApi ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-100 text-gray-500'}`}>
                                               {plan.plan}
                                             </span>
                                           </div>
@@ -1196,7 +1200,7 @@ export default function AiPricingTool() {
                                           </button>
                                         </div>
                                         <p className="mt-1.5 text-[11px] font-black text-slate-950">
-                                          {formatCost(plan.monthlyUsd).jpy}
+                                          {plan.isApi ? (plan.monthlyUsd > 0 ? formatCost(plan.monthlyUsd).usd + ' / unit' : '単価情報なし') : formatCost(plan.monthlyUsd).usd}
                                         </p>
                                         
                                         {/* ホバー詳細ツールチップ (上側に吹き出し矢印付きで表示、z-50) */}
@@ -1211,7 +1215,7 @@ export default function AiPricingTool() {
                                             ⚠ {plan.cautions}
                                           </p>
                                           <div className="mt-3 flex items-center justify-between border-t border-white/10 pt-2">
-                                            <span className="text-[11px] font-black text-emerald-300">{formatCost(plan.monthlyUsd).usd} ({formatCost(plan.monthlyUsd).jpy})</span>
+                                            <span className="text-[11px] font-black text-emerald-300">{formatCost(plan.monthlyUsd).usd} ({formatCost(plan.monthlyUsd).usd})</span>
                                             <a
                                               href={plan.sourceUrl}
                                               target="_blank"
@@ -1238,228 +1242,6 @@ export default function AiPricingTool() {
             </div>
           </section>
         </div>
-      )}
-
-      {/* ---------------- 📋 VIEW: リスト形式（従来の比較とAPI単価） ---------------- */}
-      {viewMode === 'list' && (
-        <>
-          {/* モード選択タブ（plans, llm, image, video） */}
-          <section className="grid gap-3 md:grid-cols-4">
-            {modeOptions.map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => setMode(item.id)}
-                className={`rounded-2xl border p-4 text-left transition-all ${
-                  mode === item.id
-                    ? `border-white bg-gradient-to-br ${modeTone[item.id]} text-white shadow-lg shadow-slate-950/10`
-                    : 'border-white/80 bg-white/86 text-gray-500 hover:-translate-y-0.5 hover:bg-white'
-                }`}
-              >
-                <span className="block text-sm font-black">{item.label}</span>
-                <span className={`mt-2 block text-xs font-bold leading-relaxed ${mode === item.id ? 'text-white/70' : 'text-gray-500'}`}>
-                  {item.description}
-                </span>
-              </button>
-            ))}
-          </section>
-
-          {/* 従量課金シミュレータパラメータ */}
-          <section className="rounded-[24px] border border-white/80 bg-white/88 p-5 shadow-sm shadow-slate-950/5 backdrop-blur">
-            <div className="grid gap-4 lg:grid-cols-[1fr_1fr]">
-              {mode === 'llm' && (
-                <label className="block">
-                  <span className="text-xs font-black text-gray-500">月間トークン量（100万単位）</span>
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.5"
-                    value={tokenMillions}
-                    onChange={(event) => setTokenMillions(Number(event.target.value))}
-                    className="mt-2 w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm font-black text-slate-950 outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
-                  />
-                </label>
-              )}
-              {mode === 'image' && (
-                <label className="block">
-                  <span className="text-xs font-black text-gray-500">月間生成枚数</span>
-                  <input
-                    type="number"
-                    min="0"
-                    step="10"
-                    value={imageCount}
-                    onChange={(event) => setImageCount(Number(event.target.value))}
-                    className="mt-2 w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm font-black text-slate-950 outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
-                  />
-                </label>
-              )}
-              {mode === 'video' && (
-                <label className="block">
-                  <span className="text-xs font-black text-gray-500">月間生成分数</span>
-                  <input
-                    type="number"
-                    min="0"
-                    step="1"
-                    value={videoMinutes}
-                    onChange={(event) => setVideoMinutes(Number(event.target.value))}
-                    className="mt-2 w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm font-black text-slate-950 outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
-                  />
-                </label>
-              )}
-              <label className="block">
-                <span className="text-xs font-black text-gray-500">サービス・モデル名で絞り込み</span>
-                <input
-                  value={query}
-                  onChange={(event) => setQuery(event.target.value)}
-                  placeholder="ChatGPT, Claude, Gemini, OpenAI..."
-                  className="mt-2 w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm font-black text-slate-950 outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
-                />
-              </label>
-            </div>
-          </section>
-
-          {mode === 'plans' ? (
-            /* サブスク月額プラン比較 */
-            <div className="space-y-6">
-              <section className="grid gap-3 md:grid-cols-3">
-                {[
-                  ['最安プラン', 'ChatGPT Free', '無料'],
-                  ['おすすめプロプラン', 'ChatGPT Plus / Claude Pro', '$20 / 月'],
-                  ['掲載プラン数', `${AI_PLANS.length} 件`, '主要サブスク'],
-                ].map(([label, name, value]) => (
-                  <article key={label} className="rounded-2xl border border-white/80 bg-white/88 p-5 shadow-sm shadow-slate-950/5 backdrop-blur">
-                    <p className="text-xs font-black uppercase tracking-[0.14em] text-slate-400">{label}</p>
-                    <p className="mt-2 truncate text-lg font-black text-slate-950">{name}</p>
-                    <p className="mt-1 text-sm font-bold text-gray-500">{value}</p>
-                  </article>
-                ))}
-              </section>
-
-              <section className="overflow-hidden rounded-[24px] border border-white/80 bg-white/90 p-5 shadow-sm shadow-slate-950/5 backdrop-blur">
-                <div className="mb-4">
-                  <h2 className="text-xl font-black text-slate-950">月額プラン比較</h2>
-                  <p className="mt-1 text-xs font-bold leading-relaxed text-gray-500">
-                    主要なAIサービスの個人向けサブスク料金の一覧です。為替レートに基づきリアルタイムに日本円へ換算されています。
-                  </p>
-                </div>
-                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                  {AI_PLANS.filter((plan) => {
-                    const nQuery = query.toLowerCase().trim()
-                    if (!nQuery) return true
-                    return `${plan.service} ${plan.plan} ${plan.category}`.toLowerCase().includes(nQuery)
-                  }).map((plan) => {
-                    const isKeep = keepList.some(
-                      (k) => k.serviceName === plan.service && k.planName === plan.plan
-                    )
-                    return (
-                      <article key={`${plan.service}-${plan.plan}`} className="rounded-2xl border border-gray-100 bg-white/78 p-4 shadow-sm shadow-slate-900/5">
-                        <div className="grid gap-4 lg:grid-cols-[1fr_200px] lg:items-start">
-                          <div>
-                            <div className="flex flex-wrap items-center gap-2">
-                              <h3 className="text-lg font-black text-slate-950">{plan.service}</h3>
-                              <span className="rounded-full bg-slate-100 px-2 py-1 text-[10px] font-black text-gray-500">{plan.plan}</span>
-                              <span className="rounded-full bg-slate-50 px-2 py-1 text-[10px] font-black text-slate-400">{plan.category}</span>
-                            </div>
-                            <p className="mt-2 text-sm font-bold leading-relaxed text-gray-600">{plan.bestFor}</p>
-                            <div className="mt-3 flex flex-wrap gap-2">
-                              {plan.includes.map((item) => (
-                                <span key={item} className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-bold text-gray-500">
-                                  {item}
-                                </span>
-                              ))}
-                            </div>
-                            <p className="mt-3 text-xs font-bold leading-relaxed text-amber-700">⚠ {plan.cautions}</p>
-                          </div>
-                          <div className="rounded-2xl bg-gradient-to-br from-indigo-500 via-sky-400 to-cyan-400 p-4 text-white shadow-lg shadow-teal-500/15">
-                            <p className="text-xs font-black uppercase tracking-[0.14em] text-white/70">Monthly</p>
-                            <p className="mt-2 text-xl font-black">{formatCost(plan.monthlyUsd).usd}</p>
-                            <p className="mt-1 text-xs font-bold text-white/90">
-                              日本円換算: <span className="font-black">{formatCost(plan.monthlyUsd).jpy}</span>
-                            </p>
-                            <div className="mt-4 flex gap-2">
-                              <a href={plan.sourceUrl} target="_blank" rel="noopener noreferrer" className="flex-1 text-center rounded-full bg-white/20 hover:bg-white/30 px-2 py-1.5 text-[10px] font-black text-white">
-                                公式料金
-                              </a>
-                              <button
-                                type="button"
-                                onClick={() => toggleKeep(plan.service, plan.plan, plan.monthlyUsd)}
-                                className={`flex-1 text-center rounded-full px-2 py-1.5 text-[10px] font-black transition-all ${
-                                  isKeep ? 'bg-amber-400 text-slate-950' : 'bg-white text-slate-950 hover:bg-slate-100'
-                                }`}
-                              >
-                                {isKeep ? '★キープ済' : '★キープ'}
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      </article>
-                    )
-                  })}
-                </div>
-              </section>
-            </div>
-          ) : (
-            /* API単価 / 従量課金シミュレータ */
-            <>
-              <section className="grid gap-3 md:grid-cols-3">
-                {[
-                  ['最安候補', cheapest?.model.name, cheapest ? formatCost(cheapest.estimatedCost).combined : '-'],
-                  ['性能上位', strongest?.model.name, strongest ? `${strongest.performance} pt` : '-'],
-                  ['費用対効果', bestBalance?.model.name, bestBalance ? formatCost(bestBalance.estimatedCost).combined : '-'],
-                ].map(([label, name, value]) => (
-                  <article key={label} className="rounded-2xl border border-white/80 bg-white/88 p-5 shadow-sm shadow-slate-950/5 backdrop-blur">
-                    <p className="text-xs font-black uppercase tracking-[0.14em] text-slate-400">{label}</p>
-                    <p className="mt-2 truncate text-lg font-black text-slate-950">{name || '-'}</p>
-                    <p className="mt-1 text-sm font-bold text-gray-500">{value}</p>
-                  </article>
-                ))}
-              </section>
-
-              <section className="overflow-hidden rounded-[24px] border border-white/80 bg-white/90 p-5 shadow-sm shadow-slate-950/5 backdrop-blur">
-                <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-                  <div>
-                    <h2 className="text-xl font-black text-slate-950">推定コスト順</h2>
-                    <p className="mt-1 text-xs font-bold leading-relaxed text-gray-500">
-                      公開されている単価データに基づいたAPI月間コストの推定です。
-                    </p>
-                  </div>
-                  <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-black text-gray-500">{rows.length} models</span>
-                </div>
-                <div className="overflow-x-auto">
-                  <table className="w-full min-w-[760px] border-collapse text-sm">
-                    <thead>
-                      <tr className="border-b border-gray-200 text-left text-xs font-black uppercase tracking-[0.08em] text-gray-400">
-                        <th className="py-2 pr-3">モデル</th>
-                        <th className="px-3 py-2 text-right">推定月額（USD）</th>
-                        <th className="px-3 py-2 text-right">推定月額（JPY換算）</th>
-                        <th className="px-3 py-2 text-right">単価</th>
-                        <th className="px-3 py-2 text-right">性能目安</th>
-                        <th className="px-3 py-2 text-right">速度</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {rows.map((row) => (
-                        <tr key={row.model.id} className="border-b border-gray-100 transition hover:bg-white/70">
-                          <td className="py-3 pr-3">
-                            <p className="font-black text-slate-950">{row.model.name}</p>
-                            <p className="text-xs font-bold text-gray-400">{row.model.creator} / {row.model.family}</p>
-                          </td>
-                          <td className="px-3 py-3 text-right text-base font-black text-slate-950">{formatCost(row.estimatedCost).usd}</td>
-                          <td className="px-3 py-3 text-right text-base font-black text-emerald-600">{formatCost(row.estimatedCost).jpy}</td>
-                          <td className="px-3 py-3 text-right text-xs font-bold text-gray-500">
-                            {formatCost(row.unitPrice).usd} / {row.unitLabel}
-                          </td>
-                          <td className="px-3 py-3 text-right font-bold text-slate-950">{row.performance}</td>
-                          <td className="px-3 py-3 text-right font-bold text-slate-950">{row.model.speed}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </section>
-            </>
-          )}
-        </>
       )}
     </div>
   )
