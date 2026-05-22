@@ -11,13 +11,18 @@ export type SubscriptionCategory =
   | 'エージェント'
   | 'API'
 
+export type SubscriptionCatalogPlanYearly = {
+  monthlyCostUsd: number
+  summary?: string
+}
+
 export type SubscriptionCatalogPlan = {
   id: string
   name: string
   monthlyCostUsd: number
-  billingCycle: SubscriptionInput['billingCycle']
   summary: string
   sourceUrl?: string
+  yearly?: SubscriptionCatalogPlanYearly
 }
 
 export type SubscriptionCatalogService = {
@@ -33,7 +38,9 @@ export type SubscriptionCatalogService = {
   plans: SubscriptionCatalogPlan[]
 }
 
-export const catalogUpdatedAt = '2026-05-21'
+export type SubscriptionBillingCycle = SubscriptionInput['billingCycle']
+
+export const catalogUpdatedAt = '2026-05-22'
 
 export const categoryOptions: SubscriptionCategory[] = [
   'チャット',
@@ -63,14 +70,12 @@ export const defaultSubscriptionCatalog: SubscriptionCatalogService[] = [
         id: 'plus',
         name: 'Plus',
         monthlyCostUsd: 20,
-        billingCycle: 'monthly',
         summary: '個人利用の標準プラン。高度な推論、画像生成、Deep Research、Codex利用を広く使う人向け。',
       },
       {
         id: 'pro',
         name: 'Pro',
         monthlyCostUsd: 200,
-        billingCycle: 'monthly',
         summary: '最大級の利用枠、Pro推論、Deep Research、エージェント、Codexを重く使う人向け。',
       },
     ],
@@ -90,28 +95,22 @@ export const defaultSubscriptionCatalog: SubscriptionCatalogService[] = [
         id: 'pro',
         name: 'Pro',
         monthlyCostUsd: 20,
-        billingCycle: 'monthly',
-        summary: '通常利用向けの標準プラン。年払いでは年額$200の選択肢もある。',
-      },
-      {
-        id: 'pro-yearly',
-        name: 'Pro 年払い',
-        monthlyCostUsd: 16.67,
-        billingCycle: 'yearly',
-        summary: '年額$200の月額換算。Claudeを継続利用する人向け。',
+        summary: '通常利用向けの標準プラン。Claudeを毎日使う個人向け。',
+        yearly: {
+          monthlyCostUsd: 17,
+          summary: '年払い時の月額換算（年額$204）。Claude Proを継続利用する人向け。',
+        },
       },
       {
         id: 'max-5x',
         name: 'Max 5x',
         monthlyCostUsd: 100,
-        billingCycle: 'monthly',
         summary: 'Proの約5倍の利用容量をセッションごとに使いたい頻繁利用者向け。',
       },
       {
         id: 'max-20x',
         name: 'Max 20x',
         monthlyCostUsd: 200,
-        billingCycle: 'monthly',
         summary: 'Claudeを日常業務の中心に置くヘビーユーザー向け。',
       },
     ],
@@ -131,28 +130,24 @@ export const defaultSubscriptionCatalog: SubscriptionCatalogService[] = [
         id: 'ai-plus',
         name: 'Google AI Plus',
         monthlyCostUsd: 7.99,
-        billingCycle: 'monthly',
         summary: 'Freeより多い利用枠とGoogle AI機能を軽めに使う入口プラン。',
       },
       {
         id: 'ai-pro',
         name: 'Google AI Pro',
         monthlyCostUsd: 19.99,
-        billingCycle: 'monthly',
         summary: 'Gemini、Google Flow、NotebookLM、Googleアプリ連携を広く使う標準プラン。',
       },
       {
         id: 'ai-ultra-5x',
         name: 'Google AI Ultra 5x',
         monthlyCostUsd: 99.99,
-        billingCycle: 'monthly',
         summary: 'AI Proより高い利用上限と先行機能を求める上位プラン。',
       },
       {
         id: 'ai-ultra-20x',
         name: 'Google AI Ultra 20x',
         monthlyCostUsd: 199.99,
-        billingCycle: 'monthly',
         summary: 'AI Pro比で最大級の利用枠、動画生成、先行機能を重く使う人向け。',
       },
     ],
@@ -172,21 +167,16 @@ export const defaultSubscriptionCatalog: SubscriptionCatalogService[] = [
         id: 'pro',
         name: 'Pro',
         monthlyCostUsd: 20,
-        billingCycle: 'monthly',
         summary: '日常的な検索、Pro Search、ファイル利用、モデル選択を使いたい人向け。',
-      },
-      {
-        id: 'pro-yearly',
-        name: 'Pro 年払い',
-        monthlyCostUsd: 16.67,
-        billingCycle: 'yearly',
-        summary: '年額$200の月額換算。Perplexity Proを継続利用する人向け。',
+        yearly: {
+          monthlyCostUsd: 16.67,
+          summary: '年払い時の月額換算（年額$200）。Perplexity Proを継続利用する人向け。',
+        },
       },
       {
         id: 'max',
         name: 'Max',
         monthlyCostUsd: 200,
-        billingCycle: 'monthly',
         summary: '最新モデルや新機能への高いアクセスを求める上位プラン。',
       },
     ],
@@ -206,29 +196,21 @@ export const defaultSubscriptionCatalog: SubscriptionCatalogService[] = [
         id: 'pro',
         name: 'Pro',
         monthlyCostUsd: 10,
-        billingCycle: 'monthly',
         summary: '個人開発者向け。300 premium requestsと主要IDE連携を含む。',
-      },
-      {
-        id: 'pro-yearly',
-        name: 'Pro 年払い',
-        monthlyCostUsd: 8.33,
-        billingCycle: 'yearly',
-        summary: '年額$100の月額換算。Copilot Proを継続利用する個人開発者向け。',
+        yearly: {
+          monthlyCostUsd: 8.33,
+          summary: '年払い時の月額換算（年額$100）。Copilot Proを継続利用する個人開発者向け。',
+        },
       },
       {
         id: 'pro-plus',
         name: 'Pro+',
         monthlyCostUsd: 39,
-        billingCycle: 'monthly',
         summary: 'Proより多いpremium requestsと上位モデルアクセスを重視する人向け。',
-      },
-      {
-        id: 'pro-plus-yearly',
-        name: 'Pro+ 年払い',
-        monthlyCostUsd: 32.5,
-        billingCycle: 'yearly',
-        summary: '年額$390の月額換算。Pro+を継続利用する人向け。',
+        yearly: {
+          monthlyCostUsd: 32.5,
+          summary: '年払い時の月額換算（年額$390）。Pro+を継続利用する人向け。',
+        },
       },
     ],
   },
@@ -247,29 +229,21 @@ export const defaultSubscriptionCatalog: SubscriptionCatalogService[] = [
         id: 'pro',
         name: 'Pro',
         monthlyCostUsd: 20,
-        billingCycle: 'monthly',
         summary: '個人利用の標準プラン。フロンティアモデル、MCP、Cloud agentsを使える。',
-      },
-      {
-        id: 'pro-yearly',
-        name: 'Pro 年払い',
-        monthlyCostUsd: 16,
-        billingCycle: 'yearly',
-        summary: '年額$192の月額換算。Cursor Proを継続利用する開発者向け。',
+        yearly: {
+          monthlyCostUsd: 16,
+          summary: '年払い時の月額換算（年額$192）。Cursor Proを継続利用する開発者向け。',
+        },
       },
       {
         id: 'teams',
         name: 'Teams',
         monthlyCostUsd: 40,
-        billingCycle: 'monthly',
         summary: 'チーム共有、SSO/OIDC、管理・分析機能を使いたいチーム向け。',
-      },
-      {
-        id: 'teams-yearly',
-        name: 'Teams 年払い',
-        monthlyCostUsd: 32,
-        billingCycle: 'yearly',
-        summary: '年額$384/ユーザーの月額換算。Cursor Teamsを継続利用するチーム向け。',
+        yearly: {
+          monthlyCostUsd: 32,
+          summary: '年払い時の月額換算（年額$384/ユーザー）。チーム継続利用向け。',
+        },
       },
     ],
   },
@@ -288,57 +262,41 @@ export const defaultSubscriptionCatalog: SubscriptionCatalogService[] = [
         id: 'basic',
         name: 'Basic',
         monthlyCostUsd: 10,
-        billingCycle: 'monthly',
         summary: 'まず画像・動画生成を試したい人向けの入口プラン。',
-      },
-      {
-        id: 'basic-yearly',
-        name: 'Basic 年払い',
-        monthlyCostUsd: 8,
-        billingCycle: 'yearly',
-        summary: '年額$96の月額換算。Basicを継続利用する人向け。',
+        yearly: {
+          monthlyCostUsd: 8,
+          summary: '年払い時の月額換算（年額$96）。Basicを継続利用する人向け。',
+        },
       },
       {
         id: 'standard',
         name: 'Standard',
         monthlyCostUsd: 30,
-        billingCycle: 'monthly',
         summary: 'Relax GPU Timeを使い、継続的に生成したい人向け。',
-      },
-      {
-        id: 'standard-yearly',
-        name: 'Standard 年払い',
-        monthlyCostUsd: 24,
-        billingCycle: 'yearly',
-        summary: '年額$288の月額換算。Standardを継続利用する人向け。',
+        yearly: {
+          monthlyCostUsd: 24,
+          summary: '年払い時の月額換算（年額$288）。Standardを継続利用する人向け。',
+        },
       },
       {
         id: 'pro',
         name: 'Pro',
         monthlyCostUsd: 60,
-        billingCycle: 'monthly',
         summary: 'より多いFast GPU Time、Stealth Mode、並列生成を求める人向け。',
-      },
-      {
-        id: 'pro-yearly',
-        name: 'Pro 年払い',
-        monthlyCostUsd: 48,
-        billingCycle: 'yearly',
-        summary: '年額$576の月額換算。Proを継続利用する人向け。',
+        yearly: {
+          monthlyCostUsd: 48,
+          summary: '年払い時の月額換算（年額$576）。Proを継続利用する人向け。',
+        },
       },
       {
         id: 'mega',
         name: 'Mega',
         monthlyCostUsd: 120,
-        billingCycle: 'monthly',
         summary: '制作量が多い個人・事業者向けの最上位プラン。',
-      },
-      {
-        id: 'mega-yearly',
-        name: 'Mega 年払い',
-        monthlyCostUsd: 96,
-        billingCycle: 'yearly',
-        summary: '年額$1,152の月額換算。Megaを継続利用する制作量の多い人向け。',
+        yearly: {
+          monthlyCostUsd: 96,
+          summary: '年払い時の月額換算（年額$1,152）。Megaを継続利用する制作量の多い人向け。',
+        },
       },
     ],
   },
@@ -354,61 +312,50 @@ export const defaultSubscriptionCatalog: SubscriptionCatalogService[] = [
     updatedAt: catalogUpdatedAt,
     plans: [
       {
-        id: 'standard-monthly',
-        name: 'Standard 月払い',
+        id: 'standard',
+        name: 'Standard',
         monthlyCostUsd: 15,
-        billingCycle: 'monthly',
-        summary: '月払い。625 credits/月で動画・画像生成を始める人向け。',
+        summary: '625 credits/月で動画・画像生成を始める人向け。',
+        yearly: {
+          monthlyCostUsd: 12,
+          summary: '年払い時の月額換算（年額$144）。Standardを継続利用する人向け。',
+        },
       },
       {
-        id: 'standard-yearly',
-        name: 'Standard 年払い',
-        monthlyCostUsd: 12,
-        billingCycle: 'yearly',
-        summary: '年払い月額換算。625 credits/月で動画・画像生成を始める人向け。',
-      },
-      {
-        id: 'pro-monthly',
-        name: 'Pro 月払い',
+        id: 'pro',
+        name: 'Pro',
         monthlyCostUsd: 35,
-        billingCycle: 'monthly',
-        summary: '月払い。2250 credits/月と高度な制作機能を使いたい人向け。',
+        summary: '2250 credits/月と高度な制作機能を使いたい人向け。',
+        yearly: {
+          monthlyCostUsd: 28,
+          summary: '年払い時の月額換算（年額$336）。Proを継続利用する人向け。',
+        },
       },
       {
-        id: 'pro-yearly',
-        name: 'Pro 年払い',
-        monthlyCostUsd: 28,
-        billingCycle: 'yearly',
-        summary: '年払い月額換算。2250 credits/月と高度な制作機能を使いたい人向け。',
-      },
-      {
-        id: 'unlimited-monthly',
-        name: 'Unlimited 月払い',
+        id: 'unlimited',
+        name: 'Unlimited',
         monthlyCostUsd: 95,
-        billingCycle: 'monthly',
-        summary: '月払い。Explore Modeで画像・動画生成を多く回したい人向け。',
-      },
-      {
-        id: 'unlimited-yearly',
-        name: 'Unlimited 年払い',
-        monthlyCostUsd: 76,
-        billingCycle: 'yearly',
-        summary: '年払い月額換算。Explore Modeで画像・動画生成を多く回したい人向け。',
+        summary: 'Explore Modeで画像・動画生成を多く回したい人向け。',
+        yearly: {
+          monthlyCostUsd: 76,
+          summary: '年払い時の月額換算（年額$912）。Unlimitedを継続利用する人向け。',
+        },
       },
     ],
   },
 ]
 
+function isYearly(value: unknown): value is SubscriptionCatalogPlanYearly {
+  const yearly = value as SubscriptionCatalogPlanYearly
+  return Boolean(yearly && typeof yearly.monthlyCostUsd === 'number')
+}
+
 function isPlan(value: unknown): value is SubscriptionCatalogPlan {
   const plan = value as SubscriptionCatalogPlan
-  return Boolean(
-    plan &&
-      typeof plan.id === 'string' &&
-      typeof plan.name === 'string' &&
-      typeof plan.monthlyCostUsd === 'number' &&
-      ['monthly', 'yearly', 'weekly', 'one_time'].includes(plan.billingCycle) &&
-      typeof plan.summary === 'string',
-  )
+  if (!plan || typeof plan.id !== 'string' || typeof plan.name !== 'string') return false
+  if (typeof plan.monthlyCostUsd !== 'number' || typeof plan.summary !== 'string') return false
+  if (plan.yearly !== undefined && !isYearly(plan.yearly)) return false
+  return true
 }
 
 function isService(value: unknown): value is SubscriptionCatalogService {

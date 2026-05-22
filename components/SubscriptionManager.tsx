@@ -6,6 +6,7 @@ import type { CSSProperties } from 'react'
 import {
   categoryOptions,
   defaultSubscriptionCatalog,
+  type SubscriptionBillingCycle,
   type SubscriptionCatalogPlan,
   type SubscriptionCatalogService,
 } from '@/lib/subscription-catalog'
@@ -82,16 +83,25 @@ function toInput(subscription: SavedSubscription): SubscriptionInput {
   }
 }
 
-function planToInput(service: SubscriptionCatalogService, plan: SubscriptionCatalogPlan): SubscriptionInput {
+function planToInput(
+  service: SubscriptionCatalogService,
+  plan: SubscriptionCatalogPlan,
+  cycle: SubscriptionBillingCycle = 'monthly',
+): SubscriptionInput {
+  const isYearly = cycle === 'yearly' && plan.yearly
+  const monthlyCostUsd = isYearly ? plan.yearly!.monthlyCostUsd : plan.monthlyCostUsd
+  const billingCycle: SubscriptionBillingCycle = isYearly ? 'yearly' : 'monthly'
+  const cycleSummary = isYearly && plan.yearly?.summary ? plan.yearly.summary : plan.summary
+  const planLabel = isYearly ? `${plan.name}（年払い）` : plan.name
   return {
     serviceName: service.name,
-    planName: plan.name,
+    planName: planLabel,
     category: categoriesToText(service.categories),
-    monthlyCostUsd: plan.monthlyCostUsd,
-    billingCycle: plan.billingCycle,
+    monthlyCostUsd,
+    billingCycle,
     renewalDate: '',
     status: 'active',
-    notes: `${service.description} ${plan.summary} 料金は${service.updatedAt}時点の目安です。`,
+    notes: `${service.description} ${cycleSummary} 料金は${service.updatedAt}時点の目安です。`,
   }
 }
 
@@ -234,6 +244,118 @@ function SignInPrompt() {
   )
 }
 
+type PlanCardTone = ReturnType<typeof getServiceTone>
+
+function PlanCard({
+  service,
+  plan,
+  tone,
+  subscriptions,
+  saving,
+  onAdd,
+  onChoose,
+}: {
+  service: SubscriptionCatalogService
+  plan: SubscriptionCatalogPlan
+  tone: PlanCardTone
+  subscriptions: SavedSubscription[]
+  saving: boolean
+  onAdd: (service: SubscriptionCatalogService, plan: SubscriptionCatalogPlan, cycle: SubscriptionBillingCycle) => void
+  onChoose: (service: SubscriptionCatalogService, plan: SubscriptionCatalogPlan, cycle: SubscriptionBillingCycle) => void
+}) {
+  const hasYearly = Boolean(plan.yearly)
+  const [cycle, setCycle] = useState<SubscriptionBillingCycle>('monthly')
+  const activeCycle: SubscriptionBillingCycle = cycle === 'yearly' && hasYearly ? 'yearly' : 'monthly'
+  const monthlyCostUsd = activeCycle === 'yearly' ? plan.yearly!.monthlyCostUsd : plan.monthlyCostUsd
+  const summary = activeCycle === 'yearly' && plan.yearly?.summary ? plan.yearly.summary : plan.summary
+  const yearlyTotal = activeCycle === 'yearly' ? plan.yearly!.monthlyCostUsd * 12 : null
+  const planLabel = activeCycle === 'yearly' ? `${plan.name}（年払い）` : plan.name
+  const exists = subscriptions.some(
+    (item) =>
+      item.serviceName.toLowerCase() === service.name.toLowerCase() &&
+      (item.planName || '').toLowerCase() === planLabel.toLowerCase() &&
+      item.status !== 'cancelled',
+  )
+
+  return (
+    <article
+      className="overflow-hidden rounded-2xl border bg-white shadow-sm shadow-slate-900/5"
+      style={{
+        borderColor: tone.border,
+        background: `linear-gradient(180deg, ${tone.soft} 0%, rgba(255,255,255,0.98) 22%, #fff 100%)`,
+      }}
+    >
+      <div className="h-1.5" style={{ background: tone.gradient }} />
+      <div className="p-4">
+        <p className="text-xs font-black uppercase tracking-[0.14em]" style={{ color: tone.ink }}>
+          {service.name}
+        </p>
+        <h4 className="mt-2 text-lg font-black text-brand-text">{plan.name}</h4>
+
+        <div
+          className="mt-3 inline-flex rounded-full border bg-white/80 p-0.5 text-[10px] font-black"
+          style={{ borderColor: tone.border }}
+          role="tablist"
+          aria-label={`${plan.name}の請求周期`}
+        >
+          {(['monthly', 'yearly'] as const).map((option) => {
+            const disabled = option === 'yearly' && !hasYearly
+            const isActive = activeCycle === option
+            return (
+              <button
+                key={option}
+                type="button"
+                role="tab"
+                aria-selected={isActive}
+                disabled={disabled}
+                onClick={() => !disabled && setCycle(option)}
+                className="rounded-full px-2.5 py-1 transition disabled:cursor-not-allowed disabled:opacity-40"
+                style={{
+                  background: isActive ? tone.gradient : 'transparent',
+                  color: isActive ? '#fff' : tone.ink,
+                }}
+              >
+                {option === 'monthly' ? '月払い' : '年払い'}
+              </button>
+            )
+          })}
+        </div>
+
+        <p className="mt-3 text-3xl font-black text-brand-text">{formatUsd(monthlyCostUsd)}</p>
+        <p className="text-xs font-bold text-gray-400">
+          {activeCycle === 'yearly' ? `年額 ${formatUsd(yearlyTotal || 0)}・月額換算` : '月払い'}
+        </p>
+        {activeCycle === 'yearly' && hasYearly && (
+          <p className="mt-1 text-[11px] font-black text-emerald-600">
+            月払いより {formatUsd(Math.max(0, plan.monthlyCostUsd - monthlyCostUsd))}/月お得
+          </p>
+        )}
+        {!hasYearly && (
+          <p className="mt-1 text-[11px] font-bold text-gray-400">このプランは月払いのみ</p>
+        )}
+        <p className="mt-3 min-h-[54px] text-xs font-bold leading-relaxed text-gray-500">{summary}</p>
+        <div className="mt-4 flex flex-wrap gap-2">
+          <button
+            type="button"
+            disabled={saving || exists}
+            onClick={() => onAdd(service, plan, activeCycle)}
+            className="rounded-full bg-brand-text px-4 py-2.5 text-xs font-black text-white transition hover:-translate-y-0.5 hover:bg-gray-700 disabled:cursor-not-allowed disabled:bg-gray-300"
+          >
+            {exists ? '登録済み' : 'そのまま追加'}
+          </button>
+          <button
+            type="button"
+            onClick={() => onChoose(service, plan, activeCycle)}
+            className="rounded-full border border-gray-200 bg-white px-4 py-2.5 text-xs font-black text-gray-500 transition hover:border-brand-text hover:text-brand-text"
+          >
+            編集して追加
+          </button>
+        </div>
+      </div>
+    </article>
+  )
+}
+
 export default function SubscriptionManager() {
   if (!clerkEnabled) return <AccountUnavailable />
   return <AuthenticatedSubscriptionManager />
@@ -319,24 +441,26 @@ function AuthenticatedSubscriptionManager() {
     setEditingId(null)
   }
 
-  function choosePlan(service: SubscriptionCatalogService, plan: SubscriptionCatalogPlan) {
-    setForm(planToInput(service, plan))
+  function choosePlan(service: SubscriptionCatalogService, plan: SubscriptionCatalogPlan, cycle: SubscriptionBillingCycle = 'monthly') {
+    const input = planToInput(service, plan, cycle)
+    setForm(input)
     setEditingId(null)
-    setMessage(`${service.name} ${plan.name} をフォームに入れました。更新日やメモを調整して保存できます。`)
+    setMessage(`${service.name} ${input.planName} をフォームに入れました。更新日やメモを調整して保存できます。`)
   }
 
-  async function addPlan(service: SubscriptionCatalogService, plan: SubscriptionCatalogPlan) {
+  async function addPlan(service: SubscriptionCatalogService, plan: SubscriptionCatalogPlan, cycle: SubscriptionBillingCycle = 'monthly') {
+    const input = planToInput(service, plan, cycle)
     const alreadyExists = subscriptions.some(
       (item) =>
         item.serviceName.toLowerCase() === service.name.toLowerCase() &&
-        (item.planName || '').toLowerCase() === plan.name.toLowerCase() &&
+        (item.planName || '').toLowerCase() === (input.planName || '').toLowerCase() &&
         item.status !== 'cancelled',
     )
     if (alreadyExists) {
-      setMessage(`${service.name} ${plan.name} はすでにコレクションにあります。`)
+      setMessage(`${service.name} ${input.planName} はすでにコレクションにあります。`)
       return
     }
-    await saveSubscription(planToInput(service, plan), null)
+    await saveSubscription(input, null)
   }
 
   async function saveSubscription(input: SubscriptionInput = form, targetEditingId: string | null = editingId) {
@@ -623,54 +747,18 @@ function AuthenticatedSubscriptionManager() {
                       </a>
                     </div>
                     <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-                      {service.plans.map((plan) => {
-                        const exists = subscriptions.some(
-                          (item) =>
-                            item.serviceName.toLowerCase() === service.name.toLowerCase() &&
-                            (item.planName || '').toLowerCase() === plan.name.toLowerCase() &&
-                            item.status !== 'cancelled',
-                        )
-                        return (
-                          <article
-                            key={plan.id}
-                            className="overflow-hidden rounded-2xl border bg-white shadow-sm shadow-slate-900/5"
-                            style={{
-                              borderColor: tone.border,
-                              background: `linear-gradient(180deg, ${tone.soft} 0%, rgba(255,255,255,0.98) 22%, #fff 100%)`,
-                            }}
-                          >
-                            <div className="h-1.5" style={{ background: tone.gradient }} />
-                            <div className="p-4">
-                              <p className="text-xs font-black uppercase tracking-[0.14em]" style={{ color: tone.ink }}>
-                                {service.name}
-                              </p>
-                              <h4 className="mt-2 text-lg font-black text-brand-text">{plan.name}</h4>
-                              <p className="mt-2 text-3xl font-black text-brand-text">{formatUsd(plan.monthlyCostUsd)}</p>
-                              <p className="text-xs font-bold text-gray-400">
-                                {billingCycleOptions.find((cycle) => cycle.value === plan.billingCycle)?.label || plan.billingCycle}
-                              </p>
-                              <p className="mt-3 min-h-[54px] text-xs font-bold leading-relaxed text-gray-500">{plan.summary}</p>
-                              <div className="mt-4 flex flex-wrap gap-2">
-                                <button
-                                  type="button"
-                                  disabled={saving || exists}
-                                  onClick={() => addPlan(service, plan)}
-                                  className="rounded-full bg-brand-text px-4 py-2.5 text-xs font-black text-white transition hover:-translate-y-0.5 hover:bg-gray-700 disabled:cursor-not-allowed disabled:bg-gray-300"
-                                >
-                                  {exists ? '登録済み' : 'そのまま追加'}
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => choosePlan(service, plan)}
-                                  className="rounded-full border border-gray-200 bg-white px-4 py-2.5 text-xs font-black text-gray-500 transition hover:border-brand-text hover:text-brand-text"
-                                >
-                                  編集して追加
-                                </button>
-                              </div>
-                            </div>
-                          </article>
-                        )
-                      })}
+                      {service.plans.map((plan) => (
+                        <PlanCard
+                          key={plan.id}
+                          service={service}
+                          plan={plan}
+                          tone={tone}
+                          subscriptions={subscriptions}
+                          saving={saving}
+                          onAdd={addPlan}
+                          onChoose={choosePlan}
+                        />
+                      ))}
                     </div>
                   </div>
                 )}
