@@ -22,6 +22,8 @@ export type AiosTaskInput = {
   effort: number
   dueDate?: string
   status?: 'todo' | 'doing' | 'done' | 'skipped'
+  recommendedTool?: string
+  prompt?: string
 }
 
 export type SavedAiosTask = AiosTaskInput & {
@@ -80,6 +82,8 @@ function rowToTask(row: Record<string, unknown>): SavedAiosTask {
     effort: Number(row.effort),
     dueDate: row.due_date ? String(row.due_date) : '',
     status: String(row.status) as SavedAiosTask['status'],
+    recommendedTool: row.recommended_tool ? String(row.recommended_tool) : '',
+    prompt: row.prompt ? String(row.prompt) : '',
     createdAt: new Date(String(row.created_at)).toISOString(),
     updatedAt: new Date(String(row.updated_at)).toISOString(),
   }
@@ -116,9 +120,23 @@ export async function ensureAiosSchema() {
       updated_at timestamptz NOT NULL DEFAULT now()
     )
   `
+  // Migrate existing tables to include AI-routing columns
+  await sql`ALTER TABLE aincarn_aios_tasks ADD COLUMN IF NOT EXISTS recommended_tool text`
+  await sql`ALTER TABLE aincarn_aios_tasks ADD COLUMN IF NOT EXISTS prompt text`
   await sql`
     CREATE INDEX IF NOT EXISTS aincarn_aios_tasks_user_idx
     ON aincarn_aios_tasks (user_id, status, due_date, updated_at)
+  `
+
+  // Plan generation log (rationale, model used)
+  await sql`
+    CREATE TABLE IF NOT EXISTS aincarn_aios_plans (
+      id text PRIMARY KEY,
+      user_id text NOT NULL,
+      rationale text NOT NULL,
+      model text NOT NULL,
+      created_at timestamptz NOT NULL DEFAULT now()
+    )
   `
 
   schemaReady = true
@@ -153,6 +171,9 @@ export function normalizeAiosTaskInput(value: unknown): AiosTaskInput {
   const dueDate = String(input.dueDate || '').trim()
   const status = String(input.status || 'todo')
 
+  const recommendedTool = String(input.recommendedTool || '').trim()
+  const prompt = String(input.prompt || '').trim()
+
   if (!title) throw new Error('タスク名を入力してください')
   if (!['todo', 'doing', 'done', 'skipped'].includes(status)) throw new Error('ステータスが不正です')
 
@@ -164,6 +185,8 @@ export function normalizeAiosTaskInput(value: unknown): AiosTaskInput {
     effort,
     dueDate,
     status: status as AiosTaskInput['status'],
+    recommendedTool,
+    prompt,
   }
 }
 
@@ -178,6 +201,10 @@ export function createStarterTasks(profile: AiosProfileInput): AiosTaskInput[] {
       impact: 5,
       effort: 2,
       status: 'todo',
+      recommendedTool: 'Claude',
+      prompt: `あなたは戦略立案を支援するアドバイザーです。私の目標は「${profile.goal}」で、期間は${profile.horizon}です。${profile.currentState ? `現状: ${profile.currentState}` : ''}
+
+この目標について「達成できた」と判断できる成功条件を、観測可能・具体的・優先順位付きで3つに絞ってください。各条件について、なぜそれが妥当か理由も添えてください。`,
     },
     {
       title: '今週やらないことを決める',
@@ -186,6 +213,10 @@ export function createStarterTasks(profile: AiosProfileInput): AiosTaskInput[] {
       impact: 4,
       effort: 2,
       status: 'todo',
+      recommendedTool: 'ChatGPT',
+      prompt: `私は「${profile.goal}」を${profile.horizon}で達成したいと考えています。
+
+この目標達成のために、今週意図的に「やらないこと」を5つ提案してください。各項目について、やめることでどんな時間や注意リソースが解放されるか、そしてそれを目標達成にどう振り向けられるかを示してください。`,
     },
     {
       title: '今日の最小実行単位を1つ完了する',
@@ -194,6 +225,10 @@ export function createStarterTasks(profile: AiosProfileInput): AiosTaskInput[] {
       impact: 4,
       effort: 3,
       status: 'todo',
+      recommendedTool: 'Claude',
+      prompt: `目標「${profile.goal}」を達成するために、今日30分以内で完了できる最小実行単位（MVA: Minimum Viable Action）を1つ提案してください。
+
+具体的な作業手順、想定アウトプット、完了判定基準を含めてください。`,
     },
   ]
 }
@@ -272,7 +307,9 @@ export async function createAiosTask(userId: string, input: AiosTaskInput) {
       impact,
       effort,
       due_date,
-      status
+      status,
+      recommended_tool,
+      prompt
     )
     VALUES (
       ${id},
@@ -283,11 +320,61 @@ export async function createAiosTask(userId: string, input: AiosTaskInput) {
       ${input.impact},
       ${input.effort},
       ${dueDate},
-      ${input.status || 'todo'}
+      ${input.status || 'todo'},
+      ${input.recommendedTool || null},
+      ${input.prompt || null}
     )
     RETURNING *
   `
   return rowToTask(queryRows(rows)[0])
+}
+
+export async function deleteAiosTask(userId: string, id: string) {
+  await ensureAiosSchema()
+  const sql = getSql()
+  const rows = await sql`
+    DELETE FROM aincarn_aios_tasks
+    WHERE id = ${id} AND user_id = ${userId}
+    RETURNING id
+  `
+  return queryRows(rows).length > 0
+}
+
+export async function deleteAllPendingAiosTasks(userId: string) {
+  await ensureAiosSchema()
+  const sql = getSql()
+  await sql`
+    DELETE FROM aincarn_aios_tasks
+    WHERE user_id = ${userId} AND status IN ('todo', 'doing')
+  `
+}
+
+export async function recordAiosPlan(userId: string, rationale: string, model: string) {
+  await ensureAiosSchema()
+  const sql = getSql()
+  await sql`
+    INSERT INTO aincarn_aios_plans (id, user_id, rationale, model)
+    VALUES (${crypto.randomUUID()}, ${userId}, ${rationale}, ${model})
+  `
+}
+
+export async function getLatestAiosPlan(userId: string) {
+  await ensureAiosSchema()
+  const sql = getSql()
+  const rows = await sql`
+    SELECT rationale, model, created_at
+    FROM aincarn_aios_plans
+    WHERE user_id = ${userId}
+    ORDER BY created_at DESC
+    LIMIT 1
+  `
+  const row = queryRows(rows)[0]
+  if (!row) return null
+  return {
+    rationale: String(row.rationale),
+    model: String(row.model),
+    createdAt: new Date(String(row.created_at)).toISOString(),
+  }
 }
 
 export async function updateAiosTaskStatus(userId: string, id: string, status: SavedAiosTask['status']) {

@@ -1,10 +1,19 @@
 'use client'
 
 import { SignInButton, UserButton, useUser } from '@clerk/nextjs'
+import Link from 'next/link'
 import { useEffect, useMemo, useState } from 'react'
 import type { SavedAiosProfile, SavedAiosTask } from '@/lib/aios-store'
 
 const clerkEnabled = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY)
+
+type LatestPlan = {
+  rationale: string
+  model: string
+  createdAt: string
+} | null
+
+type ClientTask = SavedAiosTask & { toolUrl?: string }
 
 const defaultProfile = {
   goal: '',
@@ -21,21 +30,57 @@ const statusLabels: Record<SavedAiosTask['status'], string> = {
   skipped: '保留',
 }
 
-const routerModels = [
-  ['Deep thinking', 'GPT / Claude 系の高知能モデル', '目標分解・意思決定'],
-  ['Research', '検索・リサーチ特化AI', '根拠確認・比較調査'],
-  ['Execution', 'コーディング/制作向けAI', '成果物作成・実装'],
-]
+const TOOL_FALLBACK_URLS: Record<string, string> = {
+  ChatGPT: 'https://chatgpt.com/',
+  Claude: 'https://claude.ai/new',
+  Gemini: 'https://gemini.google.com/app',
+  Perplexity: 'https://www.perplexity.ai/',
+  'GitHub Copilot': 'https://github.com/copilot',
+  Cursor: 'https://cursor.com/',
+  Midjourney: 'https://www.midjourney.com/explore',
+  Runway: 'https://app.runwayml.com/',
+  NotebookLM: 'https://notebooklm.google.com/',
+}
 
-function sortTasks(tasks: SavedAiosTask[]) {
+const TOOL_PALETTE: Record<string, { bg: string; ink: string }> = {
+  ChatGPT: { bg: 'linear-gradient(135deg,#15f5ba,#39a7ff)', ink: '#fff' },
+  Claude: { bg: 'linear-gradient(135deg,#ff9a3c,#ff5f6d)', ink: '#fff' },
+  Gemini: { bg: 'linear-gradient(135deg,#30d5ff,#7b61ff)', ink: '#fff' },
+  Perplexity: { bg: 'linear-gradient(135deg,#00e5ff,#00c48c)', ink: '#0f172a' },
+  'GitHub Copilot': { bg: 'linear-gradient(135deg,#1f2937,#6d28d9)', ink: '#fff' },
+  Cursor: { bg: 'linear-gradient(135deg,#0ea5e9,#f97316)', ink: '#fff' },
+  Midjourney: { bg: 'linear-gradient(135deg,#ff47a3,#ffcc00)', ink: '#0f172a' },
+  Runway: { bg: 'linear-gradient(135deg,#b6ff00,#00d5ff)', ink: '#0f172a' },
+  NotebookLM: { bg: 'linear-gradient(135deg,#fef08a,#22c55e)', ink: '#0f172a' },
+}
+
+function getToolBadge(tool?: string) {
+  if (!tool) return { bg: 'linear-gradient(135deg,#64748b,#0f172a)', ink: '#fff' }
+  return TOOL_PALETTE[tool] || { bg: 'linear-gradient(135deg,#64748b,#0f172a)', ink: '#fff' }
+}
+
+function sortTasks(tasks: ClientTask[]) {
   return [...tasks].sort((a, b) => {
-    const statusScore = (task: SavedAiosTask) => (task.status === 'doing' ? 0 : task.status === 'todo' ? 1 : task.status === 'done' ? 2 : 3)
+    const statusScore = (task: ClientTask) =>
+      task.status === 'doing' ? 0 : task.status === 'todo' ? 1 : task.status === 'done' ? 2 : 3
     return statusScore(a) - statusScore(b) || b.impact - a.impact || a.effort - b.effort
   })
 }
 
-function nextAction(tasks: SavedAiosTask[]) {
+function nextAction(tasks: ClientTask[]) {
   return sortTasks(tasks).find((task) => task.status === 'doing' || task.status === 'todo')
+}
+
+function formatDateTime(iso?: string) {
+  if (!iso) return ''
+  const date = new Date(iso)
+  if (Number.isNaN(date.getTime())) return ''
+  return new Intl.DateTimeFormat('ja-JP', {
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(date)
 }
 
 export default function AiosMvp() {
@@ -62,12 +107,18 @@ function AiosSignInPrompt() {
         <div className="p-6 sm:p-8">
           <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">Aincarn OS Test</p>
           <h1 className="mt-4 max-w-3xl text-4xl font-black tracking-tight text-slate-950 sm:text-6xl">
-            もう、どのAIを使うかで迷わない。
+            目標を入れると、最適なAIが動き出す。
           </h1>
           <p className="mt-5 max-w-2xl text-sm font-bold leading-relaxed text-slate-600">
-            Aincarnが最適なAIを選び、あなたの代わりに考え、整理し、前に進めます。
-            まずはテスト環境で、目標から今日の行動までを可視化します。
+            Aincarn OSは、あなたの目標から逆算してタスクを作り、各タスクに最適なAI（Claude / ChatGPT / Gemini / Perplexity ほか）と
+            そのまま貼り付けられるプロンプトを割り当てます。AIを使い分けるストレスを、Aincarn側に持ちます。
           </p>
+          <ul className="mt-6 grid gap-2 text-sm font-bold text-slate-700">
+            <li>・目標 → 5〜7個の具体タスクをAIが生成</li>
+            <li>・各タスクに最適AIと使用プロンプトを同梱</li>
+            <li>・ワンクリックでAIを開く＋プロンプトをコピー</li>
+            <li>・進捗・実績はAincarn Memoryに残る</li>
+          </ul>
           <SignInButton mode="modal">
             <button
               type="button"
@@ -77,36 +128,44 @@ function AiosSignInPrompt() {
             </button>
           </SignInButton>
         </div>
-        <DecisionPanel />
+        <RouterPanel />
       </div>
     </section>
   )
 }
 
-function DecisionPanel() {
+function RouterPanel() {
+  const previews: Array<[string, string, string]> = [
+    ['Strategy', 'Claude', '目標分解 / 意思決定'],
+    ['Research', 'Perplexity', '出典付き調査'],
+    ['Build', 'Cursor', 'コード実装'],
+    ['Create', 'Midjourney', 'デザイン素材'],
+  ]
   return (
     <div className="bg-slate-950 p-5 text-white sm:p-6">
       <div className="mb-5 h-2 rounded-full bg-gradient-to-r from-indigo-500 via-sky-400 to-rose-300" />
-      <p className="text-xs font-black uppercase tracking-[0.2em] text-white/45">Aincarn Kernel</p>
+      <p className="text-xs font-black uppercase tracking-[0.2em] text-white/45">Aincarn Router</p>
       <h2 className="mt-2 text-2xl font-black tracking-tight">記憶はAincarnに、知能は最適AIに。</h2>
       <div className="mt-6 grid gap-3">
-        {routerModels.map(([label, model, role], index) => (
-          <div key={label} className="rounded-2xl border border-white/10 bg-white/[0.06] p-4">
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <p className="text-xs font-black uppercase tracking-[0.16em] text-white/42">{label}</p>
-                <p className="mt-1 text-sm font-black text-white">{model}</p>
-                <p className="mt-1 text-xs font-bold text-white/55">{role}</p>
-              </div>
-              <div className="h-2 w-20 overflow-hidden rounded-full bg-white/10">
-                <div
-                  className="h-full rounded-full bg-gradient-to-r from-indigo-400 to-cyan-300"
-                  style={{ width: `${88 - index * 15}%` }}
-                />
+        {previews.map(([role, tool, desc]) => {
+          const badge = getToolBadge(tool)
+          return (
+            <div key={role} className="rounded-2xl border border-white/10 bg-white/[0.06] p-4">
+              <div className="flex items-center justify-between gap-4">
+                <div className="min-w-0">
+                  <p className="text-xs font-black uppercase tracking-[0.16em] text-white/42">{role}</p>
+                  <p className="mt-1 truncate text-sm font-black text-white">{desc}</p>
+                </div>
+                <span
+                  className="shrink-0 rounded-full px-3 py-1 text-[11px] font-black"
+                  style={{ background: badge.bg, color: badge.ink }}
+                >
+                  {tool}
+                </span>
               </div>
             </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
     </div>
   )
@@ -116,9 +175,12 @@ function AuthenticatedAiosMvp() {
   const { isLoaded, isSignedIn } = useUser()
   const [profile, setProfile] = useState(defaultProfile)
   const [savedProfile, setSavedProfile] = useState<SavedAiosProfile | null>(null)
-  const [tasks, setTasks] = useState<SavedAiosTask[]>([])
+  const [tasks, setTasks] = useState<ClientTask[]>([])
+  const [latestPlan, setLatestPlan] = useState<LatestPlan>(null)
+  const [aiEnabled, setAiEnabled] = useState(false)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [generating, setGenerating] = useState(false)
   const [message, setMessage] = useState('')
 
   const activeTasks = tasks.filter((task) => task.status === 'todo' || task.status === 'doing')
@@ -149,6 +211,8 @@ function AuthenticatedAiosMvp() {
         })
       }
       setTasks(data.tasks || [])
+      setLatestPlan(data.latestPlan || null)
+      setAiEnabled(Boolean(data.aiEnabled))
     } catch (error) {
       setMessage(error instanceof Error ? error.message : '読み込みに失敗しました')
     } finally {
@@ -160,24 +224,34 @@ function AuthenticatedAiosMvp() {
     if (isLoaded && isSignedIn) loadState()
   }, [isLoaded, isSignedIn])
 
-  async function saveProfile() {
-    setSaving(true)
+  async function callProfileAction(action: 'profile' | 'regenerate') {
+    if (action === 'regenerate') setGenerating(true)
+    else setSaving(true)
     setMessage('')
     try {
       const response = await fetch('/api/aios', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'profile', profile }),
+        body: JSON.stringify({ action, profile }),
       })
       const data = await response.json()
       if (!response.ok) throw new Error(data.error || '保存に失敗しました')
       setSavedProfile(data.profile)
       setTasks(data.tasks || [])
-      setMessage('Aincarn Memoryを更新しました')
+      setLatestPlan(data.latestPlan || null)
+      setAiEnabled(Boolean(data.aiEnabled))
+      setMessage(
+        action === 'regenerate'
+          ? 'AIが新しいプランを生成しました'
+          : data.tasks?.length
+            ? 'Aincarn Memoryを更新し、AIプランを生成しました'
+            : 'Aincarn Memoryを更新しました',
+      )
     } catch (error) {
       setMessage(error instanceof Error ? error.message : '保存に失敗しました')
     } finally {
       setSaving(false)
+      setGenerating(false)
     }
   }
 
@@ -200,8 +274,30 @@ function AuthenticatedAiosMvp() {
     }
   }
 
+  async function deleteTask(id: string) {
+    if (!confirm('このタスクを削除しますか？')) return
+    setSaving(true)
+    setMessage('')
+    try {
+      const response = await fetch(`/api/aios/tasks/${id}`, { method: 'DELETE' })
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}))
+        throw new Error(data.error || '削除に失敗しました')
+      }
+      setTasks((current) => current.filter((task) => task.id !== id))
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : '削除に失敗しました')
+    } finally {
+      setSaving(false)
+    }
+  }
+
   if (!isLoaded) {
-    return <div className="rounded-[28px] border border-white/80 bg-white/86 p-6 text-sm font-bold text-slate-500">アカウント情報を確認しています...</div>
+    return (
+      <div className="rounded-[28px] border border-white/80 bg-white/86 p-6 text-sm font-bold text-slate-500">
+        アカウント情報を確認しています...
+      </div>
+    )
   }
 
   if (!isSignedIn) return <AiosSignInPrompt />
@@ -213,19 +309,24 @@ function AuthenticatedAiosMvp() {
           <div className="p-6 sm:p-8">
             <div className="flex flex-wrap items-center gap-3">
               <p className="rounded-full border border-white/80 bg-white/72 px-3 py-1.5 text-xs font-black uppercase tracking-[0.18em] text-slate-500">
-                Aincarn OS Test
+                Aincarn OS · Test
               </p>
               <UserButton />
             </div>
             <h1 className="mt-5 max-w-4xl text-4xl font-black tracking-tight text-slate-950 sm:text-6xl">
-              もう、どのAIを使うかで迷わない。
+              目標を入れると、最適なAIが動き出す。
             </h1>
             <p className="mt-5 max-w-3xl text-sm font-bold leading-relaxed text-slate-600">
-              Aincarnが最適なAIを選び、あなたの代わりに考え、整理し、前に進めます。
-              記憶はモデルから分離し、目標・判断・行動・実績をAincarn側に残します。
+              Aincarn OSは、あなたの目標から逆算してタスクを作り、各タスクに最適なAI（Claude / ChatGPT / Gemini / Perplexity ほか）と
+              そのまま貼り付けられるプロンプトを割り当てます。
+              {!aiEnabled && (
+                <span className="ml-2 rounded-full bg-amber-100 px-2 py-1 text-[10px] font-black text-amber-700">
+                  AI生成は未設定のためテンプレート起動中
+                </span>
+              )}
             </p>
           </div>
-          <DecisionPanel />
+          <RouterPanel />
         </div>
       </section>
 
@@ -233,6 +334,9 @@ function AuthenticatedAiosMvp() {
         <div className="rounded-[30px] border border-white/80 bg-white/88 p-5 shadow-sm shadow-slate-950/5 backdrop-blur-xl">
           <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">Aincarn Memory</p>
           <h2 className="mt-2 text-2xl font-black tracking-tight text-slate-950">目標を保存する</h2>
+          <p className="mt-2 text-xs font-bold leading-relaxed text-slate-500">
+            この情報をもとにAIがタスクとプロンプトを設計します。詳しいほど、出てくるタスクは具体的になります。
+          </p>
           <div className="mt-5 space-y-4">
             <label className="block">
               <span className="text-xs font-black text-slate-500">目指すもの</span>
@@ -241,7 +345,7 @@ function AuthenticatedAiosMvp() {
                 onChange={(event) => setProfile((current) => ({ ...current, goal: event.target.value }))}
                 rows={4}
                 className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-950 outline-none transition focus:border-sky-300 focus:ring-4 focus:ring-sky-100"
-                placeholder="例: AIを使って個人事業の売上を3か月で伸ばしたい"
+                placeholder="例: AIを使って個人事業の月商を3か月で50万→100万に伸ばしたい"
               />
             </label>
             <label className="block">
@@ -262,15 +366,65 @@ function AuthenticatedAiosMvp() {
                 placeholder="今できていること、詰まっていること"
               />
             </label>
-            <button
-              type="button"
-              disabled={saving}
-              onClick={saveProfile}
-              className="w-full rounded-full bg-slate-950 px-5 py-3 text-sm font-black text-white shadow-lg shadow-slate-950/10 transition hover:-translate-y-0.5 hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              Aincarn Memoryを更新
-            </button>
+            <label className="block">
+              <span className="text-xs font-black text-slate-500">価値観・優先したいこと</span>
+              <textarea
+                value={profile.values}
+                onChange={(event) => setProfile((current) => ({ ...current, values: event.target.value }))}
+                rows={2}
+                className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-950 outline-none transition focus:border-sky-300 focus:ring-4 focus:ring-sky-100"
+                placeholder="例: 家族との時間、学び続けたい、無理なく続けたい"
+              />
+            </label>
+            <label className="block">
+              <span className="text-xs font-black text-slate-500">制約・避けたいこと</span>
+              <textarea
+                value={profile.constraints}
+                onChange={(event) => setProfile((current) => ({ ...current, constraints: event.target.value }))}
+                rows={2}
+                className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-950 outline-none transition focus:border-sky-300 focus:ring-4 focus:ring-sky-100"
+                placeholder="例: 平日深夜は使えない、初期投資10万以内"
+              />
+            </label>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                disabled={saving || generating || !profile.goal.trim()}
+                onClick={() => callProfileAction('profile')}
+                className="rounded-full bg-slate-950 px-5 py-3 text-sm font-black text-white shadow-lg shadow-slate-950/10 transition hover:-translate-y-0.5 hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {saving ? '保存中...' : 'Aincarn Memoryを更新'}
+              </button>
+              {savedProfile && (
+                <button
+                  type="button"
+                  disabled={saving || generating || !profile.goal.trim()}
+                  onClick={() => callProfileAction('regenerate')}
+                  className="rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-black text-slate-700 transition hover:-translate-y-0.5 hover:border-slate-500 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {generating ? 'AIが再設計中...' : 'AIでプランを再生成'}
+                </button>
+              )}
+            </div>
             {message && <p className="text-xs font-bold text-slate-500">{message}</p>}
+          </div>
+
+          <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+            <p className="text-xs font-black uppercase tracking-[0.16em] text-slate-500">Free</p>
+            <p className="mt-1 text-sm font-black text-slate-950">テスト中は無料で試せます</p>
+            <p className="mt-2 text-xs font-bold leading-relaxed text-slate-500">
+              正式版ではProプラン (¥980/月) で:
+              <br />・複数の目標を並行管理
+              <br />・週次レビューとリプランをAIに依頼
+              <br />・成果物をAincarn Memoryに自動保存
+              <br />・API使用量上限なし
+            </p>
+            <Link
+              href="/tools/subscriptions"
+              className="mt-3 inline-flex rounded-full border border-slate-300 bg-white px-3 py-1.5 text-xs font-black text-slate-700 transition hover:border-slate-500"
+            >
+              他のAIサブスクとの組み合わせを見る
+            </Link>
           </div>
         </div>
 
@@ -278,15 +432,61 @@ function AuthenticatedAiosMvp() {
           <section className="grid gap-3 md:grid-cols-3">
             {[
               ['進捗', `${progress}%`, '完了タスク比率'],
-              ['今日の候補', `${todayTasks.length}件`, '優先度順'],
-              ['実績', `${doneTasks.length}件`, '積み上げ'],
+              ['アクティブ', `${activeTasks.length}件`, '未着手・実行中'],
+              ['実績', `${doneTasks.length}件`, '完了タスク'],
             ].map(([label, value, caption]) => (
-              <article key={label} className="rounded-2xl border border-white/80 bg-white/86 p-4 shadow-sm shadow-slate-950/5 backdrop-blur-xl">
+              <article
+                key={label}
+                className="rounded-2xl border border-white/80 bg-white/86 p-4 shadow-sm shadow-slate-950/5 backdrop-blur-xl"
+              >
                 <p className="text-xs font-black uppercase tracking-[0.14em] text-slate-400">{label}</p>
                 <p className="mt-2 text-2xl font-black text-slate-950">{value}</p>
                 <p className="mt-1 text-xs font-bold text-slate-500">{caption}</p>
               </article>
             ))}
+          </section>
+
+          {latestPlan && (
+            <section className="rounded-[30px] border border-white/80 bg-white/88 p-5 shadow-sm shadow-slate-950/5 backdrop-blur-xl">
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">Plan rationale</p>
+                <span className="rounded-full bg-slate-900 px-2 py-1 text-[10px] font-black text-white">
+                  {latestPlan.model}
+                </span>
+                {latestPlan.createdAt && (
+                  <span className="rounded-full bg-slate-100 px-2 py-1 text-[10px] font-black text-slate-500">
+                    生成 {formatDateTime(latestPlan.createdAt)}
+                  </span>
+                )}
+              </div>
+              <p className="mt-3 text-sm font-bold leading-relaxed text-slate-700">{latestPlan.rationale}</p>
+            </section>
+          )}
+
+          <section className="rounded-[30px] border border-white/80 bg-white/88 p-5 shadow-sm shadow-slate-950/5 backdrop-blur-xl">
+            <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">Decision</p>
+            <h2 className="mt-2 text-2xl font-black tracking-tight text-slate-950">Aincarnの次の判断</h2>
+            <div className="mt-4 rounded-2xl bg-slate-950 p-5 text-white">
+              <p className="text-xs font-black uppercase tracking-[0.16em] text-white/45">Recommended next move</p>
+              <p className="mt-2 text-xl font-black">{recommended?.title || 'まず目標を保存してください'}</p>
+              <p className="mt-3 text-sm font-bold leading-relaxed text-white/70">
+                {recommended?.reason || 'Aincarn Memoryに目標を入れると、目標から逆算した初期タスクを作成します。'}
+              </p>
+              {recommended?.recommendedTool && (
+                <div className="mt-4 flex flex-wrap items-center gap-2 text-xs font-black">
+                  <span className="rounded-full bg-white/10 px-3 py-1 text-white/80">推奨AI</span>
+                  <span
+                    className="rounded-full px-3 py-1"
+                    style={{
+                      background: getToolBadge(recommended.recommendedTool).bg,
+                      color: getToolBadge(recommended.recommendedTool).ink,
+                    }}
+                  >
+                    {recommended.recommendedTool}
+                  </span>
+                </div>
+              )}
+            </div>
           </section>
 
           <section className="rounded-[30px] border border-white/80 bg-white/88 p-5 shadow-sm shadow-slate-950/5 backdrop-blur-xl">
@@ -300,26 +500,43 @@ function AuthenticatedAiosMvp() {
             <div className="mt-5 grid gap-3">
               {!todayTasks.length && (
                 <p className="rounded-2xl border border-dashed border-slate-200 bg-white/70 p-4 text-sm font-bold text-slate-500">
-                  目標を保存すると、最初の行動候補が作られます。
+                  目標を保存すると、AIが最初の行動候補とプロンプトを生成します。
                 </p>
               )}
               {todayTasks.map((task, index) => (
-                <TaskCard key={task.id} task={task} index={index} saving={saving} onUpdate={updateTask} />
+                <TaskCard
+                  key={task.id}
+                  task={task}
+                  index={index}
+                  saving={saving}
+                  onUpdate={updateTask}
+                  onDelete={deleteTask}
+                />
               ))}
             </div>
           </section>
 
-          <section className="rounded-[30px] border border-white/80 bg-white/88 p-5 shadow-sm shadow-slate-950/5 backdrop-blur-xl">
-            <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">Decision</p>
-            <h2 className="mt-2 text-2xl font-black tracking-tight text-slate-950">Aincarnの次の判断</h2>
-            <div className="mt-4 rounded-2xl bg-slate-950 p-5 text-white">
-              <p className="text-xs font-black uppercase tracking-[0.16em] text-white/45">Recommended next move</p>
-              <p className="mt-2 text-xl font-black">{recommended?.title || 'まず目標を保存してください'}</p>
-              <p className="mt-3 text-sm font-bold leading-relaxed text-white/70">
-                {recommended?.reason || 'Aincarn Memoryに目標を入れると、目標から逆算した初期タスクを作成します。'}
-              </p>
-            </div>
-          </section>
+          {tasks.length > todayTasks.length && (
+            <section className="rounded-[30px] border border-white/80 bg-white/88 p-5 shadow-sm shadow-slate-950/5 backdrop-blur-xl">
+              <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">Backlog</p>
+              <h2 className="mt-2 text-2xl font-black tracking-tight text-slate-950">残りのタスク</h2>
+              <div className="mt-4 grid gap-3 md:grid-cols-2">
+                {sortTasks(tasks)
+                  .slice(todayTasks.length)
+                  .map((task, index) => (
+                    <TaskCard
+                      key={task.id}
+                      task={task}
+                      index={todayTasks.length + index}
+                      saving={saving}
+                      onUpdate={updateTask}
+                      onDelete={deleteTask}
+                      compact
+                    />
+                  ))}
+              </div>
+            </section>
+          )}
         </div>
       </section>
     </div>
@@ -331,16 +548,43 @@ function TaskCard({
   index,
   saving,
   onUpdate,
+  onDelete,
+  compact,
 }: {
-  task: SavedAiosTask
+  task: ClientTask
   index: number
   saving: boolean
   onUpdate: (id: string, status: SavedAiosTask['status']) => void
+  onDelete: (id: string) => void
+  compact?: boolean
 }) {
+  const [copied, setCopied] = useState(false)
+  const [expanded, setExpanded] = useState(false)
+  const tool = task.recommendedTool || ''
+  const badge = getToolBadge(tool)
+  const toolUrl = task.toolUrl || (tool && TOOL_FALLBACK_URLS[tool]) || ''
+  const hasPrompt = Boolean((task.prompt || '').trim())
+
+  async function copyPrompt() {
+    if (!hasPrompt) return
+    try {
+      await navigator.clipboard.writeText(task.prompt || '')
+      setCopied(true)
+      setTimeout(() => setCopied(false), 1800)
+    } catch {
+      // ignore clipboard errors silently
+    }
+  }
+
+  async function handoff() {
+    if (hasPrompt) await copyPrompt()
+    if (toolUrl) window.open(toolUrl, '_blank', 'noopener')
+  }
+
   return (
-    <article className="rounded-2xl border border-slate-200/70 bg-white p-4 shadow-sm shadow-slate-950/5">
+    <article className={`rounded-2xl border border-slate-200/70 bg-white p-4 shadow-sm shadow-slate-950/5 ${compact ? 'opacity-95' : ''}`}>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <span className="grid size-7 place-items-center rounded-full bg-gradient-to-r from-indigo-500 to-sky-400 text-xs font-black text-white">
               {index + 1}
@@ -349,28 +593,85 @@ function TaskCard({
             <span className="rounded-full bg-white px-2 py-1 text-[10px] font-black text-slate-500 ring-1 ring-slate-200">
               {statusLabels[task.status]}
             </span>
+            {tool && (
+              <span
+                className="rounded-full px-2.5 py-1 text-[10px] font-black"
+                style={{ background: badge.bg, color: badge.ink }}
+              >
+                {tool}
+              </span>
+            )}
+            <span className="rounded-full bg-emerald-50 px-2 py-1 text-[10px] font-black text-emerald-700">
+              impact {task.impact}
+            </span>
+            <span className="rounded-full bg-amber-50 px-2 py-1 text-[10px] font-black text-amber-700">
+              effort {task.effort}
+            </span>
           </div>
           <h3 className="mt-3 text-lg font-black text-slate-950">{task.title}</h3>
           <p className="mt-2 text-sm font-bold leading-relaxed text-slate-600">{task.reason}</p>
+
+          {hasPrompt && (
+            <details
+              className="mt-3 rounded-xl border border-slate-200 bg-slate-50"
+              open={expanded}
+              onToggle={(event) => setExpanded((event.target as HTMLDetailsElement).open)}
+            >
+              <summary className="cursor-pointer list-none px-3 py-2 text-xs font-black text-slate-600">
+                {expanded ? '▾ AIに渡すプロンプトを隠す' : '▸ AIに渡すプロンプトを見る'}
+              </summary>
+              <pre className="whitespace-pre-wrap break-words border-t border-slate-200 px-3 py-2 text-xs font-bold leading-relaxed text-slate-700">
+                {task.prompt}
+              </pre>
+            </details>
+          )}
         </div>
-        <div className="flex shrink-0 gap-2">
+      </div>
+
+      <div className="mt-3 flex flex-wrap gap-2">
+        {hasPrompt && toolUrl && (
           <button
             type="button"
-            disabled={saving || task.status === 'doing'}
-            onClick={() => onUpdate(task.id, 'doing')}
-            className="rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-black text-slate-600 transition hover:border-sky-300 disabled:opacity-40"
+            onClick={handoff}
+            className="rounded-full text-xs font-black text-white shadow-sm transition hover:-translate-y-0.5"
+            style={{ background: badge.bg, color: badge.ink, padding: '0.5rem 0.875rem' }}
           >
-            着手
+            {tool}に渡す（プロンプトコピー）
           </button>
+        )}
+        {hasPrompt && (
           <button
             type="button"
-            disabled={saving || task.status === 'done'}
-            onClick={() => onUpdate(task.id, 'done')}
-            className="rounded-full bg-slate-950 px-3 py-2 text-xs font-black text-white transition hover:bg-slate-800 disabled:opacity-40"
+            onClick={copyPrompt}
+            className="rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-black text-slate-600 transition hover:border-slate-400"
           >
-            完了
+            {copied ? 'コピーしました' : 'プロンプトをコピー'}
           </button>
-        </div>
+        )}
+        <button
+          type="button"
+          disabled={saving || task.status === 'doing'}
+          onClick={() => onUpdate(task.id, 'doing')}
+          className="rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-black text-slate-600 transition hover:border-sky-300 disabled:opacity-40"
+        >
+          着手
+        </button>
+        <button
+          type="button"
+          disabled={saving || task.status === 'done'}
+          onClick={() => onUpdate(task.id, 'done')}
+          className="rounded-full bg-slate-950 px-3 py-2 text-xs font-black text-white transition hover:bg-slate-800 disabled:opacity-40"
+        >
+          完了
+        </button>
+        <button
+          type="button"
+          disabled={saving}
+          onClick={() => onDelete(task.id)}
+          className="ml-auto rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-black text-slate-400 transition hover:border-rose-300 hover:text-rose-500 disabled:opacity-40"
+        >
+          削除
+        </button>
       </div>
     </article>
   )
