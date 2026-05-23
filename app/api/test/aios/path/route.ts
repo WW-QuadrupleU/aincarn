@@ -1,15 +1,29 @@
 import { NextResponse } from 'next/server'
 import { generateFuturePath } from '@/lib/aios-ai'
-import { getSubscriptionUserId } from '@/lib/subscription-auth'
+import { resolveEffectiveTier } from '@/lib/aios-tier'
+import { getSubscriptionUserId, getUserEmail } from '@/lib/subscription-auth'
 import type { AiosSignalKind, SavedAiosFuture, SavedAiosSignal } from '@/lib/aios-store'
 
 const TEST_MODEL = process.env.AINCARN_AIOS_TEST_MODEL || 'claude-sonnet-4-6'
 const VALID_KINDS: AiosSignalKind[] = ['interest', 'goal', 'action', 'achievement', 'insight']
 
+function isInternalTester(userId: string, email: string | null) {
+  const accessList = (process.env.AINCARN_AIOS_TEST_USERS || '')
+    .split(',')
+    .map((value) => value.trim().toLowerCase())
+    .filter(Boolean)
+  return accessList.includes(userId.toLowerCase()) || Boolean(email && accessList.includes(email.toLowerCase()))
+}
+
 export async function POST(request: Request) {
   const authResult = await getSubscriptionUserId()
   if (!authResult.userId) {
     return NextResponse.json({ error: authResult.error }, { status: authResult.status })
+  }
+  const email = await getUserEmail(authResult.userId)
+  const { tier } = await resolveEffectiveTier({ userId: authResult.userId, email })
+  if (!['power', 'unlimited'].includes(tier) && !isInternalTester(authResult.userId, email)) {
+    return NextResponse.json({ error: 'AI Labは現在、内部検証ユーザーのみ利用できます' }, { status: 403 })
   }
 
   try {
