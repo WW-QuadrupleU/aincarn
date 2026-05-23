@@ -83,9 +83,15 @@ const AI_GENRE_GROUPS: Array<{
   },
   {
     id: 'audio',
-    label: '音声・音楽AI',
-    description: '音声読み上げ(TTS) / 音楽生成',
-    genreIds: ['textSpeech', 'music'],
+    label: '音声AI',
+    description: 'テキストから音声を生成（TTS、ナレーション、対話）',
+    genreIds: ['textSpeech'],
+  },
+  {
+    id: 'music',
+    label: '音楽AI',
+    description: '楽曲生成、BGM、デモ作成',
+    genreIds: ['music'],
   },
 ]
 

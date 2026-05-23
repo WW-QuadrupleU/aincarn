@@ -70,7 +70,8 @@ const matrixXLabels = {
   general: { label: '総合・リサーチ', desc: 'ChatGPT / Perplexityなど万能型や調査特化' },
   coding: { label: '開発・コード', desc: 'GitHub Copilot / Cursorなどプログラミング支援' },
   media: { label: '画像・動画生成', desc: 'Midjourney / Runwayなどクリエイティブ系' },
-  audio: { label: '音声・音楽生成', desc: 'ElevenLabs / Sunoなどサウンド制作' },
+  audio: { label: '音声生成', desc: 'ElevenLabs / OpenAI TTSなどナレーション制作' },
+  music: { label: '音楽生成', desc: 'Suno / Udioなど楽曲制作' },
 }
 
 const matrixYLabels = {
