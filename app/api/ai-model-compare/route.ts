@@ -379,11 +379,35 @@ function uniqueModels(models: AiModel[]): AiModel[] {
   })
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   const key = process.env.ARTIFICIAL_ANALYSIS_API_KEY
+  const url = new URL(request.url)
+  const debug = url.searchParams.get('debug') === '1'
 
   if (!key) {
-    return NextResponse.json(FALLBACK_AI_PAYLOAD, {
+    const payload = {
+      ...FALLBACK_AI_PAYLOAD,
+      message: 'ARTIFICIAL_ANALYSIS_API_KEY が未設定のため、Aincarn編集データを表示しています。',
+    }
+    if (debug) {
+      return NextResponse.json({
+        ...payload,
+        debug: {
+          apiKeyConfigured: false,
+          reason: 'ARTIFICIAL_ANALYSIS_API_KEY 環境変数が Vercel に設定されていません',
+          genreSources: {
+            llm: 'fallback',
+            textImage: 'fallback',
+            imageImage: 'fallback',
+            textVideo: 'fallback',
+            imageVideo: 'fallback',
+            textSpeech: 'fallback',
+            music: 'fallback',
+          },
+        },
+      })
+    }
+    return NextResponse.json(payload, {
       headers: {
         'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400',
       },
@@ -472,10 +496,20 @@ export async function GET() {
 
     // もしAPIでTTSやMusicが取得できなかった場合はFallbackのモデルを差し込む
     const finalModels = [...llmModels, ...textImageModels, ...imageImageModels, ...textVideoModels, ...imageVideoModels]
+    const genreSources = {
+      llm: llmModels.length > 0 ? 'live' : 'empty',
+      textImage: textImageModels.length > 0 ? 'live' : 'empty',
+      imageImage: imageImageModels.length > 0 ? 'live' : 'empty',
+      textVideo: textVideoModels.length > 0 ? 'live' : 'empty',
+      imageVideo: imageVideoModels.length > 0 ? 'live' : 'empty',
+      textSpeech: 'live' as 'live' | 'fallback' | 'empty',
+      music: 'live' as 'live' | 'fallback' | 'empty',
+    }
     if (textSpeechModels.length > 0) {
       finalModels.push(...textSpeechModels)
     } else {
       finalModels.push(...FALLBACK_AI_PAYLOAD.models.filter((model) => model.visibleIn.includes('textSpeech')))
+      genreSources.textSpeech = 'fallback'
     }
     if (musicInstrumentalModels.length > 0 || musicVocalModels.length > 0) {
       finalModels.push(...musicInstrumentalModels, ...musicVocalModels)
@@ -485,7 +519,15 @@ export async function GET() {
           (model) => model.visibleIn.includes('musicInstrumental') || model.visibleIn.includes('musicVocal'),
         ),
       )
+      genreSources.music = 'fallback'
     }
+
+    const stillFallbackGenres = Object.entries(genreSources)
+      .filter(([, value]) => value === 'fallback')
+      .map(([key]) => key)
+    const liveGenres = Object.entries(genreSources)
+      .filter(([, value]) => value === 'live')
+      .map(([key]) => key)
 
     const payload: AiModelComparePayload = {
       models: uniqueModels(finalModels),
@@ -494,7 +536,30 @@ export async function GET() {
       sourceLabel: '公開ベンチマーク・料金情報・公式情報',
       sourceUrl: SOURCE_URL,
       isLive: true,
-      message: '公開ベンチマーク、料金情報、速度などをもとに項目別ランキングを更新しています。',
+      message:
+        stillFallbackGenres.length === 0
+          ? '公開ベンチマーク、料金情報、速度などをもとに項目別ランキングを更新しています。'
+          : `${liveGenres.join(', ')} は Artificial Analysis から自動更新中。${stillFallbackGenres.join(', ')} はAA未提供のため編集データで補完しています。`,
+    }
+
+    if (debug) {
+      return NextResponse.json({
+        ...payload,
+        debug: {
+          apiKeyConfigured: true,
+          genreSources,
+          counts: {
+            llm: llmModels.length,
+            textImage: textImageModels.length,
+            imageImage: imageImageModels.length,
+            textVideo: textVideoModels.length,
+            imageVideo: imageVideoModels.length,
+            textSpeech: textSpeechModels.length,
+            musicInstrumental: musicInstrumentalModels.length,
+            musicVocal: musicVocalModels.length,
+          },
+        },
+      })
     }
 
     return NextResponse.json(payload, {
@@ -503,19 +568,35 @@ export async function GET() {
       },
     })
   } catch (error) {
-    console.warn(error)
-    return NextResponse.json(
-      {
-        ...FALLBACK_AI_PAYLOAD,
-        updatedAt: new Date().toISOString(),
-        message:
-          '外部データの取得に失敗したため、Aincarn編集データを表示しています。',
-      },
-      {
-        headers: {
-          'Cache-Control': 'public, s-maxage=900, stale-while-revalidate=3600',
+    console.warn('[ai-model-compare] AA fetch failed:', error)
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    const payload = {
+      ...FALLBACK_AI_PAYLOAD,
+      updatedAt: new Date().toISOString(),
+      message: `Artificial Analysis APIの取得に失敗したため、Aincarn編集データを表示しています（${errorMessage.slice(0, 200)}）。`,
+    }
+    if (debug) {
+      return NextResponse.json({
+        ...payload,
+        debug: {
+          apiKeyConfigured: true,
+          error: errorMessage,
+          genreSources: {
+            llm: 'fallback',
+            textImage: 'fallback',
+            imageImage: 'fallback',
+            textVideo: 'fallback',
+            imageVideo: 'fallback',
+            textSpeech: 'fallback',
+            music: 'fallback',
+          },
         },
-      }
-    )
+      })
+    }
+    return NextResponse.json(payload, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=900, stale-while-revalidate=3600',
+      },
+    })
   }
 }
