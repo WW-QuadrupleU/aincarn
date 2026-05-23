@@ -15,7 +15,8 @@ export type AiGenreId =
   | 'textVideo'
   | 'imageVideo'
   | 'textSpeech'
-  | 'music'
+  | 'musicInstrumental'
+  | 'musicVocal'
 
 export type AiGenre = {
   id: AiGenreId
@@ -97,7 +98,7 @@ export type SubscriptionCatalogPlan = {
   includes?: string[]
   bestFor?: string
   cautions?: string
-  matrixX?: ('general' | 'coding' | 'media' | 'audio' | 'music')[]
+  matrixX?: ('general' | 'coding' | 'media' | 'audio' | 'musicInst' | 'musicVocal')[]
   matrixY?: 'free' | 'low' | 'mid' | 'high' | 'premium'
 }
 
@@ -129,7 +130,7 @@ export type PlanRow = {
   bestFor: string
   cautions: string
   sourceUrl: string
-  matrixX: ('general' | 'coding' | 'media' | 'audio' | 'music')[]
+  matrixX: ('general' | 'coding' | 'media' | 'audio' | 'musicInst' | 'musicVocal')[]
   matrixY: 'free' | 'low' | 'mid' | 'high' | 'premium'
   isApi?: boolean
 }
@@ -220,12 +221,20 @@ export const AI_GENRES: AiGenre[] = [
     sourceMetric: 'TTSの自然さ、多言語対応、価格、クローニングの可否、商用利用時の制約を項目別に確認します。',
   },
   {
-    id: 'music',
-    label: '音楽生成（Music Generation）',
-    shortLabel: '音楽生成',
-    description: 'プロンプトから楽曲を生成するモデルを比較します。BGM、楽曲制作、デモ素材作成に利用できます。',
-    primaryMetrics: ['楽曲品質', 'ジャンル多様性', '商用ライセンス', '構成の自然さ'],
-    sourceMetric: '楽曲生成品質、ジャンル対応、価格、商用利用条件、Stem分離の可否を項目別に確認します。',
+    id: 'musicInstrumental',
+    label: '音楽生成 - インストゥルメンタル',
+    shortLabel: 'インスト',
+    description: 'ボーカル無しのBGM・劇伴・ジングルを生成するモデルを比較します。動画背景音楽、ゲームBGM、ポッドキャストSE等に向きます。',
+    primaryMetrics: ['楽曲品質', 'ジャンル多様性', '構成の自然さ', '長尺対応'],
+    sourceMetric: 'インストゥルメンタル品質、ジャンル対応、価格、商用利用条件、Stem分離の可否を項目別に確認します。',
+  },
+  {
+    id: 'musicVocal',
+    label: '音楽生成 - ボーカル',
+    shortLabel: 'ボーカル',
+    description: '歌唱・歌詞付きの楽曲を生成するモデルを比較します。デモ曲制作、コンテンツ用ジングル、SNS用楽曲に向きます。',
+    primaryMetrics: ['ボーカル品質', '歌詞表現', 'ジャンル多様性', '商用ライセンス'],
+    sourceMetric: 'ボーカル合成の自然さ、歌詞追従、価格、商用利用条件を項目別に確認します。',
   },
 ]
 
@@ -240,7 +249,8 @@ const ZERO_PERFORMANCE: Record<AiGenreId, number> = {
   textVideo: 0,
   imageVideo: 0,
   textSpeech: 0,
-  music: 0,
+  musicInstrumental: 0,
+  musicVocal: 0,
 }
 
 function scores(values: Partial<Record<AiGenreId, number>>): Record<AiGenreId, number> {
@@ -492,12 +502,12 @@ export const FALLBACK_AI_MODELS: AiModel[] = [
     speed: 80,
     japanese: 88,
     context: 0,
-    visibleIn: ['music'],
+    visibleIn: ['musicInstrumental', 'musicVocal'],
     metric: 'AudioGen Arena top',
     priceLabel: '$10 / 月（Pro=$30）',
     sourceUrl: 'https://suno.com/pricing',
-    performance: scores({ music: 92 }),
-    costPerformance: scores({ music: 88 }),
+    performance: scores({ musicInstrumental: 90, musicVocal: 92 }),
+    costPerformance: scores({ musicInstrumental: 86, musicVocal: 88 }),
     strengths: ['歌詞 + 楽曲の同時生成', '直感的なUI', '商用ライセンス（Pro以上）'],
     cautions: ['Stem分離は新しい上位プランのみ', '生成上限あり'],
     bestFor: '楽曲アイデア出し、デモ制作、ジングル、コンテンツ用BGM。',
@@ -516,12 +526,12 @@ export const FALLBACK_AI_MODELS: AiModel[] = [
     speed: 78,
     japanese: 82,
     context: 0,
-    visibleIn: ['music'],
+    visibleIn: ['musicInstrumental', 'musicVocal'],
     metric: 'AudioGen Arena top-2',
     priceLabel: '$10 / 月（Pro=$30）',
     sourceUrl: 'https://www.udio.com/pricing',
-    performance: scores({ music: 90 }),
-    costPerformance: scores({ music: 85 }),
+    performance: scores({ musicInstrumental: 86, musicVocal: 92 }),
+    costPerformance: scores({ musicInstrumental: 82, musicVocal: 88 }),
     strengths: ['高品質なボーカル', 'スタイルの再現性', 'Inpainting機能'],
     cautions: ['歌詞編集のフロー慣れが必要', '日本語ボーカルは英語比でやや弱い'],
     bestFor: '楽曲制作、Vocal入りデモ、リミックス検証。',
@@ -540,12 +550,12 @@ export const FALLBACK_AI_MODELS: AiModel[] = [
     speed: 82,
     japanese: 70,
     context: 0,
-    visibleIn: ['music'],
+    visibleIn: ['musicInstrumental'],
     metric: 'Open-source SOTA',
     priceLabel: '$11.99 / 月（API: $0.06/min）',
     sourceUrl: 'https://stability.ai/stable-audio',
-    performance: scores({ music: 80 }),
-    costPerformance: scores({ music: 92 }),
+    performance: scores({ musicInstrumental: 82 }),
+    costPerformance: scores({ musicInstrumental: 92 }),
     strengths: ['オープンウェイト', 'API経由でローカル統合可', '長尺対応'],
     cautions: ['Vocal生成は不可（インスト中心）'],
     bestFor: 'BGM、SE、自社プロダクトへのAPI組込み。',
@@ -1155,7 +1165,7 @@ export const defaultSubscriptionCatalog: SubscriptionCatalogService[] = [
         includes: ['50クレジット/日', '個人利用のみ'],
         bestFor: '音楽生成AIを試してみたい人',
         cautions: '生成した楽曲を商用利用することはできません。',
-        matrixX: ['music'],
+        matrixX: ['musicInst', 'musicVocal'],
         matrixY: 'free',
       },
       {
@@ -1167,7 +1177,7 @@ export const defaultSubscriptionCatalog: SubscriptionCatalogService[] = [
         includes: ['2,500クレジット/月', '商用利用可', '優先キュー'],
         bestFor: 'コンテンツ向け楽曲制作、SNS用ジングル制作',
         cautions: '生成上限を超えるとPremier必須。',
-        matrixX: ['music'],
+        matrixX: ['musicInst', 'musicVocal'],
         matrixY: 'low',
         yearly: {
           monthlyCostUsd: 8,
@@ -1183,7 +1193,7 @@ export const defaultSubscriptionCatalog: SubscriptionCatalogService[] = [
         includes: ['10,000クレジット/月', 'Stem分離', '4並列生成', '商用利用可'],
         bestFor: 'プロ作家、楽曲アイデア大量生成、業務制作',
         cautions: 'Stem分離はバージョン依存で揺れる場合あり。',
-        matrixX: ['music'],
+        matrixX: ['musicInst', 'musicVocal'],
         matrixY: 'mid',
         yearly: {
           monthlyCostUsd: 24,
@@ -1213,7 +1223,7 @@ export const defaultSubscriptionCatalog: SubscriptionCatalogService[] = [
         includes: ['10曲/月', 'クリエイティブコモンズ・非商用'],
         bestFor: 'まず触ってみたい人',
         cautions: '商用配信はできません。',
-        matrixX: ['music'],
+        matrixX: ['musicInst', 'musicVocal'],
         matrixY: 'free',
       },
       {
@@ -1225,7 +1235,7 @@ export const defaultSubscriptionCatalog: SubscriptionCatalogService[] = [
         includes: ['1,200曲/月', '商用利用可', 'Inpainting'],
         bestFor: 'インディーズ制作、ボーカル入りデモ作成',
         cautions: '英語ボーカルが最も自然、日本語は揺れる。',
-        matrixX: ['music'],
+        matrixX: ['musicInst', 'musicVocal'],
         matrixY: 'low',
       },
       {
@@ -1237,7 +1247,7 @@ export const defaultSubscriptionCatalog: SubscriptionCatalogService[] = [
         includes: ['4,800曲/月', '高品質モード', '優先サポート'],
         bestFor: 'プロ作家、リミックス制作',
         cautions: 'Stem分離は別オプション。',
-        matrixX: ['music'],
+        matrixX: ['musicInst', 'musicVocal'],
         matrixY: 'mid',
       },
     ],

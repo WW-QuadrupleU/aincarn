@@ -88,10 +88,16 @@ const AI_GENRE_GROUPS: Array<{
     genreIds: ['textSpeech'],
   },
   {
-    id: 'music',
-    label: '音楽AI',
-    description: '楽曲生成、BGM、デモ作成',
-    genreIds: ['music'],
+    id: 'music-instrumental',
+    label: '音楽AI (インスト)',
+    description: 'BGM、ゲーム劇伴、ポッドキャストSEなどボーカル無しの楽曲生成',
+    genreIds: ['musicInstrumental'],
+  },
+  {
+    id: 'music-vocal',
+    label: '音楽AI (ボーカル)',
+    description: '歌唱・歌詞付き楽曲、デモ曲、SNS用ジングル',
+    genreIds: ['musicVocal'],
   },
 ]
 

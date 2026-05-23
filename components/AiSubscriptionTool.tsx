@@ -11,7 +11,7 @@ import {
   getFlatSubscriptionPlans,
 } from '@/lib/ai-database'
 
-type PricingMode = 'plans' | 'llm' | 'image' | 'video' | 'audio' | 'music'
+type PricingMode = 'plans' | 'llm' | 'image' | 'video' | 'audio' | 'musicInst' | 'musicVocal'
 type ViewMode = 'matrix' | 'breakeven' | 'diagnosis' | 'api'
 
 type PricingRow = {
@@ -51,9 +51,14 @@ const modeOptions: Array<{ id: PricingMode; label: string; description: string }
     description: '月間生成文字数から、音声読み上げAIのコストを比較します。',
   },
   {
-    id: 'music',
-    label: '音楽生成',
-    description: '月間生成曲数から、音楽生成AIのコストを比較します。',
+    id: 'musicInst',
+    label: '音楽生成(インスト)',
+    description: 'BGM・劇伴のような楽器のみの楽曲生成AIを比較します。',
+  },
+  {
+    id: 'musicVocal',
+    label: '音楽生成(ボーカル)',
+    description: '歌詞付き楽曲・デモソング向けの楽曲生成AIを比較します。',
   },
 ]
 
@@ -63,14 +68,17 @@ const modeTone: Record<PricingMode, string> = {
   image: 'from-fuchsia-600 via-rose-500 to-orange-400',
   video: 'from-violet-600 via-indigo-500 to-sky-400',
   audio: 'from-amber-500 via-orange-400 to-red-400',
-  music: 'from-pink-500 via-rose-400 to-orange-400',
+  musicInst: 'from-pink-500 via-rose-400 to-orange-400',
+  musicVocal: 'from-purple-500 via-pink-500 to-rose-400',
 }
 
 const matrixXLabels = {
   general: { label: '総合・リサーチ', desc: 'ChatGPT / Perplexityなど万能型や調査特化' },
   coding: { label: '開発・コード', desc: 'GitHub Copilot / Cursorなどプログラミング支援' },
   media: { label: '画像・動画生成', desc: 'Midjourney / Runwayなどクリエイティブ系' },
-  audio: { label: '音声・音楽生成', desc: 'ElevenLabs / Sunoなどサウンド制作' },
+  audio: { label: '音声生成', desc: 'ElevenLabs / OpenAI TTSなどナレーション制作' },
+  musicInst: { label: '音楽(インスト)', desc: 'Stable Audio / Suno BGM等の楽器のみ楽曲' },
+  musicVocal: { label: '音楽(ボーカル)', desc: 'Suno / Udioなど歌唱付き楽曲制作' },
 }
 
 const matrixYLabels = {
@@ -98,7 +106,8 @@ function genrePerformance(model: AiModel, mode: PricingMode): number {
   if (mode === 'image') return Math.max(model.performance.textImage || 0, model.performance.imageImage || 0)
   if (mode === 'video') return Math.max(model.performance.textVideo || 0, model.performance.imageVideo || 0)
   if (mode === 'audio') return model.performance.textSpeech || 0
-  if (mode === 'music') return model.performance.music || 0
+  if (mode === 'musicInst') return model.performance.musicInstrumental || 0
+  if (mode === 'musicVocal') return model.performance.musicVocal || 0
   return Math.max(
     model.performance.research || 0,
     model.performance.writing || 0,
@@ -112,15 +121,24 @@ function unitLabel(mode: PricingMode) {
   if (mode === 'llm') return '100万tokens'
   if (mode === 'image') return '1生成'
   if (mode === 'audio') return '1000文字'
-  if (mode === 'music') return '1月額/1曲'
+  if (mode === 'musicInst') return '1月額/1曲'
+  if (mode === 'musicVocal') return '1月額/1曲'
   return '1分'
 }
 
 function eligibleForMode(model: AiModel, mode: PricingMode) {
-  if (mode === 'llm') return model.modality === 'LLM' && !model.visibleIn.includes('textSpeech') && !model.visibleIn.includes('music')
+  if (mode === 'llm') {
+    return (
+      model.modality === 'LLM' &&
+      !model.visibleIn.includes('textSpeech') &&
+      !model.visibleIn.includes('musicInstrumental') &&
+      !model.visibleIn.includes('musicVocal')
+    )
+  }
   if (mode === 'image') return model.visibleIn.includes('textImage') || model.visibleIn.includes('imageImage')
   if (mode === 'audio') return model.visibleIn.includes('textSpeech')
-  if (mode === 'music') return model.visibleIn.includes('music')
+  if (mode === 'musicInst') return model.visibleIn.includes('musicInstrumental')
+  if (mode === 'musicVocal') return model.visibleIn.includes('musicVocal')
   return model.visibleIn.includes('textVideo') || model.visibleIn.includes('imageVideo')
 }
 
@@ -128,8 +146,9 @@ function estimateCost(mode: PricingMode, unitPrice: number, tokenMillions: numbe
   if (mode === 'llm') return unitPrice * tokenMillions
   if (mode === 'image') return unitPrice * imageCount
   if (mode === 'audio') return unitPrice * (audioChars / 1000)
-  if (mode === 'music') return unitPrice // Music is basically fixed subscription cost or per generation, for simplicity here use fixed or * songs if per song
+  if (mode === 'musicInst' || mode === 'musicVocal') return unitPrice
   return unitPrice * videoMinutes
+  void musicSongs
 }
 
 export default function AiSubscriptionTool() {
