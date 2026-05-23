@@ -101,7 +101,7 @@ function planToInput(
     billingCycle,
     renewalDate: '',
     status: 'active',
-    notes: `${service.description} ${cycleSummary} 料金は${service.updatedAt}時点の目安です。`,
+    notes: '',
   }
 }
 
@@ -581,9 +581,9 @@ function AuthenticatedSubscriptionManager() {
           ))}
         </div>
 
-        <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+        <div className="mt-4 grid gap-4 md:grid-cols-2">
           {subscriptions.length === 0 && (
-            <div className="rounded-2xl border border-dashed border-gray-200 bg-white/70 p-5 text-sm font-bold text-gray-500 md:col-span-2 xl:col-span-3">
+            <div className="rounded-2xl border border-dashed border-gray-200 bg-white/70 p-5 text-sm font-bold text-gray-500 md:col-span-2">
               まずは下のサービスカードから、契約中または気になるAIサブスクをコレクションに追加してください。
             </div>
           )}
@@ -591,77 +591,95 @@ function AuthenticatedSubscriptionManager() {
             const service = getCatalogServiceForSubscription(item, catalog)
             const tone = getServiceTone(service?.id || item.serviceName.toLowerCase())
             return (
-            <article
-              key={item.id}
-              className="group relative isolate overflow-hidden rounded-3xl border p-4 pl-5 shadow-lg shadow-slate-900/8 transition hover:-translate-y-0.5 hover:shadow-xl"
-              style={getServiceFrameStyle(service?.id || item.serviceName.toLowerCase(), false)}
-            >
-              <div className="absolute inset-y-0 left-0 w-1.5" style={{ background: tone.gradient }} />
-              <div className="absolute right-0 top-0 h-14 w-24 rounded-bl-[34px] opacity-10" style={{ background: tone.gradient }} />
-              <div className="h-full">
-                <div className="flex min-w-0 items-start gap-3">
+              <article
+                key={item.id}
+                className="group relative isolate flex flex-col justify-between overflow-hidden rounded-[24px] border border-white/60 p-5 shadow-lg shadow-slate-900/5 transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-slate-900/10"
+                style={{
+                  background: `linear-gradient(135deg, ${tone.soft} 0%, rgba(255,255,255,0.85) 40%, rgba(255,255,255,0.95) 100%)`,
+                  borderColor: tone.border,
+                }}
+              >
+                {/* Glass reflection effect */}
+                <div className="absolute inset-0 -z-10 bg-gradient-to-tr from-white/40 to-transparent mix-blend-overlay" />
+                
+                {/* Top Section: Logo & Name & Status */}
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-3">
                     <div
-                      className="flex size-12 shrink-0 items-center justify-center rounded-[18px] text-xs font-black text-white shadow-md shadow-slate-900/10"
+                      className="flex size-11 shrink-0 items-center justify-center rounded-[14px] text-xs font-black text-white shadow-md shadow-slate-900/10"
                       style={{ background: tone.gradient }}
                     >
                       {getCollectionMark(item, catalog)}
                     </div>
-                    <div className="min-w-0">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <h3 className="truncate text-base font-black text-brand-text">{item.serviceName}</h3>
-                        <span className="rounded-full bg-slate-100 px-2 py-1 text-[10px] font-black text-gray-500">
-                          {statusOptions.find((status) => status.value === item.status)?.label || item.status}
-                        </span>
-                      </div>
-                      <p className="mt-1 text-xs font-bold text-gray-400">{item.planName || 'プラン未設定'}</p>
-                      <div className="mt-2 flex flex-wrap gap-1.5">
-                        {splitCategories(item.category).map((category) => (
-                          <span
-                            key={category}
-                            className="rounded-full border bg-white/80 px-2 py-1 text-[10px] font-black text-gray-600"
-                            style={{ borderColor: tone.border }}
-                          >
-                            {category}
-                          </span>
-                        ))}
-                      </div>
+                    <div>
+                      <h3 className="text-lg font-black tracking-tight text-slate-900">{item.serviceName}</h3>
+                      <p className="text-xs font-bold text-slate-500">{item.planName || 'プラン未設定'}</p>
                     </div>
+                  </div>
+                  <div className="flex flex-col items-end gap-2">
+                    <span className="rounded-full bg-slate-900/5 px-2 py-1 text-[10px] font-black text-slate-600">
+                      {statusOptions.find((status) => status.value === item.status)?.label || item.status}
+                    </span>
+                    {/* Action buttons (Edit/Delete) - visible on hover or subtly available */}
+                    <div className="flex items-center gap-1 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditingId(item.id)
+                          setForm(toInput(item))
+                        }}
+                        className="rounded-full bg-white/80 p-1.5 text-slate-400 shadow-sm transition hover:text-brand-text focus:outline-none focus:ring-2 focus:ring-brand-text"
+                        title="編集"
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => removeSubscription(item.id)}
+                        className="rounded-full bg-white/80 p-1.5 text-slate-400 shadow-sm transition hover:text-red-500 focus:outline-none focus:ring-2 focus:ring-red-500"
+                        title="削除"
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                      </button>
+                    </div>
+                  </div>
                 </div>
-                <div className="mt-4 grid gap-2 rounded-2xl border border-white/80 bg-white/72 p-3 shadow-sm shadow-slate-950/5 sm:grid-cols-[1fr_auto] sm:items-center">
+
+                {/* Middle Section: Tags & Notes */}
+                <div className="mt-4">
+                  <div className="flex flex-wrap gap-1.5">
+                    {splitCategories(item.category).map((category) => (
+                      <span
+                        key={category}
+                        className="rounded-full border border-white/50 bg-white/40 px-2 py-0.5 text-[10px] font-black text-slate-600 backdrop-blur-sm"
+                      >
+                        {category}
+                      </span>
+                    ))}
+                  </div>
+                  {item.notes && <p className="mt-2 line-clamp-2 text-xs font-bold leading-relaxed text-slate-500">{item.notes}</p>}
+                </div>
+
+                {/* Bottom Section: Price & Renewal */}
+                <div className="mt-5 flex items-end justify-between border-t border-slate-900/5 pt-4">
                   <div>
-                    <p className="text-[10px] font-black uppercase tracking-[0.14em] text-gray-400">
-                      {item.billingCycle === 'yearly' ? 'Annual plan' : 'Monthly plan'}
+                    <p className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-400">
+                      Next Renewal
                     </p>
-                    <p className="mt-1 text-xs font-bold text-gray-500">
-                      {billingCycleOptions.find((cycle) => cycle.value === item.billingCycle)?.label || item.billingCycle}
-                      {item.billingCycle === 'yearly' ? '・月額換算' : ''}
+                    <p className="mt-0.5 text-sm font-black text-slate-700">
+                      {formatDate(item.renewalDate) || '未設定'}
                     </p>
                   </div>
-                  <p className="text-2xl font-black tracking-tight text-slate-950">{formatUsd(item.monthlyCostUsd)}</p>
+                  <div className="text-right">
+                    <p className="text-[10px] font-black uppercase tracking-[0.1em] text-slate-400">
+                      {billingCycleOptions.find((cycle) => cycle.value === item.billingCycle)?.label || item.billingCycle}
+                    </p>
+                    <p className="text-3xl font-black tracking-tight" style={{ color: tone.ink }}>
+                      {formatUsd(item.monthlyCostUsd)}
+                    </p>
+                  </div>
                 </div>
-                <p className="mt-3 text-xs font-bold text-gray-400">更新日 {formatDate(item.renewalDate)}</p>
-                {item.notes && <p className="mt-2 text-xs font-bold leading-relaxed text-gray-500">{item.notes}</p>}
-                <div className="mt-4 flex flex-wrap gap-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setEditingId(item.id)
-                      setForm(toInput(item))
-                    }}
-                    className="rounded-full border border-gray-200 bg-white px-3 py-2 text-xs font-black text-gray-500 transition hover:border-brand-text hover:text-brand-text"
-                  >
-                    編集
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => removeSubscription(item.id)}
-                    className="rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-black text-slate-400 transition hover:border-slate-400 hover:bg-slate-50"
-                  >
-                    削除
-                  </button>
-                </div>
-              </div>
-            </article>
+              </article>
             )
           })}
         </div>

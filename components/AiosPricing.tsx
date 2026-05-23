@@ -23,6 +23,20 @@ export default function AiosPricing({ plans }: { plans: PricingPlan[] }) {
   const [loadingTier, setLoadingTier] = useState<string | null>(null)
   const [error, setError] = useState('')
 
+  async function readCheckoutResponse(response: Response) {
+    const text = await response.text()
+    if (!text) return {}
+    try {
+      return JSON.parse(text) as { url?: string; error?: string }
+    } catch {
+      return {
+        error: response.ok
+          ? 'Checkoutの応答を読み取れませんでした。時間をおいて再度お試しください。'
+          : `Checkout APIでエラーが発生しました（HTTP ${response.status}）`,
+      }
+    }
+  }
+
   async function upgrade(tier: string) {
     setLoadingTier(tier)
     setError('')
@@ -32,7 +46,7 @@ export default function AiosPricing({ plans }: { plans: PricingPlan[] }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ tier }),
       })
-      const data = await response.json()
+      const data = await readCheckoutResponse(response)
       if (!response.ok) throw new Error(data.error || 'チェックアウトを開始できませんでした')
       if (data.url) window.location.href = data.url
     } catch (error) {

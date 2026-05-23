@@ -13,6 +13,7 @@ export const runtime = 'nodejs'
 const ALLOWED_TIERS: AiosTier[] = ['light', 'pro', 'power']
 
 export async function POST(request: Request) {
+  try {
   const auth = await getSubscriptionUserId()
   if (!auth.userId) return NextResponse.json({ error: auth.error }, { status: auth.status })
   if (!hasSubscriptionDatabase()) {
@@ -77,4 +78,16 @@ export async function POST(request: Request) {
   })
 
   return NextResponse.json({ url: session.url })
+  } catch (error) {
+    console.error('[stripe checkout] failed', error)
+    return NextResponse.json(
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Stripe Checkoutの開始に失敗しました。',
+      },
+      { status: 500 },
+    )
+  }
 }
