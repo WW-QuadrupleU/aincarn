@@ -412,34 +412,31 @@ function AuthenticatedAiosMvp() {
 
   return (
     <div className="space-y-6">
-      <section className="overflow-hidden rounded-[36px] border border-white/80 bg-white/86 shadow-xl shadow-slate-950/8 backdrop-blur-xl">
-        <div className="grid gap-0 lg:grid-cols-[1fr_420px]">
-          <div className="p-6 sm:p-8">
-            <div className="flex flex-wrap items-center gap-3">
-              <p className="rounded-full border border-white/80 bg-white/72 px-3 py-1.5 text-xs font-black uppercase tracking-[0.18em] text-slate-500">
-                Aincarn OS · Test
+      <section className="border-b border-slate-200/70 bg-white/80 backdrop-blur">
+        <div className="mx-auto max-w-7xl px-4 py-4">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
+            <div className="flex min-w-0 items-center gap-3">
+              <p className="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-slate-500">
+                Aincarn OS
               </p>
-              <UserButton />
-            </div>
-            <h1 className="mt-5 max-w-4xl text-4xl font-black tracking-tight text-slate-950 sm:text-6xl">
-              目標を入れると、最適なAIが動き出す。
-            </h1>
-            <p className="mt-5 max-w-3xl text-sm font-bold leading-relaxed text-slate-600">
-              Aincarn OSは、あなたの目標から逆算してタスクを作り、各タスクに最適なAI（Claude / ChatGPT / Gemini / Perplexity ほか）と
-              そのまま貼り付けられるプロンプトを割り当てます。プロンプトはAincarn内で代理実行され、回答はそのままMemoryに残ります。
+              <h1 className="truncate text-base font-black tracking-tight text-slate-950 sm:text-lg">
+                目標を入れると、最適なAIが動き出す
+              </h1>
               {!aiEnabled && (
-                <span className="ml-2 rounded-full bg-amber-100 px-2 py-1 text-[10px] font-black text-amber-700">
-                  AI生成は未設定のためテンプレート起動中
+                <span className="rounded-full bg-amber-100 px-2 py-1 text-[10px] font-black text-amber-700">
+                  テンプレート起動中
                 </span>
               )}
-            </p>
-            <UsageMeter usage={usage} />
+            </div>
+            <div className="ml-auto">
+              <UserButton />
+            </div>
           </div>
-          <RouterPanel />
+          <UsageMeter usage={usage} />
         </div>
       </section>
 
-      <section className="grid gap-4 lg:grid-cols-[390px_1fr]">
+      <section className="mx-auto grid max-w-7xl gap-4 px-4 lg:grid-cols-[390px_1fr]">
         <div className="rounded-[30px] border border-white/80 bg-white/88 p-5 shadow-sm shadow-slate-950/5 backdrop-blur-xl">
           <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">Aincarn Memory</p>
           <h2 className="mt-2 text-2xl font-black tracking-tight text-slate-950">目標を保存する</h2>
