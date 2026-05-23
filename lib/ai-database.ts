@@ -93,7 +93,7 @@ export type SubscriptionCatalogPlan = {
   includes?: string[]
   bestFor?: string
   cautions?: string
-  matrixX?: ('general' | 'writing' | 'coding' | 'media')[]
+  matrixX?: ('general' | 'coding' | 'media')[]
   matrixY?: 'free' | 'low' | 'mid' | 'high' | 'premium'
 }
 
@@ -125,7 +125,7 @@ export type PlanRow = {
   bestFor: string
   cautions: string
   sourceUrl: string
-  matrixX: ('general' | 'writing' | 'coding' | 'media')[]
+  matrixX: ('general' | 'coding' | 'media')[]
   matrixY: 'free' | 'low' | 'mid' | 'high' | 'premium'
   isApi?: boolean
 }
@@ -427,7 +427,7 @@ export const defaultSubscriptionCatalog: SubscriptionCatalogService[] = [
         includes: ['GPT-4o利用制限枠', 'GPT-4o-mini無制限', '基本チャット機能'],
         bestFor: 'まずは無料で高性能なAI対話を体験し、ライトな日常会話を行いたい人',
         cautions: 'ピークタイムには一時的にレスポンスが制限される場合があります。',
-        matrixX: ['general', 'writing'],
+        matrixX: ['general'],
         matrixY: 'free',
       },
       {
@@ -439,7 +439,7 @@ export const defaultSubscriptionCatalog: SubscriptionCatalogService[] = [
         includes: ['Plusより少なめの利用枠', '画像生成', '高度な機能の制限'],
         bestFor: '無料版の制限に不満だが20ドルは高いと感じるライトユーザー',
         cautions: 'Deep Researchなどの一部高度な機能は含まれていません。',
-        matrixX: ['general', 'writing'],
+        matrixX: ['general'],
         matrixY: 'low',
       },
       {
@@ -451,7 +451,7 @@ export const defaultSubscriptionCatalog: SubscriptionCatalogService[] = [
         includes: ['GPT-4o / o1系', '画像生成 (DALL-E 3)', '音声・高度な解析'],
         bestFor: '文章・画像生成から高度な推論まで、万能に使い倒したい人',
         cautions: 'ピーク時にはモデル利用枠に制限がかかることがあります。',
-        matrixX: ['general', 'writing', 'coding', 'media'],
+        matrixX: ['general', 'coding', 'media'],
         matrixY: 'mid',
       },
       {
@@ -463,7 +463,7 @@ export const defaultSubscriptionCatalog: SubscriptionCatalogService[] = [
         includes: ['Plusの5倍の利用枠', 'o1 pro mode等', '優先アクセス'],
         bestFor: '日常業務や開発でAIをヘビーに使い、Plusの制限にすぐ到達する人',
         cautions: '単独で元を取れる業務ワークフローが求められます。',
-        matrixX: ['general', 'writing', 'coding', 'media'],
+        matrixX: ['general', 'coding', 'media'],
         matrixY: 'high',
       },
       {
@@ -475,7 +475,7 @@ export const defaultSubscriptionCatalog: SubscriptionCatalogService[] = [
         includes: ['Plusの20倍の利用枠', 'o1 pro mode等', '最優先の利用枠'],
         bestFor: '研究、先端エンジニアリング、ビジネス推進で限界まで使うプロ向け',
         cautions: '一般の文章作成や単純なコード作成では費用過剰になりやすいです。',
-        matrixX: ['general', 'writing', 'coding', 'media'],
+        matrixX: ['general', 'coding', 'media'],
         matrixY: 'premium',
       },
     ],
@@ -501,7 +501,7 @@ export const defaultSubscriptionCatalog: SubscriptionCatalogService[] = [
         includes: ['Claude 3.5 Sonnet制限枠', 'Artifactsお試し', '文章支援'],
         bestFor: '自然な文章表現やコードの書きっぷりをとりあえず無料で確認したい人',
         cautions: '利用制限が非常に厳しく、すぐに上限に達します。',
-        matrixX: ['general', 'writing'],
+        matrixX: ['general'],
         matrixY: 'free',
       },
       {
@@ -513,7 +513,7 @@ export const defaultSubscriptionCatalog: SubscriptionCatalogService[] = [
         includes: ['Claude 3.5 Sonnet', '長文処理', 'Artifacts / Project機能'],
         bestFor: '長文の推敲・リライト、資料分析、高精度のコーディングを望む人',
         cautions: 'メッセージ送信数が一定時間ごとに制限される仕組みがあります。',
-        matrixX: ['general', 'writing', 'coding'],
+        matrixX: ['general', 'coding'],
         matrixY: 'mid',
         yearly: {
           monthlyCostUsd: 17,
@@ -529,7 +529,7 @@ export const defaultSubscriptionCatalog: SubscriptionCatalogService[] = [
         includes: ['Claude上位モデル', 'Proの5倍の利用制限枠', '優先ネットワーク'],
         bestFor: 'Claude Proの回数制限を突破して、日常的に長文執筆や開発を行う人',
         cautions: '高額プランのため、単独で元を取れるワークフロー構築が鍵です。',
-        matrixX: ['general', 'writing', 'coding'],
+        matrixX: ['general', 'coding'],
         matrixY: 'high',
       },
       {
@@ -541,7 +541,7 @@ export const defaultSubscriptionCatalog: SubscriptionCatalogService[] = [
         includes: ['Claude上位モデル', 'Proの20倍の利用制限枠', '最優先ネットワーク'],
         bestFor: 'Claudeを日常業務の中心に置くヘビーユーザー',
         cautions: '利用目的に見合う費用対効果の確認が必要です。',
-        matrixX: ['general', 'writing', 'coding'],
+        matrixX: ['general', 'coding'],
         matrixY: 'premium',
       },
     ],
@@ -567,7 +567,7 @@ export const defaultSubscriptionCatalog: SubscriptionCatalogService[] = [
         includes: ['Gemini上位モデル（制限あり）', 'Googleアプリ連携'],
         bestFor: 'Google Workspace機能を中心に軽めにAIを使いたい人',
         cautions: '本格的なプログラミング用途では上位プランが必要です。',
-        matrixX: ['general', 'writing'],
+        matrixX: ['general'],
         matrixY: 'low',
       },
       {
@@ -579,7 +579,7 @@ export const defaultSubscriptionCatalog: SubscriptionCatalogService[] = [
         includes: ['Gemini 1.5 Pro', 'Googleアプリ連携', 'Google One 2TB枠'],
         bestFor: 'Gmail, Google Workspace, Android環境でシームレスにAIを使いたい人',
         cautions: '長文コンテキストに強いですが、推論ロジックは他サービスと好みが分かれます。',
-        matrixX: ['general', 'writing', 'coding'],
+        matrixX: ['general', 'coding'],
         matrixY: 'mid',
       },
       {
@@ -591,7 +591,7 @@ export const defaultSubscriptionCatalog: SubscriptionCatalogService[] = [
         includes: ['高い利用上限', '先行機能アクセス'],
         bestFor: 'AI Proの利用上限を超えるヘビーユーザー',
         cautions: '費用対効果を確認する必要があります。',
-        matrixX: ['general', 'writing', 'coding'],
+        matrixX: ['general', 'coding'],
         matrixY: 'high',
       },
       {
@@ -603,7 +603,7 @@ export const defaultSubscriptionCatalog: SubscriptionCatalogService[] = [
         includes: ['最大級の利用枠', '動画生成', '先行機能アクセス'],
         bestFor: '動画生成や複雑なコンテキスト処理を頻繁に行う人',
         cautions: '一般的な用途にはオーバースペックです。',
-        matrixX: ['general', 'writing', 'coding'],
+        matrixX: ['general', 'coding'],
         matrixY: 'premium',
       },
     ],
@@ -629,7 +629,7 @@ export const defaultSubscriptionCatalog: SubscriptionCatalogService[] = [
         includes: ['AIネット検索', '複数モデル選択', '画像生成・ファイル分析'],
         bestFor: '出典が明示されたリサーチ、ニュースや最新情報のまとめを重視する人',
         cautions: '文章制作や対話の深さは、特化型の他チャットAIに分があります。',
-        matrixX: ['general', 'writing', 'coding'],
+        matrixX: ['general', 'coding'],
         matrixY: 'mid',
         yearly: {
           monthlyCostUsd: 16.67,
@@ -645,7 +645,7 @@ export const defaultSubscriptionCatalog: SubscriptionCatalogService[] = [
         includes: ['最高速レスポンス', '新機能早期アクセス', '大量の検索クエリ'],
         bestFor: '膨大なリサーチ業務を抱えるプロフェッショナル',
         cautions: '検索以外の用途（プログラミング等）には向いていません。',
-        matrixX: ['general', 'writing'],
+        matrixX: ['general'],
         matrixY: 'premium',
       },
     ],
@@ -671,7 +671,7 @@ export const defaultSubscriptionCatalog: SubscriptionCatalogService[] = [
         includes: ['エディタ補完', 'チャット機能', 'コードレビュー補助'],
         bestFor: 'VS CodeやJetBrainsなどのエディタ内で爆速にコードを書きたい開発者',
         cautions: '日常の一般的な会話や情報整理の用途には向きません。',
-        matrixX: ['general', 'writing', 'coding'],
+        matrixX: ['general', 'coding'],
         matrixY: 'low',
         yearly: {
           monthlyCostUsd: 8.33,
@@ -717,7 +717,7 @@ export const defaultSubscriptionCatalog: SubscriptionCatalogService[] = [
         includes: ['高速リクエスト500回', '無制限スローリクエスト', 'Cursor Tab補完'],
         bestFor: 'AI支援エディタCursorを使いこなし、高度なプロジェクト開発をしたい人',
         cautions: 'GitHub Copilotとの競合や、エディタへの依存度が高まります。',
-        matrixX: ['general', 'writing', 'coding'],
+        matrixX: ['general', 'coding'],
         matrixY: 'mid',
         yearly: {
           monthlyCostUsd: 16,
@@ -883,7 +883,7 @@ export const defaultSubscriptionCatalog: SubscriptionCatalogService[] = [
         includes: ['2250クレジット', 'Gen-3 Alpha等の全機能'],
         bestFor: '日常的に動画生成を業務で利用するクリエイター',
         cautions: '本格的な長編制作にはまだ制限があります。',
-        matrixX: ['general', 'writing', 'coding'],
+        matrixX: ['general', 'coding'],
         matrixY: 'mid',
         yearly: {
           monthlyCostUsd: 28,

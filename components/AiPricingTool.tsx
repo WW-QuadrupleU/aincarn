@@ -55,8 +55,7 @@ const modeTone: Record<PricingMode, string> = {
 }
 
 const matrixXLabels = {
-  general: { label: '総合・対話', desc: 'ChatGPT / Geminiなど万能型' },
-  writing: { label: '執筆・リサーチ', desc: 'Claude / Perplexityなど長文や調査特化' },
+  general: { label: '総合・リサーチ', desc: 'ChatGPT / Perplexityなど万能型や調査特化' },
   coding: { label: '開発・コード', desc: 'GitHub Copilot / Cursorなどプログラミング支援' },
   media: { label: '画像・動画生成', desc: 'Midjourney / Runwayなどクリエイティブ系' },
 }
@@ -928,8 +927,8 @@ export default function AiPricingTool() {
                         </td>
 
                         {/* 各マトリックスセル */}
-                        <td colSpan={4} className="p-2 align-top border-l border-slate-200/80 bg-slate-50/10">
-                          <div className="grid grid-cols-4 gap-2 relative">
+                        <td colSpan={3} className="p-2 align-top border-l border-slate-200/80 bg-slate-50/10">
+                          <div className="grid grid-cols-3 gap-2 relative">
                             {(() => {
                               const plansInY = AI_PLANS.filter((plan) => plan.matrixY === yKey).sort((a, b) => a.monthlyUsd - b.monthlyUsd)
                               let matchedPlans = plansInY.map((plan) => {
@@ -942,7 +941,7 @@ export default function AiPricingTool() {
                               })
 
                               if (matchedPlans.length === 0) {
-                                return <div className="col-span-4 text-[10px] font-bold text-gray-300 italic text-center py-4">-</div>
+                                return <div className="col-span-3 text-[10px] font-bold text-gray-300 italic text-center py-4">-</div>
                               }
 
                               const xKeys = Object.keys(matrixXLabels)
