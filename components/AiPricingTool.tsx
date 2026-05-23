@@ -125,6 +125,9 @@ export default function AiPricingTool() {
 
   // 損益分岐点シミュレータ用の状態
   const [usageProfileId, setUsageProfileId] = useState('standard')
+  const [dailyPrompts, setDailyPrompts] = useState(10)
+  const [avgPromptLength, setAvgPromptLength] = useState(400)
+  const [avgResponseLength, setAvgResponseLength] = useState(800)
 
   // お気に入りキープ用の状態 (LocalStorageに保存)
   const [keepList, setKeepList] = useState<{ serviceName: string; planName: string; monthlyCostUsd: number }[]>([])
@@ -246,10 +249,6 @@ export default function AiPricingTool() {
 
   // 「サブスク vs API」損益分岐点シミュレータ計算ロジック
   const breakevenSim = useMemo(() => {
-    const profile = USAGE_PROFILES.find((p) => p.id === usageProfileId) || USAGE_PROFILES[1]
-    const dailyPrompts = profile.daily
-    const avgPromptLength = profile.prompt
-    const avgResponseLength = profile.response
 
     // 日本語1文字あたり 1.2 トークンとして概算
     const jpnCharToToken = 1.2
@@ -286,7 +285,7 @@ export default function AiPricingTool() {
       reasoningUsd: reasoningTotalUsd,
       subUsd: subscriptionUsd,
     }
-  }, [usageProfileId])
+  }, [dailyPrompts, avgPromptLength, avgResponseLength])
 
   // AIコンシェルジュ診断ロジック
   const diagnosisResult = useMemo(() => {
@@ -504,7 +503,12 @@ export default function AiPricingTool() {
                     return (
                       <button
                         key={profile.id}
-                        onClick={() => setUsageProfileId(profile.id)}
+                        onClick={() => {
+                          setUsageProfileId(profile.id)
+                          setDailyPrompts(profile.daily)
+                          setAvgPromptLength(profile.prompt)
+                          setAvgResponseLength(profile.response)
+                        }}
                         className={`flex items-center gap-3 rounded-xl border p-3 text-left transition-all ${
                           isSelected
                             ? 'border-indigo-500 bg-indigo-50/50 shadow-sm ring-1 ring-indigo-500'
@@ -527,6 +531,67 @@ export default function AiPricingTool() {
                       </button>
                     )
                   })}
+                </div>
+
+                <div className="mt-4 pt-4 border-t border-gray-100 space-y-4">
+                  <p className="text-xs font-black uppercase tracking-[0.14em] text-slate-400">詳細設定（カスタマイズ）</p>
+                  
+                  <label className="block">
+                    <span className="flex justify-between text-xs font-bold text-gray-600">
+                      <span>1日の質問・対話回数</span>
+                      <span className="text-slate-950 font-black">{dailyPrompts} 回</span>
+                    </span>
+                    <input
+                      type="range"
+                      min="1"
+                      max="100"
+                      value={dailyPrompts}
+                      onChange={(e) => {
+                        setDailyPrompts(Number(e.target.value))
+                        setUsageProfileId('custom')
+                      }}
+                      className="mt-2 h-1.5 w-full cursor-pointer appearance-none rounded-lg bg-gray-200 accent-slate-800"
+                    />
+                    <span className="text-[10px] font-bold text-gray-400 block mt-0.5">月間: {dailyPrompts * 30} 回のやり取り</span>
+                  </label>
+
+                  <label className="block">
+                    <span className="flex justify-between text-xs font-bold text-gray-600">
+                      <span>1回あたりの平均入力（文字）</span>
+                      <span className="text-slate-950 font-black">{avgPromptLength} 文字</span>
+                    </span>
+                    <input
+                      type="range"
+                      min="100"
+                      max="5000"
+                      step="100"
+                      value={avgPromptLength}
+                      onChange={(e) => {
+                        setAvgPromptLength(Number(e.target.value))
+                        setUsageProfileId('custom')
+                      }}
+                      className="mt-2 h-1.5 w-full cursor-pointer appearance-none rounded-lg bg-gray-200 accent-slate-800"
+                    />
+                  </label>
+
+                  <label className="block">
+                    <span className="flex justify-between text-xs font-bold text-gray-600">
+                      <span>1回あたりの平均出力（文字）</span>
+                      <span className="text-slate-950 font-black">{avgResponseLength} 文字</span>
+                    </span>
+                    <input
+                      type="range"
+                      min="100"
+                      max="5000"
+                      step="100"
+                      value={avgResponseLength}
+                      onChange={(e) => {
+                        setAvgResponseLength(Number(e.target.value))
+                        setUsageProfileId('custom')
+                      }}
+                      className="mt-2 h-1.5 w-full cursor-pointer appearance-none rounded-lg bg-gray-200 accent-slate-800"
+                    />
+                  </label>
                 </div>
 
                 <div className="mt-4 rounded-xl bg-slate-50 p-3 border border-slate-100">

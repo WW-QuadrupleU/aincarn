@@ -10,8 +10,27 @@ export type AiosProfileInput = {
 
 export type SavedAiosProfile = AiosProfileInput & {
   userId: string
+  projectId?: string
   createdAt: string
   updatedAt: string
+}
+
+export type SavedAiosProject = {
+  id: string
+  userId: string
+  name: string
+  accent: string
+  createdAt: string
+  updatedAt: string
+}
+
+export type SavedAiosMessage = {
+  id: string
+  userId: string
+  projectId: string
+  role: 'user' | 'assistant'
+  content: string
+  createdAt: string
 }
 
 export type AiosTaskInput = {
@@ -61,6 +80,7 @@ function queryRows(value: unknown): Array<Record<string, unknown>> {
 function rowToProfile(row: Record<string, unknown>): SavedAiosProfile {
   return {
     userId: String(row.user_id),
+    projectId: row.project_id ? String(row.project_id) : undefined,
     goal: String(row.goal),
     horizon: String(row.horizon),
     currentState: row.current_state ? String(row.current_state) : '',
@@ -68,6 +88,28 @@ function rowToProfile(row: Record<string, unknown>): SavedAiosProfile {
     constraints: row.constraints_text ? String(row.constraints_text) : '',
     createdAt: new Date(String(row.created_at)).toISOString(),
     updatedAt: new Date(String(row.updated_at)).toISOString(),
+  }
+}
+
+function rowToProject(row: Record<string, unknown>): SavedAiosProject {
+  return {
+    id: String(row.id),
+    userId: String(row.user_id),
+    name: String(row.name),
+    accent: String(row.accent || 'indigo'),
+    createdAt: new Date(String(row.created_at)).toISOString(),
+    updatedAt: new Date(String(row.updated_at)).toISOString(),
+  }
+}
+
+function rowToMessage(row: Record<string, unknown>): SavedAiosMessage {
+  return {
+    id: String(row.id),
+    userId: String(row.user_id),
+    projectId: String(row.project_id),
+    role: String(row.role) === 'assistant' ? 'assistant' : 'user',
+    content: String(row.content),
+    createdAt: new Date(String(row.created_at)).toISOString(),
   }
 }
 
@@ -120,9 +162,51 @@ export async function ensureAiosSchema() {
       updated_at timestamptz NOT NULL DEFAULT now()
     )
   `
+  await sql`
+    CREATE TABLE IF NOT EXISTS aincarn_aios_projects (
+      id text PRIMARY KEY,
+      user_id text NOT NULL,
+      name text NOT NULL,
+      accent text NOT NULL DEFAULT 'indigo',
+      created_at timestamptz NOT NULL DEFAULT now(),
+      updated_at timestamptz NOT NULL DEFAULT now()
+    )
+  `
+  await sql`
+    CREATE INDEX IF NOT EXISTS aincarn_aios_projects_user_idx
+    ON aincarn_aios_projects (user_id, updated_at DESC)
+  `
+  await sql`
+    CREATE TABLE IF NOT EXISTS aincarn_aios_project_profiles (
+      project_id text PRIMARY KEY,
+      user_id text NOT NULL,
+      goal text NOT NULL,
+      horizon text NOT NULL,
+      current_state text,
+      values_text text,
+      constraints_text text,
+      created_at timestamptz NOT NULL DEFAULT now(),
+      updated_at timestamptz NOT NULL DEFAULT now()
+    )
+  `
+  await sql`
+    CREATE TABLE IF NOT EXISTS aincarn_aios_messages (
+      id text PRIMARY KEY,
+      project_id text NOT NULL,
+      user_id text NOT NULL,
+      role text NOT NULL,
+      content text NOT NULL,
+      created_at timestamptz NOT NULL DEFAULT now()
+    )
+  `
+  await sql`
+    CREATE INDEX IF NOT EXISTS aincarn_aios_messages_project_idx
+    ON aincarn_aios_messages (user_id, project_id, created_at ASC)
+  `
   // Migrate existing tables to include AI-routing columns
   await sql`ALTER TABLE aincarn_aios_tasks ADD COLUMN IF NOT EXISTS recommended_tool text`
   await sql`ALTER TABLE aincarn_aios_tasks ADD COLUMN IF NOT EXISTS prompt text`
+  await sql`ALTER TABLE aincarn_aios_tasks ADD COLUMN IF NOT EXISTS project_id text`
   await sql`
     CREATE INDEX IF NOT EXISTS aincarn_aios_tasks_user_idx
     ON aincarn_aios_tasks (user_id, status, due_date, updated_at)
@@ -138,6 +222,7 @@ export async function ensureAiosSchema() {
       created_at timestamptz NOT NULL DEFAULT now()
     )
   `
+  await sql`ALTER TABLE aincarn_aios_plans ADD COLUMN IF NOT EXISTS project_id text`
 
   // Task execution runs (proxy executions of recommended AI)
   await sql`
@@ -346,19 +431,145 @@ export function createStarterTasks(profile: AiosProfileInput): AiosTaskInput[] {
   ]
 }
 
-export async function getAiosState(userId: string) {
+const PROJECT_ACCENTS = ['indigo', 'emerald', 'orange', 'rose', 'sky']
+
+function projectNameFromGoal(goal?: string) {
+  const name = String(goal || '').trim().replace(/\s+/g, ' ')
+  return name ? name.slice(0, 24) : 'メインプロジェクト'
+}
+
+async function getOrCreateInitialProject(userId: string): Promise<SavedAiosProject> {
   await ensureAiosSchema()
   const sql = getSql()
+  const existingRows = await sql`
+    SELECT * FROM aincarn_aios_projects
+    WHERE user_id = ${userId}
+    ORDER BY updated_at DESC
+    LIMIT 1
+  `
+  const existing = queryRows(existingRows)[0]
+  if (existing) return rowToProject(existing)
+
+  const legacyRows = await sql`
+    SELECT * FROM aincarn_aios_profiles
+    WHERE user_id = ${userId}
+    LIMIT 1
+  `
+  const legacy = queryRows(legacyRows)[0]
+  const id = crypto.randomUUID()
+  const name = projectNameFromGoal(legacy?.goal ? String(legacy.goal) : '')
+  const rows = await sql`
+    INSERT INTO aincarn_aios_projects (id, user_id, name, accent)
+    VALUES (${id}, ${userId}, ${name}, 'indigo')
+    RETURNING *
+  `
+
+  if (legacy) {
+    await sql`
+      INSERT INTO aincarn_aios_project_profiles (
+        project_id, user_id, goal, horizon, current_state, values_text, constraints_text
+      )
+      VALUES (
+        ${id}, ${userId}, ${String(legacy.goal)}, ${String(legacy.horizon)},
+        ${legacy.current_state ? String(legacy.current_state) : null},
+        ${legacy.values_text ? String(legacy.values_text) : null},
+        ${legacy.constraints_text ? String(legacy.constraints_text) : null}
+      )
+      ON CONFLICT (project_id) DO NOTHING
+    `
+  }
+
+  await sql`
+    UPDATE aincarn_aios_tasks
+    SET project_id = ${id}
+    WHERE user_id = ${userId} AND project_id IS NULL
+  `
+  await sql`
+    UPDATE aincarn_aios_plans
+    SET project_id = ${id}
+    WHERE user_id = ${userId} AND project_id IS NULL
+  `
+
+  return rowToProject(queryRows(rows)[0])
+}
+
+export async function listAiosProjects(userId: string) {
+  await getOrCreateInitialProject(userId)
+  const sql = getSql()
+  const rows = await sql`
+    SELECT * FROM aincarn_aios_projects
+    WHERE user_id = ${userId}
+    ORDER BY updated_at DESC, created_at DESC
+  `
+  return queryRows(rows).map(rowToProject)
+}
+
+export async function createAiosProject(userId: string, name: string) {
+  await ensureAiosSchema()
+  const sql = getSql()
+  const cleanName = name.trim().slice(0, 36) || '新しいプロジェクト'
+  const projects = await listAiosProjects(userId)
+  const accent = PROJECT_ACCENTS[projects.length % PROJECT_ACCENTS.length]
+  const rows = await sql`
+    INSERT INTO aincarn_aios_projects (id, user_id, name, accent)
+    VALUES (${crypto.randomUUID()}, ${userId}, ${cleanName}, ${accent})
+    RETURNING *
+  `
+  return rowToProject(queryRows(rows)[0])
+}
+
+async function resolveProject(userId: string, projectId?: string | null) {
+  const projects = await listAiosProjects(userId)
+  return projects.find((project) => project.id === projectId) || projects[0]
+}
+
+export async function recordAiosMessage(
+  userId: string,
+  projectId: string,
+  role: SavedAiosMessage['role'],
+  content: string,
+) {
+  await ensureAiosSchema()
+  const sql = getSql()
+  const rows = await sql`
+    INSERT INTO aincarn_aios_messages (id, project_id, user_id, role, content)
+    VALUES (${crypto.randomUUID()}, ${projectId}, ${userId}, ${role}, ${content})
+    RETURNING *
+  `
+  await sql`
+    UPDATE aincarn_aios_projects SET updated_at = now()
+    WHERE id = ${projectId} AND user_id = ${userId}
+  `
+  return rowToMessage(queryRows(rows)[0])
+}
+
+export async function getAiosMessages(userId: string, projectId: string) {
+  await ensureAiosSchema()
+  const sql = getSql()
+  const rows = await sql`
+    SELECT * FROM aincarn_aios_messages
+    WHERE user_id = ${userId} AND project_id = ${projectId}
+    ORDER BY created_at ASC
+    LIMIT 80
+  `
+  return queryRows(rows).map(rowToMessage)
+}
+
+export async function getAiosState(userId: string, requestedProjectId?: string | null) {
+  await ensureAiosSchema()
+  const sql = getSql()
+  const projects = await listAiosProjects(userId)
+  const project = projects.find((item) => item.id === requestedProjectId) || projects[0]
   const profileRows = await sql`
     SELECT *
-    FROM aincarn_aios_profiles
-    WHERE user_id = ${userId}
+    FROM aincarn_aios_project_profiles
+    WHERE user_id = ${userId} AND project_id = ${project.id}
     LIMIT 1
   `
   const taskRows = await sql`
     SELECT *
     FROM aincarn_aios_tasks
-    WHERE user_id = ${userId}
+    WHERE user_id = ${userId} AND project_id = ${project.id}
     ORDER BY
       CASE status WHEN 'doing' THEN 0 WHEN 'todo' THEN 1 WHEN 'done' THEN 2 ELSE 3 END,
       impact DESC,
@@ -367,16 +578,20 @@ export async function getAiosState(userId: string) {
   `
 
   return {
+    projects,
+    project,
     profile: queryRows(profileRows)[0] ? rowToProfile(queryRows(profileRows)[0]) : null,
     tasks: queryRows(taskRows).map(rowToTask),
+    messages: await getAiosMessages(userId, project.id),
   }
 }
 
-export async function saveAiosProfile(userId: string, input: AiosProfileInput) {
+export async function saveAiosProfile(userId: string, projectId: string, input: AiosProfileInput) {
   await ensureAiosSchema()
   const sql = getSql()
   const rows = await sql`
-    INSERT INTO aincarn_aios_profiles (
+    INSERT INTO aincarn_aios_project_profiles (
+      project_id,
       user_id,
       goal,
       horizon,
@@ -385,6 +600,7 @@ export async function saveAiosProfile(userId: string, input: AiosProfileInput) {
       constraints_text
     )
     VALUES (
+      ${projectId},
       ${userId},
       ${input.goal},
       ${input.horizon},
@@ -392,7 +608,7 @@ export async function saveAiosProfile(userId: string, input: AiosProfileInput) {
       ${input.values || null},
       ${input.constraints || null}
     )
-    ON CONFLICT (user_id)
+    ON CONFLICT (project_id)
     DO UPDATE SET
       goal = EXCLUDED.goal,
       horizon = EXCLUDED.horizon,
@@ -402,18 +618,25 @@ export async function saveAiosProfile(userId: string, input: AiosProfileInput) {
       updated_at = now()
     RETURNING *
   `
+  await sql`
+    UPDATE aincarn_aios_projects
+    SET updated_at = now()
+    WHERE id = ${projectId} AND user_id = ${userId}
+  `
   return rowToProfile(queryRows(rows)[0])
 }
 
-export async function createAiosTask(userId: string, input: AiosTaskInput) {
+export async function createAiosTask(userId: string, input: AiosTaskInput, projectId?: string | null) {
   await ensureAiosSchema()
   const sql = getSql()
+  const project = projectId ? await resolveProject(userId, projectId) : await getOrCreateInitialProject(userId)
   const id = crypto.randomUUID()
   const dueDate = input.dueDate || null
   const rows = await sql`
     INSERT INTO aincarn_aios_tasks (
       id,
       user_id,
+      project_id,
       title,
       reason,
       domain,
@@ -427,6 +650,7 @@ export async function createAiosTask(userId: string, input: AiosTaskInput) {
     VALUES (
       ${id},
       ${userId},
+      ${project.id},
       ${input.title},
       ${input.reason},
       ${input.domain},
