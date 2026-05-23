@@ -287,34 +287,44 @@ function PlanCard({
         </p>
         <h4 className="mt-2 text-lg font-black text-brand-text">{plan.name}</h4>
 
-        <div
-          className="mt-3 inline-flex rounded-full border bg-white/80 p-0.5 text-[10px] font-black"
-          style={{ borderColor: tone.border }}
-          role="tablist"
-          aria-label={`${plan.name}の請求周期`}
-        >
-          {(['monthly', 'yearly'] as const).map((option) => {
-            const disabled = option === 'yearly' && !hasYearly
-            const isActive = activeCycle === option
-            return (
-              <button
-                key={option}
-                type="button"
-                role="tab"
-                aria-selected={isActive}
-                disabled={disabled}
-                onClick={() => !disabled && setCycle(option)}
-                className="rounded-full px-2.5 py-1 transition disabled:cursor-not-allowed disabled:opacity-40"
-                style={{
-                  background: isActive ? tone.gradient : 'transparent',
-                  color: isActive ? '#fff' : tone.ink,
-                }}
-              >
-                {option === 'monthly' ? '月払い' : '年払い'}
-              </button>
-            )
-          })}
-        </div>
+        {hasYearly ? (
+          <div
+            className="mt-3 inline-flex rounded-full border bg-white p-0.5 text-[10px] font-black"
+            style={{ borderColor: tone.border }}
+            role="tablist"
+            aria-label={`${plan.name}の請求周期`}
+          >
+            {(['monthly', 'yearly'] as const).map((option) => {
+              const isActive = activeCycle === option
+              return (
+                <button
+                  key={option}
+                  type="button"
+                  role="tab"
+                  aria-selected={isActive}
+                  onClick={(event) => {
+                    event.stopPropagation()
+                    setCycle(option)
+                  }}
+                  className="relative z-10 cursor-pointer rounded-full px-2.5 py-1 transition"
+                  style={{
+                    background: isActive ? tone.gradient : 'transparent',
+                    color: isActive ? '#fff' : tone.ink,
+                  }}
+                >
+                  {option === 'monthly' ? '月払い' : '年払い'}
+                </button>
+              )
+            })}
+          </div>
+        ) : (
+          <span
+            className="mt-3 inline-flex rounded-full border bg-white px-2.5 py-1 text-[10px] font-black"
+            style={{ borderColor: tone.border, color: tone.ink }}
+          >
+            月払い
+          </span>
+        )}
 
         <p className="mt-3 text-3xl font-black text-brand-text">{formatUsd(monthlyCostUsd)}</p>
         <p className="text-xs font-bold text-gray-400">
@@ -324,9 +334,6 @@ function PlanCard({
           <p className="mt-1 text-[11px] font-black text-emerald-600">
             月払いより {formatUsd(Math.max(0, plan.monthlyCostUsd - monthlyCostUsd))}/月お得
           </p>
-        )}
-        {!hasYearly && (
-          <p className="mt-1 text-[11px] font-bold text-gray-400">このプランは月払いのみ</p>
         )}
         <p className="mt-3 min-h-[54px] text-xs font-bold leading-relaxed text-gray-500">{summary}</p>
         <div className="mt-4 flex flex-wrap gap-2">
