@@ -1,7 +1,8 @@
-// Maps Clerk userId to Stripe customer + current subscription state.
+// Maps Clerk userId to Stripe customer + current Aincarn OS tier.
 //
-// Source of truth for tier is this table; lib/aios-tier still respects
-// the env allowlists as a fallback for internal accounts and testing.
+// IMPORTANT: this is a SEPARATE table from `aincarn_subscriptions`
+// (which stores the user's saved external AI service subscriptions).
+// We use `aincarn_user_tiers` here to avoid colliding with that table.
 
 import { neon } from '@neondatabase/serverless'
 import type { AiosTier } from '@/lib/aios-tier'
@@ -54,7 +55,7 @@ export async function ensureSubscriptionsSchema() {
   if (schemaReady) return
   const sql = getSql()
   await sql`
-    CREATE TABLE IF NOT EXISTS aincarn_subscriptions (
+    CREATE TABLE IF NOT EXISTS aincarn_user_tiers (
       user_id text PRIMARY KEY,
       stripe_customer_id text NOT NULL,
       stripe_subscription_id text,
@@ -66,33 +67,9 @@ export async function ensureSubscriptionsSchema() {
       updated_at timestamptz NOT NULL DEFAULT now()
     )
   `
-  await sql`ALTER TABLE aincarn_subscriptions ADD COLUMN IF NOT EXISTS stripe_customer_id text`
-  await sql`ALTER TABLE aincarn_subscriptions ADD COLUMN IF NOT EXISTS stripe_subscription_id text`
-  await sql`ALTER TABLE aincarn_subscriptions ADD COLUMN IF NOT EXISTS tier text NOT NULL DEFAULT 'free'`
-  await sql`ALTER TABLE aincarn_subscriptions ADD COLUMN IF NOT EXISTS status text NOT NULL DEFAULT 'inactive'`
-  await sql`ALTER TABLE aincarn_subscriptions ADD COLUMN IF NOT EXISTS current_period_end timestamptz`
-  await sql`ALTER TABLE aincarn_subscriptions ADD COLUMN IF NOT EXISTS cancel_at_period_end boolean NOT NULL DEFAULT false`
-  await sql`ALTER TABLE aincarn_subscriptions ADD COLUMN IF NOT EXISTS created_at timestamptz NOT NULL DEFAULT now()`
-  await sql`ALTER TABLE aincarn_subscriptions ADD COLUMN IF NOT EXISTS updated_at timestamptz NOT NULL DEFAULT now()`
   await sql`
-    UPDATE aincarn_subscriptions
-    SET stripe_customer_id = user_id
-    WHERE stripe_customer_id IS NULL
-  `
-  await sql`ALTER TABLE aincarn_subscriptions ALTER COLUMN stripe_customer_id SET NOT NULL`
-  await sql`
-    DELETE FROM aincarn_subscriptions older
-    USING aincarn_subscriptions newer
-    WHERE older.user_id = newer.user_id
-      AND older.ctid < newer.ctid
-  `
-  await sql`
-    CREATE UNIQUE INDEX IF NOT EXISTS aincarn_subscriptions_user_id_idx
-    ON aincarn_subscriptions (user_id)
-  `
-  await sql`
-    CREATE INDEX IF NOT EXISTS aincarn_subscriptions_customer_idx
-    ON aincarn_subscriptions (stripe_customer_id)
+    CREATE INDEX IF NOT EXISTS aincarn_user_tiers_customer_idx
+    ON aincarn_user_tiers (stripe_customer_id)
   `
   schemaReady = true
 }
@@ -114,7 +91,7 @@ export async function getSubscriptionByUserId(userId: string): Promise<Subscript
   await ensureSubscriptionsSchema()
   const sql = getSql()
   const rows = await sql`
-    SELECT * FROM aincarn_subscriptions WHERE user_id = ${userId} LIMIT 1
+    SELECT * FROM aincarn_user_tiers WHERE user_id = ${userId} LIMIT 1
   `
   const row = queryRows(rows)[0]
   return row ? rowToSubscription(row) : null
@@ -124,7 +101,7 @@ export async function getSubscriptionByCustomerId(customerId: string): Promise<S
   await ensureSubscriptionsSchema()
   const sql = getSql()
   const rows = await sql`
-    SELECT * FROM aincarn_subscriptions WHERE stripe_customer_id = ${customerId} LIMIT 1
+    SELECT * FROM aincarn_user_tiers WHERE stripe_customer_id = ${customerId} LIMIT 1
   `
   const row = queryRows(rows)[0]
   return row ? rowToSubscription(row) : null
@@ -142,7 +119,7 @@ export async function upsertSubscriptionRecord(input: {
   await ensureSubscriptionsSchema()
   const sql = getSql()
   const rows = await sql`
-    INSERT INTO aincarn_subscriptions (
+    INSERT INTO aincarn_user_tiers (
       user_id,
       stripe_customer_id,
       stripe_subscription_id,

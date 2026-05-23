@@ -90,6 +90,14 @@ export async function ensureSubscriptionSchema() {
     ON aincarn_subscriptions (user_id, status, renewal_date)
   `
 
+  // Repair migration: an earlier version of the Stripe tier store
+  // accidentally shared this table name and applied a UNIQUE(user_id)
+  // index plus NOT NULL constraints on stripe_*. That blocked users
+  // from saving more than one external AI subscription. Undo those
+  // here defensively; the tier store now lives in aincarn_user_tiers.
+  await sql`DROP INDEX IF EXISTS aincarn_subscriptions_user_id_idx`
+  await sql`ALTER TABLE aincarn_subscriptions ALTER COLUMN stripe_customer_id DROP NOT NULL`.catch(() => {})
+
   schemaReady = true
 }
 
