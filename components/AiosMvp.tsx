@@ -520,7 +520,7 @@ function AuthenticatedAiosMvp() {
             <p className="mt-1 text-sm font-black text-slate-950">¥480 / ¥980 / ¥1,980 ・月額</p>
             <p className="mt-2 text-xs font-bold leading-relaxed text-slate-500">
               Light (60回), Pro (150回), Power (400回) からAI実行回数の上限が選べます。
-              いつでも変更・解約OK（日割り精算）。
+              変更時の請求額やクレジットはStripeの確認画面で確認できます。
             </p>
             <div className="mt-3 flex flex-wrap gap-2">
               <Link

@@ -98,28 +98,43 @@ export function getTierForUser(input: { userId: string; email?: string | null })
 export async function resolveEffectiveTier(input: {
   userId: string
   email?: string | null
-}): Promise<{ tier: AiosTier; source: 'subscription' | 'allowlist' | 'free' }> {
+}): Promise<{
+  tier: AiosTier
+  source: 'subscription' | 'allowlist' | 'free'
+  periodStart: Date | null
+  periodEnd: Date | null
+}> {
   try {
     const { getSubscriptionByUserId } = await import('@/lib/aios-subscription-store')
     const record = await getSubscriptionByUserId(input.userId)
     if (record && ['active', 'trialing'].includes(record.status)) {
-      return { tier: record.tier, source: 'subscription' }
+      const periodEnd = record.currentPeriodEnd ? new Date(record.currentPeriodEnd) : null
+      let periodStart = record.currentPeriodStart ? new Date(record.currentPeriodStart) : null
+      if (!periodStart && periodEnd && ['light', 'pro', 'power'].includes(record.tier)) {
+        periodStart = new Date(periodEnd)
+        periodStart.setUTCMonth(periodStart.getUTCMonth() - 1)
+      }
+      return { tier: record.tier, source: 'subscription', periodStart, periodEnd }
     }
   } catch {
     // DB unavailable; fall through to env allowlist
   }
 
   const allowlistTier = getTierForUser(input)
-  if (allowlistTier !== 'free') return { tier: allowlistTier, source: 'allowlist' }
-  return { tier: 'free', source: 'free' }
+  if (allowlistTier !== 'free') {
+    return { tier: allowlistTier, source: 'allowlist', periodStart: null, periodEnd: null }
+  }
+  return { tier: 'free', source: 'free', periodStart: null, periodEnd: null }
 }
 
-export function getUsageWindowStart() {
+export function getUsageWindowStart(periodStart?: Date | null) {
+  if (periodStart && !Number.isNaN(periodStart.getTime())) return periodStart
   const now = new Date()
   return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 0, 0, 0, 0))
 }
 
-export function getUsageWindowReset() {
+export function getUsageWindowReset(periodEnd?: Date | null) {
+  if (periodEnd && !Number.isNaN(periodEnd.getTime())) return periodEnd
   const now = new Date()
   return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1, 0, 0, 0, 0))
 }

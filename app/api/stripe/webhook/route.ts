@@ -63,6 +63,9 @@ async function handleSubscription(subscription: Stripe.Subscription) {
   const priceId = item?.price?.id || null
   const tier = getTierForPriceId(priceId)
   const status = mapStatus(subscription.status)
+  const currentPeriodStart = item?.current_period_start
+    ? new Date(item.current_period_start * 1000)
+    : null
   const currentPeriodEnd = item?.current_period_end
     ? new Date(item.current_period_end * 1000)
     : null
@@ -73,6 +76,7 @@ async function handleSubscription(subscription: Stripe.Subscription) {
     stripeSubscriptionId: subscription.id,
     tier: status === 'active' || status === 'trialing' ? tier : 'free',
     status,
+    currentPeriodStart,
     currentPeriodEnd,
     cancelAtPeriodEnd: Boolean(subscription.cancel_at_period_end),
   })

@@ -5,7 +5,7 @@ import { getReturnUrl, getStripe, hasStripe } from '@/lib/stripe'
 
 export const runtime = 'nodejs'
 
-export async function POST() {
+export async function POST(request: Request) {
   const auth = await getSubscriptionUserId()
   if (!auth.userId) return NextResponse.json({ error: auth.error }, { status: auth.status })
   if (!hasSubscriptionDatabase()) {
@@ -24,10 +24,38 @@ export async function POST() {
   }
 
   const stripe = getStripe()
-  const session = await stripe.billingPortal.sessions.create({
-    customer: record.stripeCustomerId,
-    return_url: getReturnUrl('/tools/aios'),
-  })
+  const body = await request.json().catch(() => ({}))
+  const isCancellationFlow = body?.flow === 'cancel' && Boolean(record.stripeSubscriptionId)
+  let session
+
+  if (isCancellationFlow) {
+    try {
+      session = await stripe.billingPortal.sessions.create({
+        customer: record.stripeCustomerId,
+        return_url: getReturnUrl('/tools/aios/pricing'),
+        flow_data: {
+          type: 'subscription_cancel',
+          after_completion: {
+            type: 'redirect',
+            redirect: { return_url: getReturnUrl('/tools/aios/pricing?plan_changed=1') },
+          },
+          subscription_cancel: {
+            subscription: record.stripeSubscriptionId!,
+          },
+        },
+      })
+    } catch {
+      session = await stripe.billingPortal.sessions.create({
+        customer: record.stripeCustomerId,
+        return_url: getReturnUrl('/tools/aios/pricing'),
+      })
+    }
+  } else {
+    session = await stripe.billingPortal.sessions.create({
+      customer: record.stripeCustomerId,
+      return_url: getReturnUrl('/tools/aios'),
+    })
+  }
 
   return NextResponse.json({ url: session.url })
 }

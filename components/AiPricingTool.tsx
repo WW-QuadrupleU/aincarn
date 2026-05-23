@@ -74,6 +74,13 @@ function parseUsdPrice(label?: string): number | null {
   return match ? Number(match[1]) : null
 }
 
+const USAGE_PROFILES = [
+  { id: 'light', name: 'ライト', desc: 'たまに質問・検索', daily: 3, prompt: 100, response: 300, icon: '☕' },
+  { id: 'standard', name: 'スタンダード', desc: '日常的に仕事や学習で利用', daily: 10, prompt: 400, response: 800, icon: '💻' },
+  { id: 'heavy', name: 'ヘビー', desc: '長文の壁打ちやデータ処理を多用', daily: 30, prompt: 1000, response: 1500, icon: '🔥' },
+  { id: 'pro', name: 'プロ・開発者', desc: 'エディタでのコード生成や大量解析', daily: 50, prompt: 3000, response: 2000, icon: '⚡' },
+]
+
 function genrePerformance(model: AiModel, mode: PricingMode): number {
   if (mode === 'image') return Math.max(model.performance.textImage || 0, model.performance.imageImage || 0)
   if (mode === 'video') return Math.max(model.performance.textVideo || 0, model.performance.imageVideo || 0)
@@ -117,9 +124,7 @@ export default function AiPricingTool() {
   const [query, setQuery] = useState('')
 
   // 損益分岐点シミュレータ用の状態
-  const [dailyPrompts, setDailyPrompts] = useState(15) // 1日あたりの質問回数
-  const [avgPromptLength, setAvgPromptLength] = useState(600) // 1回の入力文字数
-  const [avgResponseLength, setAvgResponseLength] = useState(800) // 1回の出力文字数
+  const [usageProfileId, setUsageProfileId] = useState('standard')
 
   // お気に入りキープ用の状態 (LocalStorageに保存)
   const [keepList, setKeepList] = useState<{ serviceName: string; planName: string; monthlyCostUsd: number }[]>([])
@@ -241,6 +246,11 @@ export default function AiPricingTool() {
 
   // 「サブスク vs API」損益分岐点シミュレータ計算ロジック
   const breakevenSim = useMemo(() => {
+    const profile = USAGE_PROFILES.find((p) => p.id === usageProfileId) || USAGE_PROFILES[1]
+    const dailyPrompts = profile.daily
+    const avgPromptLength = profile.prompt
+    const avgResponseLength = profile.response
+
     // 日本語1文字あたり 1.2 トークンとして概算
     const jpnCharToToken = 1.2
     const totalPromptsPerMonth = dailyPrompts * 30
@@ -276,7 +286,7 @@ export default function AiPricingTool() {
       reasoningUsd: reasoningTotalUsd,
       subUsd: subscriptionUsd,
     }
-  }, [dailyPrompts, avgPromptLength, avgResponseLength])
+  }, [usageProfileId])
 
   // AIコンシェルジュ診断ロジック
   const diagnosisResult = useMemo(() => {
@@ -488,53 +498,36 @@ export default function AiPricingTool() {
               <div className="space-y-4 rounded-2xl border border-gray-100 bg-white/60 p-4">
                 <p className="text-xs font-black uppercase tracking-[0.14em] text-slate-400">想定利用量を設定</p>
                 
-                <label className="block">
-                  <span className="flex justify-between text-xs font-bold text-gray-600">
-                    <span>1日の質問・対話回数</span>
-                    <span className="text-slate-950 font-black">{dailyPrompts} 回</span>
-                  </span>
-                  <input
-                    type="range"
-                    min="1"
-                    max="100"
-                    value={dailyPrompts}
-                    onChange={(e) => setDailyPrompts(Number(e.target.value))}
-                    className="mt-2 h-1.5 w-full cursor-pointer appearance-none rounded-lg bg-gray-200 accent-slate-800"
-                  />
-                  <span className="text-[10px] font-bold text-gray-400 block mt-0.5">月間: {dailyPrompts * 30} 回のやり取り</span>
-                </label>
-
-                <label className="block">
-                  <span className="flex justify-between text-xs font-bold text-gray-600">
-                    <span>1回あたりの平均入力（文字）</span>
-                    <span className="text-slate-950 font-black">{avgPromptLength} 文字</span>
-                  </span>
-                  <input
-                    type="range"
-                    min="100"
-                    max="5000"
-                    step="100"
-                    value={avgPromptLength}
-                    onChange={(e) => setAvgPromptLength(Number(e.target.value))}
-                    className="mt-2 h-1.5 w-full cursor-pointer appearance-none rounded-lg bg-gray-200 accent-slate-800"
-                  />
-                </label>
-
-                <label className="block">
-                  <span className="flex justify-between text-xs font-bold text-gray-600">
-                    <span>1回あたりの平均出力（文字）</span>
-                    <span className="text-slate-950 font-black">{avgResponseLength} 文字</span>
-                  </span>
-                  <input
-                    type="range"
-                    min="100"
-                    max="5000"
-                    step="100"
-                    value={avgResponseLength}
-                    onChange={(e) => setAvgResponseLength(Number(e.target.value))}
-                    className="mt-2 h-1.5 w-full cursor-pointer appearance-none rounded-lg bg-gray-200 accent-slate-800"
-                  />
-                </label>
+                <div className="grid grid-cols-1 gap-2 mt-2">
+                  {USAGE_PROFILES.map((profile) => {
+                    const isSelected = usageProfileId === profile.id
+                    return (
+                      <button
+                        key={profile.id}
+                        onClick={() => setUsageProfileId(profile.id)}
+                        className={`flex items-center gap-3 rounded-xl border p-3 text-left transition-all ${
+                          isSelected
+                            ? 'border-indigo-500 bg-indigo-50/50 shadow-sm ring-1 ring-indigo-500'
+                            : 'border-slate-200 bg-white hover:bg-slate-50'
+                        }`}
+                      >
+                        <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-lg ${
+                          isSelected ? 'bg-indigo-100' : 'bg-slate-100'
+                        }`}>
+                          {profile.icon}
+                        </div>
+                        <div>
+                          <div className={`text-sm font-black ${isSelected ? 'text-indigo-900' : 'text-slate-700'}`}>
+                            {profile.name}
+                          </div>
+                          <div className={`text-[10px] font-bold mt-0.5 ${isSelected ? 'text-indigo-700/80' : 'text-slate-500'}`}>
+                            {profile.desc}
+                          </div>
+                        </div>
+                      </button>
+                    )
+                  })}
+                </div>
 
                 <div className="mt-4 rounded-xl bg-slate-50 p-3 border border-slate-100">
                   <p className="text-[10px] font-black uppercase text-slate-400">想定月間トークン量</p>

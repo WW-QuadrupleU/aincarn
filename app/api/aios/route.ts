@@ -17,9 +17,9 @@ import { getTierConfig, getUsageWindowReset, getUsageWindowStart, resolveEffecti
 
 async function computeUsage(userId: string) {
   const email = await getUserEmail(userId)
-  const { tier, source } = await resolveEffectiveTier({ userId, email })
+  const { tier, source, periodStart, periodEnd } = await resolveEffectiveTier({ userId, email })
   const config = getTierConfig(tier)
-  const used = await countAiosRunsSince(userId, getUsageWindowStart())
+  const used = await countAiosRunsSince(userId, getUsageWindowStart(periodStart))
   return {
     tier: config.tier,
     tierLabel: config.label,
@@ -27,7 +27,7 @@ async function computeUsage(userId: string) {
     tierSource: source,
     used,
     limit: Number.isFinite(config.monthlyRunLimit) ? config.monthlyRunLimit : null,
-    resetsAt: getUsageWindowReset().toISOString(),
+    resetsAt: getUsageWindowReset(periodEnd).toISOString(),
   }
 }
 

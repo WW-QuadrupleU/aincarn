@@ -42,6 +42,7 @@ export type SubscriptionRecord = {
   stripeSubscriptionId: string | null
   tier: AiosTier
   status: SubscriptionStatus
+  currentPeriodStart: string | null
   currentPeriodEnd: string | null
   cancelAtPeriodEnd: boolean
   updatedAt: string
@@ -61,11 +62,16 @@ export async function ensureSubscriptionsSchema() {
       stripe_subscription_id text,
       tier text NOT NULL DEFAULT 'free',
       status text NOT NULL DEFAULT 'inactive',
+      current_period_start timestamptz,
       current_period_end timestamptz,
       cancel_at_period_end boolean NOT NULL DEFAULT false,
       created_at timestamptz NOT NULL DEFAULT now(),
       updated_at timestamptz NOT NULL DEFAULT now()
     )
+  `
+  await sql`
+    ALTER TABLE aincarn_user_tiers
+    ADD COLUMN IF NOT EXISTS current_period_start timestamptz
   `
   await sql`
     CREATE INDEX IF NOT EXISTS aincarn_user_tiers_customer_idx
@@ -81,6 +87,7 @@ function rowToSubscription(row: Record<string, unknown>): SubscriptionRecord {
     stripeSubscriptionId: row.stripe_subscription_id ? String(row.stripe_subscription_id) : null,
     tier: (String(row.tier) || 'free') as AiosTier,
     status: (String(row.status) || 'inactive') as SubscriptionStatus,
+    currentPeriodStart: row.current_period_start ? new Date(String(row.current_period_start)).toISOString() : null,
     currentPeriodEnd: row.current_period_end ? new Date(String(row.current_period_end)).toISOString() : null,
     cancelAtPeriodEnd: Boolean(row.cancel_at_period_end),
     updatedAt: new Date(String(row.updated_at)).toISOString(),
@@ -113,6 +120,7 @@ export async function upsertSubscriptionRecord(input: {
   stripeSubscriptionId?: string | null
   tier: AiosTier
   status: SubscriptionStatus
+  currentPeriodStart?: Date | null
   currentPeriodEnd?: Date | null
   cancelAtPeriodEnd?: boolean
 }): Promise<SubscriptionRecord> {
@@ -125,6 +133,7 @@ export async function upsertSubscriptionRecord(input: {
       stripe_subscription_id,
       tier,
       status,
+      current_period_start,
       current_period_end,
       cancel_at_period_end
     )
@@ -134,6 +143,7 @@ export async function upsertSubscriptionRecord(input: {
       ${input.stripeSubscriptionId || null},
       ${input.tier},
       ${input.status},
+      ${input.currentPeriodStart ? input.currentPeriodStart.toISOString() : null},
       ${input.currentPeriodEnd ? input.currentPeriodEnd.toISOString() : null},
       ${Boolean(input.cancelAtPeriodEnd)}
     )
@@ -143,6 +153,7 @@ export async function upsertSubscriptionRecord(input: {
       stripe_subscription_id = EXCLUDED.stripe_subscription_id,
       tier = EXCLUDED.tier,
       status = EXCLUDED.status,
+      current_period_start = COALESCE(EXCLUDED.current_period_start, aincarn_user_tiers.current_period_start),
       current_period_end = EXCLUDED.current_period_end,
       cancel_at_period_end = EXCLUDED.cancel_at_period_end,
       updated_at = now()

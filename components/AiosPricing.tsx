@@ -61,6 +61,25 @@ export default function AiosPricing({ plans, currentTier }: AiosPricingProps) {
     }
   }
 
+  async function moveToFree() {
+    setLoadingTier('free')
+    setError('')
+    try {
+      const response = await fetch('/api/stripe/portal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ flow: 'cancel' }),
+      })
+      const data = await readCheckoutResponse(response)
+      if (!response.ok) throw new Error(data.error || '解約手続きを開始できませんでした')
+      if (data.url) window.location.href = data.url
+    } catch (error) {
+      setError(error instanceof Error ? error.message : '不明なエラーが発生しました')
+    } finally {
+      setLoadingTier(null)
+    }
+  }
+
   return (
     <div className="space-y-8">
       <header className="text-center">
@@ -70,7 +89,7 @@ export default function AiosPricing({ plans, currentTier }: AiosPricingProps) {
         </h1>
         <p className="mx-auto mt-4 max-w-2xl text-sm font-bold leading-relaxed text-slate-600">
           AI実行は1回ごとにAincarnが代理で叩く回数です。プラン生成や状態の保存は枠を消費しません。
-          いつでもアップグレード・ダウングレードできます（日割り精算）。
+          プラン変更時の請求額やクレジットは、Stripeの確認画面で確認してから確定できます。
         </p>
       </header>
 
@@ -124,6 +143,15 @@ export default function AiosPricing({ plans, currentTier }: AiosPricingProps) {
                   >
                     利用中のプラン
                   </Link>
+                ) : isFree && currentTier !== 'free' && isSignedIn ? (
+                  <button
+                    type="button"
+                    disabled={loadingTier === 'free'}
+                    onClick={moveToFree}
+                    className="w-full rounded-full border border-slate-300 bg-white px-4 py-3 text-sm font-black text-slate-700 transition hover:border-slate-500 disabled:cursor-not-allowed disabled:text-slate-400"
+                  >
+                    {loadingTier === 'free' ? 'Stripeへ移動中...' : '解約してFreeへ'}
+                  </button>
                 ) : isFree ? (
                   <Link
                     href="/tools/aios"
@@ -179,7 +207,7 @@ export default function AiosPricing({ plans, currentTier }: AiosPricingProps) {
           <div>
             <dt className="text-sm font-black text-slate-950">月の途中でプラン変更できますか？</dt>
             <dd className="mt-1 text-sm font-bold text-slate-600">
-              Stripeの請求ポータルからいつでも変更できます。差額は日割りで精算されます。
+              Stripeの請求ポータルからいつでも変更できます。変更時の請求額やクレジットは、確定前の確認画面に表示されます。
             </dd>
           </div>
           <div>
@@ -191,7 +219,7 @@ export default function AiosPricing({ plans, currentTier }: AiosPricingProps) {
           <div>
             <dt className="text-sm font-black text-slate-950">AI実行枠を超えたら？</dt>
             <dd className="mt-1 text-sm font-bold text-slate-600">
-              翌月1日（UTC）にリセットされます。早くアップグレードすると即時で枠が増えます。
+              有料プランでは契約の更新日ごとに実行枠がリセットされます。Freeでは毎月1日にリセットされます。
             </dd>
           </div>
           <div>

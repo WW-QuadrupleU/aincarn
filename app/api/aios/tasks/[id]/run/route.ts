@@ -44,21 +44,21 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
 
   // Resolve tier and enforce monthly rate limit
   const email = await getUserEmail(auth.userId)
-  const { tier } = await resolveEffectiveTier({ userId: auth.userId, email })
+  const { tier, periodStart, periodEnd } = await resolveEffectiveTier({ userId: auth.userId, email })
   const config = getTierConfig(tier)
-  const windowStart = getUsageWindowStart()
+  const windowStart = getUsageWindowStart(periodStart)
   const used = await countAiosRunsSince(auth.userId, windowStart)
 
   if (Number.isFinite(config.monthlyRunLimit) && used >= config.monthlyRunLimit) {
     return NextResponse.json(
       {
-        error: `今月のAI実行枠（${config.monthlyRunLimit}回）を使い切りました。プランをアップグレードすると上限が増えます。`,
+        error: `現在の利用期間のAI実行枠（${config.monthlyRunLimit}回）を使い切りました。プランをアップグレードすると上限が増えます。`,
         usage: {
           tier: config.tier,
           tierLabel: config.label,
           used,
           limit: config.monthlyRunLimit,
-          resetsAt: getUsageWindowReset().toISOString(),
+          resetsAt: getUsageWindowReset(periodEnd).toISOString(),
         },
       },
       { status: 429 },
@@ -106,7 +106,7 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
         tierLabel: config.label,
         used: used + 1,
         limit: Number.isFinite(config.monthlyRunLimit) ? config.monthlyRunLimit : null,
-        resetsAt: getUsageWindowReset().toISOString(),
+        resetsAt: getUsageWindowReset(periodEnd).toISOString(),
       },
     })
   } catch (error) {
