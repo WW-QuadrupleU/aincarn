@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { SignInButton, UserButton, useUser } from '@clerk/nextjs'
 import { useEffect, useMemo, useState } from 'react'
@@ -9,7 +9,7 @@ import {
   type SubscriptionBillingCycle,
   type SubscriptionCatalogPlan,
   type SubscriptionCatalogService,
-} from '@/lib/subscription-catalog'
+} from '@/lib/ai-database'
 import type { SavedSubscription, SubscriptionInput } from '@/lib/subscription-store'
 
 const clerkEnabled = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY)

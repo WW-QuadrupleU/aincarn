@@ -7,7 +7,7 @@ import {
   type AiGenreId,
   type AiModel,
   type AiModelComparePayload,
-} from '@/lib/ai-model-compare-data'
+} from '@/lib/ai-database'
 
 function scoreTone(score: number): string {
   if (score >= 90) return 'bg-gradient-to-r from-indigo-500 via-sky-400 to-cyan-300'

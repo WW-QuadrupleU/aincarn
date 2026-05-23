@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { catalogUpdatedAt, getSubscriptionCatalog } from '@/lib/subscription-catalog'
+import { catalogUpdatedAt, getSubscriptionCatalog } from '@/lib/ai-database'
 
 export const dynamic = 'force-dynamic'
 

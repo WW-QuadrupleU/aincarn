@@ -4,7 +4,7 @@ import {
   type AiGenreId,
   type AiModel,
   type AiModelComparePayload,
-} from '@/lib/ai-model-compare-data'
+} from '@/lib/ai-database'
 
 export const revalidate = 3600
 
