@@ -27,12 +27,14 @@ const signalOptions: Array<{
   prompt: string
   tone: string
   node: string
+  selectedTone: string
+  idleTone: string
 }> = [
-  { kind: 'interest', label: '興味', prompt: 'いま惹かれているテーマ', tone: 'bg-sky-50 text-sky-700 border-sky-100', node: 'dna-node-interest' },
-  { kind: 'goal', label: '目標', prompt: '実現したい未来', tone: 'bg-indigo-50 text-indigo-700 border-indigo-100', node: 'dna-node-goal' },
-  { kind: 'action', label: '行動', prompt: '今日取り組んだこと', tone: 'bg-amber-50 text-amber-700 border-amber-100', node: 'dna-node-action' },
-  { kind: 'achievement', label: '実績', prompt: '達成できた成果', tone: 'bg-emerald-50 text-emerald-700 border-emerald-100', node: 'dna-node-achievement' },
-  { kind: 'insight', label: '気づき', prompt: '気づいたこと、迷い', tone: 'bg-rose-50 text-rose-700 border-rose-100', node: 'dna-node-insight' },
+  { kind: 'goal', label: '目標', prompt: '実現したい未来', tone: 'bg-indigo-50 text-indigo-700 border-indigo-100', node: 'dna-node-goal', selectedTone: 'border-indigo-300/70 bg-indigo-400/30 text-indigo-50 shadow-sm shadow-indigo-400/20', idleTone: 'border-indigo-300/20 bg-indigo-400/10 text-indigo-100/80' },
+  { kind: 'action', label: '行動', prompt: '今日取り組んだこと', tone: 'bg-amber-50 text-amber-700 border-amber-100', node: 'dna-node-action', selectedTone: 'border-amber-300/70 bg-amber-400/30 text-amber-50 shadow-sm shadow-amber-400/20', idleTone: 'border-amber-300/20 bg-amber-400/10 text-amber-100/80' },
+  { kind: 'achievement', label: '実績', prompt: '達成できた成果', tone: 'bg-emerald-50 text-emerald-700 border-emerald-100', node: 'dna-node-achievement', selectedTone: 'border-emerald-300/70 bg-emerald-400/30 text-emerald-50 shadow-sm shadow-emerald-400/20', idleTone: 'border-emerald-300/20 bg-emerald-400/10 text-emerald-100/80' },
+  { kind: 'interest', label: '興味', prompt: 'いま惹かれているテーマ', tone: 'bg-sky-50 text-sky-700 border-sky-100', node: 'dna-node-interest', selectedTone: 'border-sky-300/70 bg-sky-400/30 text-sky-50 shadow-sm shadow-sky-400/20', idleTone: 'border-sky-300/20 bg-sky-400/10 text-sky-100/80' },
+  { kind: 'insight', label: '気づき', prompt: '気づいたこと、迷い', tone: 'bg-rose-50 text-rose-700 border-rose-100', node: 'dna-node-insight', selectedTone: 'border-rose-300/70 bg-rose-400/30 text-rose-50 shadow-sm shadow-rose-400/20', idleTone: 'border-rose-300/20 bg-rose-400/10 text-rose-100/80' },
 ]
 
 function dnaHash(input: string) {
@@ -80,7 +82,7 @@ export default function AiosWorkspace({ fallback }: { fallback: ReactNode }) {
   const [state, setState] = useState<WorkspaceState | null>(null)
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
-  const [signalKind, setSignalKind] = useState<AiosSignalKind>('interest')
+  const [signalKind, setSignalKind] = useState<AiosSignalKind>('goal')
   const [signalDraft, setSignalDraft] = useState('')
   const [notice, setNotice] = useState('')
   const [error, setError] = useState('')
@@ -249,7 +251,7 @@ export default function AiosWorkspace({ fallback }: { fallback: ReactNode }) {
                   type="button"
                   onClick={() => setSignalKind(option.kind)}
                   className={`rounded-full border px-3 py-1.5 text-[10px] font-black transition ${
-                    signalKind === option.kind ? 'border-white bg-white text-slate-950' : 'border-white/12 bg-white/[0.06] text-white/60'
+                    signalKind === option.kind ? option.selectedTone : option.idleTone
                   }`}
                 >
                   {option.label}
