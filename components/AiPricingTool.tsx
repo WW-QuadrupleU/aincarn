@@ -931,7 +931,7 @@ export default function AiPricingTool() {
                         <td colSpan={4} className="p-2 align-top border-l border-slate-200/80 bg-slate-50/10">
                           <div className="grid grid-cols-4 gap-2 relative">
                             {(() => {
-                              const plansInY = AI_PLANS.filter((plan) => plan.matrixY === yKey)
+                              const plansInY = AI_PLANS.filter((plan) => plan.matrixY === yKey).sort((a, b) => a.monthlyUsd - b.monthlyUsd)
                               const matchedPlans = plansInY.map((plan) => {
                                 const isMatch =
                                   !query.trim() ||

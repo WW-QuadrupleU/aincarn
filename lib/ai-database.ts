@@ -821,7 +821,7 @@ export const defaultSubscriptionCatalog: SubscriptionCatalogService[] = [
         includes: ['Stealth Mode', '高速生成30時間', '並列生成'],
         bestFor: '機密性の高い案件を扱うプロフェッショナル',
         cautions: '料金がやや高額になります。',
-        matrixX: ['general', 'writing', 'coding'],
+        matrixX: ['media'],
         matrixY: 'high',
         yearly: {
           monthlyCostUsd: 48,

@@ -58,6 +58,46 @@ export async function POST(request: Request) {
     })
   }
 
+  if (existing && ['active', 'trialing', 'past_due'].includes(existing.status) && customerId) {
+    if (existing.tier !== tier && existing.stripeSubscriptionId && plan.priceId) {
+      const subscription = await stripe.subscriptions.retrieve(existing.stripeSubscriptionId)
+      const item = subscription.items.data[0]
+      if (!item?.id) {
+        return NextResponse.json({ error: '変更対象のサブスクリプション項目を確認できませんでした。' }, { status: 400 })
+      }
+      const changeSession = await stripe.billingPortal.sessions.create({
+        customer: customerId,
+        return_url: getReturnUrl('/tools/aios?plan_changed=1'),
+        flow_data: {
+          type: 'subscription_update_confirm',
+          after_completion: {
+            type: 'redirect',
+            redirect: {
+              return_url: getReturnUrl('/tools/aios?plan_changed=1'),
+            },
+          },
+          subscription_update_confirm: {
+            subscription: existing.stripeSubscriptionId,
+            items: [
+              {
+                id: item.id,
+                price: plan.priceId,
+                quantity: item.quantity || 1,
+              },
+            ],
+          },
+        },
+      })
+      return NextResponse.json({ url: changeSession.url })
+    }
+
+    const portalSession = await stripe.billingPortal.sessions.create({
+      customer: customerId,
+      return_url: getReturnUrl('/tools/aios'),
+    })
+    return NextResponse.json({ url: portalSession.url })
+  }
+
   const checkoutParams = {
     mode: 'subscription' as const,
     customer: customerId,

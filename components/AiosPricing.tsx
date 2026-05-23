@@ -14,11 +14,16 @@ export type PricingPlan = {
   available: boolean
 }
 
+type AiosPricingProps = {
+  plans: PricingPlan[]
+  currentTier: string
+}
+
 function formatJpy(amount: number) {
   return new Intl.NumberFormat('ja-JP', { style: 'currency', currency: 'JPY', maximumFractionDigits: 0 }).format(amount)
 }
 
-export default function AiosPricing({ plans }: { plans: PricingPlan[] }) {
+export default function AiosPricing({ plans, currentTier }: AiosPricingProps) {
   const { isSignedIn, isLoaded } = useUser()
   const [loadingTier, setLoadingTier] = useState<string | null>(null)
   const [error, setError] = useState('')
