@@ -1,5 +1,10 @@
 import type { Metadata } from 'next'
+import { notFound } from 'next/navigation'
 import AiosAiLab from '@/components/AiosAiLab'
+import { isAiosInternalTester } from '@/lib/aios-test-access'
+import { getSubscriptionUserId, getUserEmail } from '@/lib/subscription-auth'
+
+export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
   title: 'Aincarn AI Path Lab',
@@ -11,10 +16,16 @@ export const metadata: Metadata = {
   },
 }
 
-export default function AiosTestPage() {
+export default async function AiosTestPage() {
+  const authResult = await getSubscriptionUserId()
+  if (!authResult.userId) notFound()
+
+  const email = await getUserEmail(authResult.userId)
+  if (!isAiosInternalTester(authResult.userId, email)) notFound()
+
   return (
-    <main className="min-h-screen">
-      <div className="mx-auto max-w-[1320px] px-4 py-6">
+    <main className="aios-fullscreen">
+      <div className="mx-auto h-full max-w-[1440px] px-3 py-3 sm:px-4">
         <AiosAiLab />
       </div>
     </main>

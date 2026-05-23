@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { isAiosInternalTester } from '@/lib/aios-test-access'
 import { getSubscriptionUserId, getUserEmail } from '@/lib/subscription-auth'
 import {
   countAiosRunsSince,
@@ -27,7 +28,9 @@ function configurationError() {
 
 export async function GET(_req: Request, context: { params: Promise<{ id: string }> }) {
   const auth = await getSubscriptionUserId()
-  if (!auth.userId) return NextResponse.json({ error: auth.error }, { status: auth.status })
+  if (!auth.userId) return NextResponse.json({ error: 'Not Found' }, { status: 404 })
+  const email = await getUserEmail(auth.userId)
+  if (!isAiosInternalTester(auth.userId, email)) return NextResponse.json({ error: 'Not Found' }, { status: 404 })
   if (!hasAiosDatabase()) return configurationError()
 
   const { id } = await context.params
@@ -37,13 +40,14 @@ export async function GET(_req: Request, context: { params: Promise<{ id: string
 
 export async function POST(request: Request, context: { params: Promise<{ id: string }> }) {
   const auth = await getSubscriptionUserId()
-  if (!auth.userId) return NextResponse.json({ error: auth.error }, { status: auth.status })
+  if (!auth.userId) return NextResponse.json({ error: 'Not Found' }, { status: 404 })
+  const email = await getUserEmail(auth.userId)
+  if (!isAiosInternalTester(auth.userId, email)) return NextResponse.json({ error: 'Not Found' }, { status: 404 })
   if (!hasAiosDatabase()) return configurationError()
 
   const { id } = await context.params
 
   // Resolve tier and enforce monthly rate limit
-  const email = await getUserEmail(auth.userId)
   const { tier, periodStart, periodEnd } = await resolveEffectiveTier({ userId: auth.userId, email })
   const config = getTierConfig(tier)
   const windowStart = getUsageWindowStart(periodStart)

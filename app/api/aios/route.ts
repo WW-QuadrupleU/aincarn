@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { isAiosInternalTester } from '@/lib/aios-test-access'
 import { getSubscriptionUserId, getUserEmail } from '@/lib/subscription-auth'
 import {
   countAiosRunsSince,
@@ -56,8 +57,10 @@ function configurationError() {
 export async function GET(request: Request) {
   const authResult = await getSubscriptionUserId()
   if (!authResult.userId) {
-    return NextResponse.json({ error: authResult.error }, { status: authResult.status })
+    return NextResponse.json({ error: 'Not Found' }, { status: 404 })
   }
+  const email = await getUserEmail(authResult.userId)
+  if (!isAiosInternalTester(authResult.userId, email)) return NextResponse.json({ error: 'Not Found' }, { status: 404 })
   if (!hasAiosDatabase()) return configurationError()
 
   const projectId = new URL(request.url).searchParams.get('projectId')
@@ -82,8 +85,10 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   const authResult = await getSubscriptionUserId()
   if (!authResult.userId) {
-    return NextResponse.json({ error: authResult.error }, { status: authResult.status })
+    return NextResponse.json({ error: 'Not Found' }, { status: 404 })
   }
+  const email = await getUserEmail(authResult.userId)
+  if (!isAiosInternalTester(authResult.userId, email)) return NextResponse.json({ error: 'Not Found' }, { status: 404 })
   if (!hasAiosDatabase()) return configurationError()
 
   try {

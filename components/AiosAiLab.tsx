@@ -1,11 +1,16 @@
 'use client'
 
-import { SignInButton, UserButton, useUser } from '@clerk/nextjs'
-import { useMemo, useState } from 'react'
+import { UserButton } from '@clerk/nextjs'
+import { useMemo, useState, type CSSProperties } from 'react'
 import type { AiosModelUsage, GeneratedFuturePath } from '@/lib/aios-ai'
 import type { AiosSignalKind } from '@/lib/aios-store'
 
-type LabSignal = { kind: AiosSignalKind; content: string }
+type LabSignal = {
+  id: string
+  kind: AiosSignalKind
+  content: string
+}
+
 type LabResult = {
   path: GeneratedFuturePath
   modelRequested: string
@@ -13,67 +18,87 @@ type LabResult = {
   signalCount: number
 }
 
-const signalInputs: Array<{ kind: AiosSignalKind; label: string; placeholder: string; color: string }> = [
-  { kind: 'interest', label: '興味', placeholder: 'AIサービス開発\n個人の意思決定支援', color: 'text-sky-700 bg-sky-50' },
-  { kind: 'action', label: '過去の行動', placeholder: '比較サイトを公開した\nサブスク機能を実装した', color: 'text-amber-700 bg-amber-50' },
-  { kind: 'achievement', label: '実績', placeholder: '独自ドメインを取得した', color: 'text-emerald-700 bg-emerald-50' },
-  { kind: 'insight', label: '気づき・制約', placeholder: '複数企画を同時進行すると迷いやすい', color: 'text-rose-700 bg-rose-50' },
+const signalOptions: Array<{
+  kind: AiosSignalKind
+  label: string
+  prompt: string
+  node: string
+  tone: string
+}> = [
+  { kind: 'interest', label: '興味', prompt: 'いま惹かれているテーマ', node: 'dna-node-interest', tone: 'text-sky-700 bg-sky-50' },
+  { kind: 'goal', label: '目標', prompt: '選択肢として考えている未来', node: 'dna-node-goal', tone: 'text-indigo-700 bg-indigo-50' },
+  { kind: 'action', label: '行動', prompt: '今日取り組んだこと', node: 'dna-node-action', tone: 'text-amber-700 bg-amber-50' },
+  { kind: 'achievement', label: '実績', prompt: '形になった成果', node: 'dna-node-achievement', tone: 'text-emerald-700 bg-emerald-50' },
+  { kind: 'insight', label: '気づき', prompt: '迷い、判断材料、制約', node: 'dna-node-insight', tone: 'text-rose-700 bg-rose-50' },
 ]
 
-function usd(value: number | null) {
-  if (value === null) return '算出対象外'
-  if (value < 0.001) return `$${value.toFixed(6)}`
-  return `$${value.toFixed(4)}`
+const initialSignals: LabSignal[] = [
+  { id: 'lab-interest-1', kind: 'interest', content: 'AIサービス' },
+  { id: 'lab-action-1', kind: 'action', content: '比較サイトを公開' },
+  { id: 'lab-achievement-1', kind: 'achievement', content: '課金導線を検証' },
+  { id: 'lab-insight-1', kind: 'insight', content: '次の一手が価値' },
+]
+
+function dnaHash(input: string) {
+  let hash = 0
+  for (let index = 0; index < input.length; index += 1) hash = (hash * 31 + input.charCodeAt(index)) % 10007
+  return hash
 }
 
-function UsagePanel({ usage, model }: { usage?: AiosModelUsage; model: string }) {
+function DnaParticle({ signal, index }: { signal: LabSignal; index: number }) {
+  const option = signalOptions.find((item) => item.kind === signal.kind) || signalOptions[0]
+  const seed = dnaHash(signal.id + signal.content)
+  const style = {
+    '--dna-left': `${8 + ((seed + index * 17) % 53)}%`,
+    '--dna-top': `${39 + ((seed * 3 + index * 19) % 48)}%`,
+    '--dna-duration': `${6 + (seed % 6)}s`,
+    '--dna-delay': `${-(seed % 9)}s`,
+  } as CSSProperties
+
   return (
-    <div className="grid gap-2 sm:grid-cols-3">
-      <div className="rounded-2xl border border-slate-100 bg-slate-50 p-3">
-        <p className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-400">Model</p>
-        <p className="mt-2 truncate text-xs font-black text-slate-800">{model}</p>
-      </div>
-      <div className="rounded-2xl border border-slate-100 bg-slate-50 p-3">
-        <p className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-400">Tokens</p>
-        <p className="mt-2 text-xs font-black text-slate-800">
-          {usage ? `${usage.inputTokens.toLocaleString()} in / ${usage.outputTokens.toLocaleString()} out` : '-'}
-        </p>
-      </div>
-      <div className="rounded-2xl border border-slate-100 bg-slate-50 p-3">
-        <p className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-400">Estimated Cost</p>
-        <p className="mt-2 text-xs font-black text-slate-800">{usage ? usd(usage.estimatedUsd) : '-'}</p>
-      </div>
+    <div style={style} className={`dna-node ${option.node}`} title={`${option.label}: ${signal.content}`}>
+      <span className="dna-node-kind">{option.label}</span>
+      <span className="dna-node-value">{signal.content}</span>
     </div>
   )
 }
 
+function usd(value: number | null) {
+  if (value === null) return '-'
+  if (value < 0.001) return `$${value.toFixed(6)}`
+  return `$${value.toFixed(4)}`
+}
+
 export default function AiosAiLab() {
-  const { isLoaded, isSignedIn } = useUser()
+  const [signals, setSignals] = useState<LabSignal[]>(initialSignals)
+  const [signalKind, setSignalKind] = useState<AiosSignalKind>('interest')
+  const [signalDraft, setSignalDraft] = useState('')
   const [future, setFuture] = useState('Aincarn OSを、日々の意思決定を支えるサービスとして成立させる')
-  const [drafts, setDrafts] = useState<Record<AiosSignalKind, string>>({
-    interest: 'AI\n個人の目標達成支援',
-    goal: '',
-    action: 'AI比較ツールとDigital DNA UIを作った',
-    achievement: '',
-    insight: '価値の中心は目標ではなく、次の一手を選ぶ支援にある',
-  })
   const [result, setResult] = useState<LabResult | null>(null)
+  const [selectedMove, setSelectedMove] = useState(0)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+  const [notice, setNotice] = useState('入力した断片と生成結果は保存されません。')
 
-  const signals = useMemo(
-    () =>
-      signalInputs.flatMap((input) =>
-        drafts[input.kind]
-          .split('\n')
-          .map((content) => content.trim())
-          .filter(Boolean)
-          .map((content) => ({ kind: input.kind, content })),
-      ),
-    [drafts],
+  const selectedOption = signalOptions.find((item) => item.kind === signalKind) || signalOptions[0]
+  const totals = useMemo(
+    () => signalOptions.map((option) => ({ ...option, count: signals.filter((signal) => signal.kind === option.kind).length })),
+    [signals],
   )
+  const move = result?.path.moves[selectedMove]
 
-  async function testPath() {
+  function addSignal() {
+    const content = signalDraft.trim()
+    if (!content) return
+    setSignals((current) => [
+      { id: `lab-${signalKind}-${Date.now()}`, kind: signalKind, content: content.slice(0, 48) },
+      ...current,
+    ].slice(0, 20))
+    setSignalDraft('')
+    setNotice('このセッションのDigital DNAに断片を浮かべました。保存はされません。')
+  }
+
+  async function generatePath() {
     if (!future.trim()) return
     setBusy(true)
     setError('')
@@ -86,6 +111,8 @@ export default function AiosAiLab() {
       const data = await response.json()
       if (!response.ok) throw new Error(data.error || '生成に失敗しました')
       setResult(data)
+      setSelectedMove(0)
+      setNotice('Chosen Futureは変えずに、Digital DNAをもとに次の3手を描きました。')
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : '生成に失敗しました')
     } finally {
@@ -93,125 +120,167 @@ export default function AiosAiLab() {
     }
   }
 
-  if (!isLoaded) return <div className="rounded-[28px] bg-white p-8 text-sm font-bold text-slate-500">AI Labを準備しています...</div>
-
-  if (!isSignedIn) {
-    return (
-      <section className="mx-auto max-w-3xl rounded-[36px] border border-white/80 bg-white/86 p-8 text-center shadow-xl shadow-slate-950/5">
-        <p className="text-xs font-black uppercase tracking-[0.22em] text-slate-400">Private Development Lab</p>
-        <h1 className="mt-4 text-4xl font-black tracking-tight text-slate-950">Aincarn AI Path Lab</h1>
-        <p className="mx-auto mt-4 max-w-xl text-sm font-bold leading-relaxed text-slate-500">
-          Digital DNAから次の3手を生成するAI部分を、保存データとは分離して検証します。
-        </p>
-        <SignInButton mode="modal">
-          <button type="button" className="mt-7 rounded-full bg-slate-950 px-6 py-3 text-sm font-black text-white">
-            ログインしてテストする
-          </button>
-        </SignInButton>
-      </section>
-    )
-  }
-
   return (
-    <div className="space-y-4">
-      <header className="flex items-center gap-3 rounded-[28px] border border-white/80 bg-white/88 px-5 py-4 shadow-sm backdrop-blur-xl">
-        <span className="rounded-full bg-gradient-to-r from-indigo-600 to-cyan-400 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.18em] text-white">
-          Private Test
-        </span>
+    <div className="aios-workspace flex h-full min-h-0 flex-col gap-3">
+      <header className="flex shrink-0 items-center gap-3 rounded-[26px] border border-white/80 bg-white/84 px-4 py-3 shadow-sm shadow-slate-950/5 backdrop-blur-xl">
+        <div className="flex size-10 items-center justify-center rounded-2xl bg-slate-950 text-sm font-black text-white">AI</div>
         <div>
-          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Aincarn AI Path Lab</p>
-          <h1 className="text-lg font-black text-slate-950">次の3手の品質と原価を試す</h1>
+          <p className="text-[9px] font-black uppercase tracking-[0.22em] text-slate-400">Private AI Development / Not Saved</p>
+          <h1 className="text-base font-black tracking-tight text-slate-950">あなたのDigital DNA</h1>
         </div>
-        <div className="ml-auto"><UserButton /></div>
+        <span className="ml-auto rounded-full bg-slate-950 px-3 py-2 text-[10px] font-black text-white">INTERNAL LAB</span>
+        <UserButton />
       </header>
 
-      <div className="grid gap-4 lg:grid-cols-[420px_1fr]">
-        <section className="rounded-[30px] border border-white/80 bg-white/90 p-5 shadow-sm">
-          <p className="text-[10px] font-black uppercase tracking-[0.18em] text-indigo-500">Chosen Future</p>
-          <label className="mt-3 block text-xs font-black text-slate-600">ユーザーが選んだ未来</label>
-          <textarea
-            value={future}
-            onChange={(event) => setFuture(event.target.value)}
-            rows={3}
-            className="mt-2 w-full resize-none rounded-2xl border border-slate-200 bg-slate-50 p-3 text-sm font-bold leading-relaxed text-slate-900 outline-none focus:border-indigo-300"
-          />
-          <p className="mt-5 text-[10px] font-black uppercase tracking-[0.18em] text-slate-400">Digital DNA Inputs</p>
-          <div className="mt-3 space-y-3">
-            {signalInputs.map((input) => (
-              <label key={input.kind} className="block">
-                <span className={`inline-flex rounded-full px-2.5 py-1 text-[10px] font-black ${input.color}`}>{input.label}</span>
-                <textarea
-                  value={drafts[input.kind]}
-                  onChange={(event) => setDrafts((current) => ({ ...current, [input.kind]: event.target.value }))}
-                  placeholder={input.placeholder}
-                  rows={2}
-                  className="mt-2 w-full resize-none rounded-xl border border-slate-100 bg-slate-50 px-3 py-2 text-xs font-bold leading-relaxed text-slate-700 outline-none focus:border-sky-300"
-                />
-              </label>
+      <div className="grid min-h-0 flex-1 gap-3 lg:grid-cols-[minmax(650px,1fr)_350px]">
+        <main className="dna-stage relative min-h-[760px] overflow-hidden rounded-[32px] border border-white/10 shadow-xl shadow-slate-950/10 lg:min-h-0">
+          <div className="dna-orbit dna-orbit-a" />
+          <div className="dna-orbit dna-orbit-b" />
+          <div className="dna-strand dna-strand-a" />
+          <div className="dna-strand dna-strand-b" />
+          {signals.map((signal, index) => <DnaParticle key={signal.id} signal={signal} index={index} />)}
+
+          <section className="dna-capture absolute left-4 top-4 z-20 w-[min(380px,calc(100%-2rem))] rounded-[24px] border border-white/14 bg-slate-950/55 p-4 text-white backdrop-blur-xl">
+            <p className="text-[9px] font-black uppercase tracking-[0.22em] text-white/45">Digital DNA / Session Only</p>
+            <h2 className="mt-2 text-xl font-black tracking-tight">いまの自分を残す。</h2>
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              {signalOptions.map((option) => (
+                <button
+                  key={option.kind}
+                  type="button"
+                  onClick={() => setSignalKind(option.kind)}
+                  className={`rounded-full border px-3 py-1.5 text-[10px] font-black transition ${
+                    signalKind === option.kind ? 'border-white bg-white text-slate-950' : 'border-white/12 bg-white/[0.06] text-white/60'
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+            <div className="mt-3 flex gap-2">
+              <input
+                value={signalDraft}
+                onChange={(event) => setSignalDraft(event.target.value)}
+                onKeyDown={(event) => event.key === 'Enter' && addSignal()}
+                placeholder={selectedOption.prompt}
+                className="min-w-0 flex-1 rounded-xl border border-white/10 bg-white/[0.08] px-3 py-2.5 text-xs font-bold text-white outline-none placeholder:text-white/32 focus:border-cyan-300/60"
+              />
+              <button type="button" onClick={addSignal} disabled={!signalDraft.trim()} className="rounded-xl bg-white px-3 text-xs font-black text-slate-950 disabled:opacity-35">
+                浮かべる
+              </button>
+            </div>
+          </section>
+
+          <section className="future-beacon absolute right-[5%] top-[8%] z-20 w-[min(330px,43%)] rounded-[26px] border border-indigo-200/28 bg-white/[0.1] p-4 text-white backdrop-blur-xl">
+            <p className="text-[9px] font-black uppercase tracking-[0.22em] text-cyan-200">Chosen Future</p>
+            <textarea
+              value={future}
+              onChange={(event) => setFuture(event.target.value)}
+              rows={3}
+              className="mt-2 w-full resize-none bg-transparent text-sm font-black leading-relaxed text-white outline-none placeholder:text-white/40"
+            />
+            <p className="mt-2 text-[10px] font-bold leading-relaxed text-white/50">未来を選ぶのはユーザーです。AIは次の手だけを設計します。</p>
+            <button
+              type="button"
+              onClick={generatePath}
+              disabled={busy || !future.trim()}
+              className="mt-3 rounded-full bg-white px-3 py-2 text-[10px] font-black text-slate-950 disabled:opacity-40"
+            >
+              {busy ? '描いています...' : result ? '次の3手を再設計' : '最初の3手を描く'}
+            </button>
+          </section>
+
+          {result && (
+            <div className="path-constellation">
+              <div className="path-beam" />
+              {result.path.moves.map((pathMove, index) => (
+                <button
+                  key={`${pathMove.title}-${index}`}
+                  type="button"
+                  onClick={() => setSelectedMove(index)}
+                  className={`path-orb path-orb-${index + 1} ${selectedMove === index ? 'path-orb-active' : ''}`}
+                >
+                  <span>{index + 1}</span>
+                  <strong>{pathMove.title}</strong>
+                </button>
+              ))}
+            </div>
+          )}
+
+          <div className="absolute bottom-4 left-4 z-20 flex flex-wrap gap-1.5">
+            {totals.map((signal) => (
+              <span key={signal.kind} className="rounded-full border border-white/10 bg-white/[0.06] px-3 py-1.5 text-[10px] font-black text-white/60">
+                {signal.label} <strong className="ml-1 text-white">{signal.count}</strong>
+              </span>
             ))}
           </div>
-          <button
-            type="button"
-            onClick={testPath}
-            disabled={busy || !future.trim()}
-            className="mt-5 w-full rounded-2xl bg-slate-950 px-5 py-3 text-sm font-black text-white transition hover:bg-slate-800 disabled:opacity-40"
-          >
-            {busy ? '設計しています...' : '次の3手をテスト生成'}
-          </button>
-          <p className="mt-3 text-[11px] font-bold leading-relaxed text-slate-400">
-            この画面の入力と出力はDigital DNAへ保存されません。モデル品質を確認するための開発用実行です。
-          </p>
-        </section>
+        </main>
 
-        <section className="min-h-[640px] rounded-[30px] border border-white/80 bg-white/90 p-5 shadow-sm">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-400">Generated Path</p>
-              <h2 className="mt-2 text-2xl font-black tracking-tight text-slate-950">未来は固定し、次の手を検証する</h2>
+        <aside className="flex min-h-0 flex-col gap-3">
+          <section className="shrink-0 rounded-[28px] border border-white/80 bg-white/90 p-4 shadow-sm">
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-[9px] font-black uppercase tracking-[0.22em] text-slate-400">Next Step</p>
+              {result && <span className="rounded-full bg-emerald-50 px-2 py-1 text-[9px] font-black text-emerald-700">NOT SAVED</span>}
             </div>
-            {result && <span className="rounded-full bg-emerald-50 px-3 py-2 text-[10px] font-black text-emerald-700">NOT SAVED</span>}
-          </div>
+            {move ? (
+              <>
+                <div className="mt-3 flex items-start justify-between gap-2">
+                  <h2 className="text-base font-black leading-relaxed text-slate-950">{move.title}</h2>
+                  <span className="shrink-0 rounded-full bg-slate-950 px-2 py-1 text-[9px] font-black text-white">
+                    {selectedMove === 0 ? 'NOW' : selectedMove === 1 ? 'NEXT' : 'EMERGING'}
+                  </span>
+                </div>
+                <p className="mt-2 text-xs font-bold leading-relaxed text-slate-500">{move.reason}</p>
+                <p className="mt-3 rounded-xl bg-slate-50 px-3 py-2 text-[11px] font-bold leading-relaxed text-slate-400">
+                  検証環境では完了や行動DNAへの保存は行いません。
+                </p>
+              </>
+            ) : (
+              <p className="mt-3 rounded-xl bg-slate-50 p-3 text-xs font-bold leading-relaxed text-slate-500">
+                Chosen Futureを確認し、最初の3手を描くとここに行動案が現れます。
+              </p>
+            )}
+            {notice && <p className="mt-3 text-[11px] font-bold leading-relaxed text-emerald-700">{notice}</p>}
+            {error && <p className="mt-3 text-[11px] font-bold leading-relaxed text-rose-600">{error}</p>}
+          </section>
 
-          {error && <p className="mt-5 rounded-2xl bg-rose-50 p-4 text-sm font-bold text-rose-700">{error}</p>}
-          {!result && !error && (
-            <div className="mt-8 rounded-[28px] border border-dashed border-slate-200 p-8 text-center">
-              <p className="text-sm font-bold leading-relaxed text-slate-400">
-                左側に未来とDNAの断片を入力して、<br />提案の質と実行コストを確認してください。
-              </p>
+          <section className="flex min-h-0 flex-1 flex-col rounded-[28px] border border-white/80 bg-white/86 p-4 shadow-sm">
+            <div className="flex shrink-0 items-center justify-between">
+              <p className="text-[9px] font-black uppercase tracking-[0.22em] text-slate-400">AI Evaluation</p>
+              <span className="rounded-full bg-slate-100 px-2 py-1 text-[10px] font-black text-slate-500">{signals.length} DNA</span>
             </div>
-          )}
-          {result && (
-            <>
-              <div className="mt-5">
-                <UsagePanel usage={result.path.usage} model={result.path.model} />
+            {result ? (
+              <div className="mt-3 space-y-3">
+                <div className="rounded-2xl border border-slate-100 bg-white p-3">
+                  <p className="text-[9px] font-black uppercase tracking-[0.18em] text-slate-400">Model</p>
+                  <p className="mt-2 text-xs font-black text-slate-700">{result.path.model}</p>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <LabMetric label="Tokens" value={result.path.usage ? `${result.path.usage.inputTokens} / ${result.path.usage.outputTokens}` : '-'} />
+                  <LabMetric label="Cost" value={result.path.usage ? usd(result.path.usage.estimatedUsd) : '-'} />
+                </div>
+                <div className="rounded-2xl bg-slate-950 p-3 text-white">
+                  <p className="text-[9px] font-black uppercase tracking-[0.18em] text-white/45">Why This Route</p>
+                  <p className="mt-2 text-xs font-bold leading-relaxed text-white/78">{result.path.rationale}</p>
+                </div>
               </div>
-              <div className="mt-5 rounded-2xl bg-slate-950 p-4 text-white">
-                <p className="text-[10px] font-black uppercase tracking-[0.18em] text-white/45">Why This Route</p>
-                <p className="mt-2 text-sm font-bold leading-relaxed text-white/85">{result.path.rationale}</p>
-              </div>
-              <div className="mt-5 grid gap-3">
-                {result.path.moves.map((move, index) => (
-                  <article key={`${move.title}-${index}`} className="rounded-2xl border border-slate-100 bg-slate-50/70 p-4">
-                    <div className="flex gap-3">
-                      <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-slate-950 text-xs font-black text-white">{index + 1}</span>
-                      <div>
-                        <div className="flex flex-wrap items-center gap-2">
-                          <h3 className="text-sm font-black text-slate-950">{move.title}</h3>
-                          <span className="rounded-full bg-white px-2 py-1 text-[9px] font-black uppercase text-slate-400">{move.certainty}</span>
-                        </div>
-                        <p className="mt-2 text-xs font-bold leading-relaxed text-slate-500">{move.reason}</p>
-                      </div>
-                    </div>
-                  </article>
-                ))}
-              </div>
-              <p className="mt-5 text-[11px] font-bold text-slate-400">
-                参照したDNA: {result.signalCount}件 / 要求モデル: {result.modelRequested}
+            ) : (
+              <p className="mt-3 rounded-xl border border-dashed border-slate-200 p-3 text-xs font-bold leading-relaxed text-slate-400">
+                生成後に品質確認用のモデル・トークン・概算費用を表示します。
               </p>
-            </>
-          )}
-        </section>
+            )}
+          </section>
+        </aside>
       </div>
+    </div>
+  )
+}
+
+function LabMetric({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-2xl border border-slate-100 bg-white p-3">
+      <p className="text-[9px] font-black uppercase tracking-[0.18em] text-slate-400">{label}</p>
+      <p className="mt-2 text-[11px] font-black text-slate-700">{value}</p>
     </div>
   )
 }

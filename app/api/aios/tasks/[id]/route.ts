@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
-import { getSubscriptionUserId } from '@/lib/subscription-auth'
+import { isAiosInternalTester } from '@/lib/aios-test-access'
+import { getSubscriptionUserId, getUserEmail } from '@/lib/subscription-auth'
 import { deleteAiosTask, hasAiosDatabase, updateAiosTaskStatus, type SavedAiosTask } from '@/lib/aios-store'
 import { enrichTaskForClient } from '@/lib/aios-ai'
 
@@ -18,8 +19,10 @@ export async function PATCH(
 ) {
   const authResult = await getSubscriptionUserId()
   if (!authResult.userId) {
-    return NextResponse.json({ error: authResult.error }, { status: authResult.status })
+    return NextResponse.json({ error: 'Not Found' }, { status: 404 })
   }
+  const email = await getUserEmail(authResult.userId)
+  if (!isAiosInternalTester(authResult.userId, email)) return NextResponse.json({ error: 'Not Found' }, { status: 404 })
   if (!hasAiosDatabase()) return configurationError()
 
   const { id } = await context.params
@@ -42,8 +45,10 @@ export async function DELETE(
 ) {
   const authResult = await getSubscriptionUserId()
   if (!authResult.userId) {
-    return NextResponse.json({ error: authResult.error }, { status: authResult.status })
+    return NextResponse.json({ error: 'Not Found' }, { status: 404 })
   }
+  const email = await getUserEmail(authResult.userId)
+  if (!isAiosInternalTester(authResult.userId, email)) return NextResponse.json({ error: 'Not Found' }, { status: 404 })
   if (!hasAiosDatabase()) return configurationError()
 
   const { id } = await context.params

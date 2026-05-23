@@ -26,7 +26,7 @@ function SignedInState() {
     fetch('/api/account/plan', { cache: 'no-store' })
       .then((response) => (response.ok ? response.json() : null))
       .then((data) => {
-        if (active && data?.label) setPlanLabel(String(data.label))
+        if (active && data?.internalAccess && data?.label) setPlanLabel(String(data.label))
       })
       .catch(() => {
         if (active) setPlanLabel(null)

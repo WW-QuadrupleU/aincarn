@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
-import { getSubscriptionUserId } from '@/lib/subscription-auth'
+import { isAiosInternalTester } from '@/lib/aios-test-access'
+import { getSubscriptionUserId, getUserEmail } from '@/lib/subscription-auth'
 import { getSubscriptionByUserId, hasSubscriptionDatabase } from '@/lib/aios-subscription-store'
 import { getReturnUrl, getStripe, hasStripe } from '@/lib/stripe'
 
@@ -7,7 +8,9 @@ export const runtime = 'nodejs'
 
 export async function POST(request: Request) {
   const auth = await getSubscriptionUserId()
-  if (!auth.userId) return NextResponse.json({ error: auth.error }, { status: auth.status })
+  if (!auth.userId) return NextResponse.json({ error: 'Not Found' }, { status: 404 })
+  const email = await getUserEmail(auth.userId)
+  if (!isAiosInternalTester(auth.userId, email)) return NextResponse.json({ error: 'Not Found' }, { status: 404 })
   if (!hasSubscriptionDatabase()) {
     return NextResponse.json({ error: 'データベース未設定です' }, { status: 501 })
   }

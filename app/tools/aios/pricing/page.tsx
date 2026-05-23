@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
-import { auth } from '@clerk/nextjs/server'
+import { notFound } from 'next/navigation'
 import AiosPricing from '@/components/AiosPricing'
+import { isAiosInternalTester } from '@/lib/aios-test-access'
+import { getSubscriptionUserId, getUserEmail } from '@/lib/subscription-auth'
 import { getStripePlans } from '@/lib/stripe'
 import { resolveEffectiveTier } from '@/lib/aios-tier'
 
@@ -13,8 +15,13 @@ export const metadata: Metadata = {
 export const dynamic = 'force-dynamic'
 
 export default async function AiosPricingPage() {
-  const { userId } = await auth()
-  const currentTier = userId ? (await resolveEffectiveTier({ userId })).tier : 'free'
+  const authResult = await getSubscriptionUserId()
+  if (!authResult.userId) notFound()
+
+  const email = await getUserEmail(authResult.userId)
+  if (!isAiosInternalTester(authResult.userId, email)) notFound()
+
+  const currentTier = (await resolveEffectiveTier({ userId: authResult.userId, email })).tier
   const plans = getStripePlans().map((plan) => ({
     tier: plan.tier,
     label: plan.label,
