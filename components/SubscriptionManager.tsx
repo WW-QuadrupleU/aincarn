@@ -527,40 +527,46 @@ function AuthenticatedSubscriptionManager() {
 
   return (
     <div className="pb-16">
-      <section className="border-b border-white/80 bg-white/92 shadow-md shadow-slate-950/5 backdrop-blur">
-        <div className="mx-auto max-w-7xl px-4 py-12 lg:py-16">
-          <div className="grid gap-8 lg:grid-cols-[1fr_340px]">
-            <div className="sm:p-2">
-              <div className="flex flex-wrap items-center gap-3">
-                <p className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-black uppercase tracking-[0.18em] text-slate-500">
-                  Subscription Collection
-                </p>
-                <UserButton />
-              </div>
-              <h1 className="mt-6 max-w-3xl text-4xl font-black tracking-tight text-slate-950 sm:text-5xl lg:text-6xl">
-                AIサブスクを、カードで集める。
-              </h1>
-              <p className="mt-6 max-w-3xl text-base font-bold leading-relaxed text-gray-600">
-                このアカウントに紐づけて、契約中のAIサービスを保存します。
-                サービスを選んでからプランを選択でき、画像と動画など複数ジャンルのサービスもそのままタグ化します。
-              </p>
-            </div>
-            <div className="rounded-[28px] bg-slate-950 p-6 text-white shadow-2xl sm:p-8">
-              <p className="text-xs font-black uppercase tracking-[0.18em] text-white/75">Monthly total</p>
-              <p className="mt-3 text-5xl font-black tracking-tight">{formatUsd(totalMonthly)}</p>
-              <p className="mt-2 text-sm font-bold text-white/82">年換算目安 {formatUsd(yearlyEstimate)}</p>
-              <div className="mt-6 rounded-2xl border border-white/20 bg-white/10 p-4 backdrop-blur">
-                <p className="text-xs font-black uppercase tracking-[0.16em] text-white/70">Next renewal</p>
-                <p className="mt-2 text-sm font-black">
-                  {nextRenewal ? `${nextRenewal.serviceName} / ${formatDate(nextRenewal.renewalDate)}` : '未設定'}
-                </p>
-              </div>
-            </div>
+      <section className="border-b border-slate-200/70 bg-white/80 backdrop-blur">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-3">
+          <div className="flex min-w-0 items-center gap-3">
+            <p className="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-slate-500">
+              Subscription Collection
+            </p>
+            <h1 className="truncate text-sm font-black tracking-tight text-slate-950 sm:text-base">
+              AIサブスク管理
+            </h1>
           </div>
+          <UserButton />
         </div>
       </section>
 
-      <div className="mx-auto mt-10 max-w-7xl space-y-8 px-4">
+      <div className="mx-auto mt-6 max-w-7xl space-y-6 px-4">
+        <section className="overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 text-white shadow-2xl shadow-slate-950/30">
+          <div className="grid gap-0 sm:grid-cols-3">
+            <div className="border-b border-white/10 p-5 sm:border-b-0 sm:border-r sm:p-6">
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/55">Monthly total</p>
+              <p className="mt-2 text-4xl font-black tracking-tight sm:text-5xl">{formatUsd(totalMonthly)}</p>
+              <p className="mt-2 text-xs font-bold text-white/65">
+                {activeSubscriptions.length}件のアクティブなAIサブスク
+              </p>
+            </div>
+            <div className="border-b border-white/10 p-5 sm:border-b-0 sm:border-r sm:p-6">
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/55">Yearly estimate</p>
+              <p className="mt-2 text-3xl font-black tracking-tight">{formatUsd(yearlyEstimate)}</p>
+              <p className="mt-2 text-xs font-bold text-white/65">月額合計 × 12</p>
+            </div>
+            <div className="p-5 sm:p-6">
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/55">Next renewal</p>
+              <p className="mt-2 text-lg font-black leading-tight">
+                {nextRenewal ? nextRenewal.serviceName : '未設定'}
+              </p>
+              <p className="mt-1 text-xs font-bold text-white/65">
+                {nextRenewal ? formatDate(nextRenewal.renewalDate) : '更新日を入れると最も近い予定を表示します'}
+              </p>
+            </div>
+          </div>
+        </section>
         <section className="rounded-[28px] border border-white/80 bg-white/90 p-5 shadow-sm shadow-slate-950/5 backdrop-blur sm:p-6">
         <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
           <div>
@@ -573,20 +579,7 @@ function AuthenticatedSubscriptionManager() {
           {loading && <span className="text-xs font-bold text-gray-400">読み込み中...</span>}
         </div>
 
-        <div className="mt-5 grid gap-3 md:grid-cols-3">
-          {[
-            ['契約中', `${activeSubscriptions.length}件`, 'from-[#111827] to-[#334155]'],
-            ['月額合計', formatUsd(totalMonthly), 'from-[#334155] to-[#64748b]'],
-            ['年額目安', formatUsd(yearlyEstimate), 'from-[#475569] to-[#94a3b8]'],
-          ].map(([label, value, accent]) => (
-            <article key={label} className={`rounded-2xl bg-gradient-to-br ${accent} p-4 text-white shadow-lg shadow-slate-900/10`}>
-              <p className="text-xs font-black uppercase tracking-[0.14em] text-white/70">{label}</p>
-              <p className="mt-2 text-xl font-black">{value}</p>
-            </article>
-          ))}
-        </div>
-
-        <div className="mt-4 grid gap-4 md:grid-cols-2">
+        <div className="mt-5 grid gap-4 md:grid-cols-2">
           {subscriptions.length === 0 && (
             <div className="rounded-2xl border border-dashed border-gray-200 bg-white/70 p-5 text-sm font-bold text-gray-500 md:col-span-2">
               まずは下のサービスカードから、契約中または気になるAIサブスクをコレクションに追加してください。

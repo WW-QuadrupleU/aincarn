@@ -1,7 +1,8 @@
-// Maps Clerk userId to Stripe customer + current subscription state.
+// Maps Clerk userId to Stripe customer + current Aincarn OS tier.
 //
-// Source of truth for tier is this table; lib/aios-tier still respects
-// the env allowlists as a fallback for internal accounts and testing.
+// IMPORTANT: this is a SEPARATE table from `aincarn_subscriptions`
+// (which stores the user's saved external AI service subscriptions).
+// We use `aincarn_user_tiers` here to avoid colliding with that table.
 
 import { neon } from '@neondatabase/serverless'
 import type { AiosTier } from '@/lib/aios-tier'
@@ -54,7 +55,7 @@ export async function ensureSubscriptionsSchema() {
   if (schemaReady) return
   const sql = getSql()
   await sql`
-    CREATE TABLE IF NOT EXISTS aincarn_billing_subscriptions (
+    CREATE TABLE IF NOT EXISTS aincarn_user_tiers (
       user_id text PRIMARY KEY,
       stripe_customer_id text NOT NULL,
       stripe_subscription_id text,
@@ -67,12 +68,8 @@ export async function ensureSubscriptionsSchema() {
     )
   `
   await sql`
-    CREATE INDEX IF NOT EXISTS aincarn_billing_subscriptions_customer_idx
-    ON aincarn_billing_subscriptions (stripe_customer_id)
-  `
-  await sql`
-    CREATE INDEX IF NOT EXISTS aincarn_billing_subscriptions_status_idx
-    ON aincarn_billing_subscriptions (user_id, status)
+    CREATE INDEX IF NOT EXISTS aincarn_user_tiers_customer_idx
+    ON aincarn_user_tiers (stripe_customer_id)
   `
   schemaReady = true
 }
@@ -94,7 +91,7 @@ export async function getSubscriptionByUserId(userId: string): Promise<Subscript
   await ensureSubscriptionsSchema()
   const sql = getSql()
   const rows = await sql`
-    SELECT * FROM aincarn_billing_subscriptions WHERE user_id = ${userId} LIMIT 1
+    SELECT * FROM aincarn_user_tiers WHERE user_id = ${userId} LIMIT 1
   `
   const row = queryRows(rows)[0]
   return row ? rowToSubscription(row) : null
@@ -104,7 +101,7 @@ export async function getSubscriptionByCustomerId(customerId: string): Promise<S
   await ensureSubscriptionsSchema()
   const sql = getSql()
   const rows = await sql`
-    SELECT * FROM aincarn_billing_subscriptions WHERE stripe_customer_id = ${customerId} LIMIT 1
+    SELECT * FROM aincarn_user_tiers WHERE stripe_customer_id = ${customerId} LIMIT 1
   `
   const row = queryRows(rows)[0]
   return row ? rowToSubscription(row) : null
@@ -122,7 +119,7 @@ export async function upsertSubscriptionRecord(input: {
   await ensureSubscriptionsSchema()
   const sql = getSql()
   const rows = await sql`
-    INSERT INTO aincarn_billing_subscriptions (
+    INSERT INTO aincarn_user_tiers (
       user_id,
       stripe_customer_id,
       stripe_subscription_id,
