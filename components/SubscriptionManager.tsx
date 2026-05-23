@@ -374,6 +374,7 @@ function AuthenticatedSubscriptionManager() {
   const [selectedServiceId, setSelectedServiceId] = useState(defaultSubscriptionCatalog[0]?.id || '')
   const [form, setForm] = useState<SubscriptionInput>(emptyForm)
   const [editingId, setEditingId] = useState<string | null>(null)
+  const [formOpen, setFormOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [catalogLoading, setCatalogLoading] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -447,11 +448,31 @@ function AuthenticatedSubscriptionManager() {
     setEditingId(null)
   }
 
+  function closeForm() {
+    resetForm()
+    setFormOpen(false)
+    setMessage('')
+  }
+
+  function openCreateForm() {
+    resetForm()
+    setMessage('')
+    setFormOpen(true)
+  }
+
+  function openEditForm(item: SavedSubscription) {
+    setEditingId(item.id)
+    setForm(toInput(item))
+    setMessage('')
+    setFormOpen(true)
+  }
+
   function choosePlan(service: SubscriptionCatalogService, plan: SubscriptionCatalogPlan, cycle: SubscriptionBillingCycle = 'monthly') {
     const input = planToInput(service, plan, cycle)
     setForm(input)
     setEditingId(null)
-    setMessage(`${service.name} ${input.planName} をフォームに入れました。更新日やメモを調整して保存できます。`)
+    setMessage('')
+    setFormOpen(true)
   }
 
   async function addPlan(service: SubscriptionCatalogService, plan: SubscriptionCatalogPlan, cycle: SubscriptionBillingCycle = 'monthly') {
@@ -494,6 +515,7 @@ function AuthenticatedSubscriptionManager() {
       if (!response.ok) throw new Error(data.error || '保存に失敗しました')
       await loadSubscriptions()
       resetForm()
+      setFormOpen(false)
       setMessage(finalEditingId ? 'プランを更新しました' : `${input.serviceName} ${input.planName || ''}をコレクションに追加しました`)
     } catch (error) {
       setMessage(error instanceof Error ? error.message : '保存に失敗しました')
@@ -576,11 +598,18 @@ function AuthenticatedSubscriptionManager() {
           <div>
             <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">My Collection</p>
             <h2 className="mt-2 text-2xl font-black tracking-tight text-slate-950">契約中のAIサブスク</h2>
-            <p className="mt-2 text-sm font-bold text-gray-500">
-              いま持っているサブスクを先に確認できます。カードの色はサービスごとのアクセントに合わせています。
-            </p>
           </div>
-          {loading && <span className="text-xs font-bold text-gray-400">読み込み中...</span>}
+          <div className="flex items-center gap-3">
+            {loading && <span className="text-xs font-bold text-gray-400">読み込み中...</span>}
+            {message && <span className="text-xs font-bold text-emerald-600">{message}</span>}
+            <button
+              type="button"
+              onClick={openCreateForm}
+              className="rounded-full bg-slate-950 px-3 py-2 text-xs font-black text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-slate-800"
+            >
+              ＋ 手動で追加
+            </button>
+          </div>
         </div>
 
         <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
@@ -634,10 +663,7 @@ function AuthenticatedSubscriptionManager() {
                 <div className="absolute right-1.5 top-1.5 flex items-center gap-0.5 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100">
                   <button
                     type="button"
-                    onClick={() => {
-                      setEditingId(item.id)
-                      setForm(toInput(item))
-                    }}
+                    onClick={() => openEditForm(item)}
                     className="rounded-full bg-white/95 p-1 text-slate-500 shadow-sm ring-1 ring-slate-200 transition hover:text-brand-text"
                     title="編集"
                   >
@@ -766,21 +792,123 @@ function AuthenticatedSubscriptionManager() {
         </div>
       </section>
 
-      <section className="grid gap-4 lg:grid-cols-[360px_1fr]">
-        <form
-          className="rounded-[28px] border border-white/80 bg-white/90 p-5 shadow-sm shadow-slate-950/5 backdrop-blur"
-          onSubmit={(event) => {
-            event.preventDefault()
-            saveSubscription()
-          }}
-        >
-          <h2 className="text-lg font-black text-brand-text">{editingId ? 'カードを編集' : '手動でカードを作る'}</h2>
-          <div className="mt-4 space-y-3">
+        <section className="rounded-[24px] border border-white/80 bg-white/90 p-5 shadow-sm shadow-slate-950/5 backdrop-blur">
+          <h2 className="text-lg font-black text-brand-text">ジャンル別コスト</h2>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            {categoryTotals.length === 0 && (
+              <p className="text-sm font-bold text-gray-500 sm:col-span-2">契約中のサブスクはまだありません。</p>
+            )}
+            {categoryTotals.map((entry) => (
+              <div key={entry.category}>
+                <div className="mb-1 flex items-center justify-between gap-3 text-xs font-black">
+                  <span className="text-gray-500">{entry.category}</span>
+                  <span className="text-brand-text">{formatUsd(entry.total)}</span>
+                </div>
+                <div className="h-2 overflow-hidden rounded-full bg-slate-100">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-[#111827] via-[#334155] to-[#94a3b8]"
+                    style={{ width: `${Math.max(8, Math.min(100, (entry.total / Math.max(1, totalMonthly)) * 100))}%` }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      </div>
+
+      {formOpen && (
+        <SubscriptionFormModal
+          form={form}
+          editing={Boolean(editingId)}
+          saving={saving}
+          message={message}
+          onChange={updateForm}
+          onSubmit={() => saveSubscription()}
+          onClose={closeForm}
+        />
+      )}
+    </div>
+  )
+}
+
+function SubscriptionFormModal({
+  form,
+  editing,
+  saving,
+  message,
+  onChange,
+  onSubmit,
+  onClose,
+}: {
+  form: SubscriptionInput
+  editing: boolean
+  saving: boolean
+  message: string
+  onChange: <K extends keyof SubscriptionInput>(key: K, value: SubscriptionInput[K]) => void
+  onSubmit: () => void
+  onClose: () => void
+}) {
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [onClose])
+
+  useEffect(() => {
+    const previous = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = previous
+    }
+  }, [])
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/40 p-0 backdrop-blur-sm sm:items-center sm:p-6"
+      role="dialog"
+      aria-modal="true"
+      onClick={(event) => {
+        if (event.target === event.currentTarget) onClose()
+      }}
+    >
+      <form
+        className="relative w-full max-w-2xl overflow-hidden rounded-t-3xl border border-white/80 bg-white shadow-2xl sm:rounded-3xl"
+        onSubmit={(event) => {
+          event.preventDefault()
+          onSubmit()
+        }}
+      >
+        <header className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
+              {editing ? 'Edit subscription' : 'Add subscription'}
+            </p>
+            <h3 className="mt-0.5 text-lg font-black text-brand-text">
+              {editing ? 'カードを編集' : '手動でカードを作る'}
+            </h3>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-full bg-slate-100 p-2 text-slate-500 transition hover:bg-slate-200 hover:text-slate-800"
+            aria-label="閉じる"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </header>
+
+        <div className="max-h-[70vh] space-y-3 overflow-y-auto px-5 py-5">
+          <div className="grid gap-3 sm:grid-cols-2">
             <label className="block">
               <span className="text-xs font-black text-gray-500">サービス名</span>
               <input
                 value={form.serviceName}
-                onChange={(event) => updateForm('serviceName', event.target.value)}
+                onChange={(event) => onChange('serviceName', event.target.value)}
                 placeholder="ChatGPT, Claude, Gemini..."
                 className="mt-1 w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm font-bold text-brand-text outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
               />
@@ -789,127 +917,102 @@ function AuthenticatedSubscriptionManager() {
               <span className="text-xs font-black text-gray-500">プラン名</span>
               <input
                 value={form.planName}
-                onChange={(event) => updateForm('planName', event.target.value)}
+                onChange={(event) => onChange('planName', event.target.value)}
                 placeholder="Pro, Team, API..."
                 className="mt-1 w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm font-bold text-brand-text outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
               />
             </label>
+          </div>
+          <label className="block">
+            <span className="text-xs font-black text-gray-500">ジャンル（複数可・カンマ区切り）</span>
+            <input
+              value={form.category}
+              onChange={(event) => onChange('category', event.target.value)}
+              placeholder="チャット, 画像, 動画"
+              className="mt-1 w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm font-bold text-brand-text outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
+            />
+          </label>
+          <div className="grid gap-3 sm:grid-cols-2">
             <label className="block">
-              <span className="text-xs font-black text-gray-500">ジャンル（複数可・カンマ区切り）</span>
+              <span className="text-xs font-black text-gray-500">月額換算 USD</span>
               <input
-                value={form.category}
-                onChange={(event) => updateForm('category', event.target.value)}
-                placeholder="チャット, 画像, 動画"
+                type="number"
+                min="0"
+                step="0.01"
+                value={form.monthlyCostUsd}
+                onChange={(event) => onChange('monthlyCostUsd', Number(event.target.value))}
                 className="mt-1 w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm font-bold text-brand-text outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
               />
             </label>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <label className="block">
-                <span className="text-xs font-black text-gray-500">月額換算 USD</span>
-                <input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={form.monthlyCostUsd}
-                  onChange={(event) => updateForm('monthlyCostUsd', Number(event.target.value))}
-                  className="mt-1 w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm font-bold text-brand-text outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
-                />
-              </label>
-              <label className="block">
-                <span className="text-xs font-black text-gray-500">請求周期</span>
-                <select
-                  value={form.billingCycle}
-                  onChange={(event) => updateForm('billingCycle', event.target.value as SubscriptionInput['billingCycle'])}
-                  className="mt-1 w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm font-bold text-brand-text outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
-                >
-                  {billingCycleOptions.map((item) => (
-                    <option key={item.value} value={item.value}>
-                      {item.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            </div>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <label className="block">
-                <span className="text-xs font-black text-gray-500">更新日</span>
-                <input
-                  type="date"
-                  value={form.renewalDate}
-                  onChange={(event) => updateForm('renewalDate', event.target.value)}
-                  className="mt-1 w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm font-bold text-brand-text outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
-                />
-              </label>
-              <label className="block">
-                <span className="text-xs font-black text-gray-500">ステータス</span>
-                <select
-                  value={form.status}
-                  onChange={(event) => updateForm('status', event.target.value as SubscriptionInput['status'])}
-                  className="mt-1 w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm font-bold text-brand-text outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
-                >
-                  {statusOptions.map((item) => (
-                    <option key={item.value} value={item.value}>
-                      {item.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            </div>
             <label className="block">
-              <span className="text-xs font-black text-gray-500">メモ</span>
-              <textarea
-                value={form.notes}
-                onChange={(event) => updateForm('notes', event.target.value)}
-                rows={3}
+              <span className="text-xs font-black text-gray-500">請求周期</span>
+              <select
+                value={form.billingCycle}
+                onChange={(event) => onChange('billingCycle', event.target.value as SubscriptionInput['billingCycle'])}
+                className="mt-1 w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm font-bold text-brand-text outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
+              >
+                {billingCycleOptions.map((item) => (
+                  <option key={item.value} value={item.value}>
+                    {item.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label className="block">
+              <span className="text-xs font-black text-gray-500">更新日</span>
+              <input
+                type="date"
+                value={form.renewalDate}
+                onChange={(event) => onChange('renewalDate', event.target.value)}
                 className="mt-1 w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm font-bold text-brand-text outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
               />
             </label>
-          </div>
-          {message && <p className="mt-3 text-xs font-bold text-gray-500">{message}</p>}
-          <div className="mt-5 flex flex-wrap gap-2">
-            <button
-              type="submit"
-              disabled={saving}
-              className="rounded-full bg-brand-text px-5 py-3 text-sm font-black text-white transition hover:-translate-y-0.5 hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {saving ? '保存中...' : editingId ? '更新する' : '追加する'}
-            </button>
-            {editingId && (
-              <button
-                type="button"
-                onClick={resetForm}
-                className="rounded-full border border-gray-200 bg-white px-5 py-3 text-sm font-black text-gray-500 transition hover:border-brand-text hover:text-brand-text"
+            <label className="block">
+              <span className="text-xs font-black text-gray-500">ステータス</span>
+              <select
+                value={form.status}
+                onChange={(event) => onChange('status', event.target.value as SubscriptionInput['status'])}
+                className="mt-1 w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm font-bold text-brand-text outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
               >
-                キャンセル
-              </button>
-            )}
+                {statusOptions.map((item) => (
+                  <option key={item.value} value={item.value}>
+                    {item.label}
+                  </option>
+                ))}
+              </select>
+            </label>
           </div>
-        </form>
-
-        <div className="space-y-4">
-          <section className="rounded-[24px] border border-white/80 bg-white/90 p-5 shadow-sm shadow-slate-950/5 backdrop-blur">
-            <h2 className="text-lg font-black text-brand-text">ジャンル別コスト</h2>
-            <div className="mt-4 space-y-3">
-              {categoryTotals.length === 0 && <p className="text-sm font-bold text-gray-500">契約中のサブスクはまだありません。</p>}
-              {categoryTotals.map((entry) => (
-                <div key={entry.category}>
-                  <div className="mb-1 flex items-center justify-between gap-3 text-xs font-black">
-                    <span className="text-gray-500">{entry.category}</span>
-                    <span className="text-brand-text">{formatUsd(entry.total)}</span>
-                  </div>
-                  <div className="h-2.5 overflow-hidden rounded-full bg-slate-100">
-                    <div
-                      className="h-full rounded-full bg-gradient-to-r from-[#111827] via-[#334155] to-[#94a3b8]"
-                      style={{ width: `${Math.max(8, Math.min(100, (entry.total / Math.max(1, totalMonthly)) * 100))}%` }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
+          <label className="block">
+            <span className="text-xs font-black text-gray-500">メモ</span>
+            <textarea
+              value={form.notes}
+              onChange={(event) => onChange('notes', event.target.value)}
+              rows={3}
+              className="mt-1 w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm font-bold text-brand-text outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
+            />
+          </label>
+          {message && <p className="text-xs font-bold text-rose-500">{message}</p>}
         </div>
-      </section>
-      </div>
+
+        <footer className="flex items-center justify-end gap-2 border-t border-slate-200 bg-slate-50 px-5 py-4">
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-black text-gray-600 transition hover:border-brand-text hover:text-brand-text"
+          >
+            キャンセル
+          </button>
+          <button
+            type="submit"
+            disabled={saving}
+            className="rounded-full bg-brand-text px-5 py-2 text-sm font-black text-white transition hover:-translate-y-0.5 hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {saving ? '保存中...' : editing ? '更新する' : '追加する'}
+          </button>
+        </footer>
+      </form>
     </div>
   )
 }
