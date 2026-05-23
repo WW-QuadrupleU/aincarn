@@ -72,6 +72,8 @@ const ZERO_PERFORMANCE: Record<AiGenreId, number> = {
   imageImage: 0,
   textVideo: 0,
   imageVideo: 0,
+  textSpeech: 0,
+  music: 0,
 }
 
 function scores(values: Partial<Record<AiGenreId, number>>): Record<AiGenreId, number> {
@@ -234,7 +236,7 @@ function mediaPrice(model: AaMediaModel): number | undefined {
   )
 }
 
-function mapMediaModel(model: AaMediaModel, type: 'textImage' | 'imageImage' | 'textVideo' | 'imageVideo', fallbackRank: number): AiModel | null {
+function mapMediaModel(model: AaMediaModel, type: 'textImage' | 'imageImage' | 'textVideo' | 'imageVideo' | 'textSpeech' | 'music', fallbackRank: number): AiModel | null {
   if (!model.name) return null
 
   const creator = model.model_creator?.name || 'Unknown'
@@ -257,8 +259,12 @@ function mapMediaModel(model: AaMediaModel, type: 'textImage' | 'imageImage' | '
           ? 'Image Editing'
           : type === 'textVideo'
             ? 'Text to Video'
-            : 'Image to Video',
-    modality: type === 'textImage' || type === 'imageImage' ? 'Image' : 'Video',
+            : type === 'imageVideo'
+              ? 'Image to Video'
+              : type === 'textSpeech'
+                ? 'Text to Speech'
+                : 'Music Generation',
+    modality: type === 'textImage' || type === 'imageImage' ? 'Image' : type === 'textVideo' || type === 'imageVideo' ? 'Video' : 'LLM',
     accessType: 'Specialized',
     costLevel: price == null ? 3 : costLevel(price),
     speed: 55,
@@ -275,18 +281,22 @@ function mapMediaModel(model: AaMediaModel, type: 'textImage' | 'imageImage' | '
           ? 'https://artificialanalysis.ai/image/leaderboard/image-editing'
           : type === 'textVideo'
             ? 'https://artificialanalysis.ai/video/leaderboard/text-to-video'
-            : 'https://artificialanalysis.ai/video/leaderboard/image-to-video',
+            : type === 'imageVideo'
+              ? 'https://artificialanalysis.ai/video/leaderboard/image-to-video'
+              : type === 'textSpeech'
+                ? 'https://artificialanalysis.ai/audio/leaderboard/text-to-speech'
+                : 'https://artificialanalysis.ai/audio/leaderboard/music-generation',
     performance: scores({ [genre]: performance }),
     costPerformance: scores({ [genre]: costPerformanceScore(performance, cost) }),
     strengths: [
-      type === 'textImage' || type === 'imageImage' ? '画像生成・編集の比較に使いやすい' : '動画生成品質の比較に使いやすい',
+      type === 'textImage' || type === 'imageImage' ? '画像生成・編集の比較に使いやすい' : type === 'textVideo' || type === 'imageVideo' ? '動画生成品質の比較に使いやすい' : '音声・音楽の品質比較に使いやすい',
       'Eloベースで順位を追いやすい',
     ],
     cautions: ['文章や調査の汎用AIではありません', '商用利用条件と生成物の権利は公式情報を確認してください'],
-    bestFor: type === 'textImage' || type === 'imageImage' ? '記事画像、サムネイル、広告素材の生成・編集。' : '短尺動画、Bロール、SNS向け映像素材の生成。',
+    bestFor: type === 'textImage' || type === 'imageImage' ? '記事画像、サムネイル、広告素材の生成・編集。' : type === 'textVideo' || type === 'imageVideo' ? '短尺動画、Bロール、SNS向け映像素材の生成。' : '音声・音楽の生成。',
     avoidFor: '文章作成、調査、コード補助を主目的にする人。',
     note: `${
-      type === 'textImage' ? 'Text to Image' : type === 'imageImage' ? 'Image Editing' : type === 'textVideo' ? 'Text to Video' : 'Image to Video'
+      type === 'textImage' ? 'Text to Image' : type === 'imageImage' ? 'Image Editing' : type === 'textVideo' ? 'Text to Video' : type === 'imageVideo' ? 'Image to Video' : type === 'textSpeech' ? 'Text to Speech' : 'Music Generation'
     }系の公開評価、価格、用途適性をもとに自動反映しています。`,
   }
 }
@@ -301,6 +311,15 @@ async function fetchAa<T>(path: string, key: string): Promise<T[]> {
   }
   const json = (await response.json()) as AaResponse<T>
   return Array.isArray(json.data) ? json.data : []
+}
+
+async function fetchAaOptional<T>(path: string, key: string): Promise<T[]> {
+  try {
+    return await fetchAa<T>(path, key)
+  } catch (error) {
+    console.warn(`Optional fetch failed for ${path}:`, error)
+    return []
+  }
 }
 
 function uniqueModels(models: AiModel[]): AiModel[] {
@@ -325,12 +344,14 @@ export async function GET() {
   }
 
   try {
-    const [llms, textImages, imageImages, textVideos, imageVideos] = await Promise.all([
+    const [llms, textImages, imageImages, textVideos, imageVideos, textSpeeches, musics] = await Promise.all([
       fetchAa<AaLlmModel>('/data/llms/models', key),
       fetchAa<AaMediaModel>('/data/media/text-to-image', key),
       fetchAa<AaMediaModel>('/data/media/image-editing', key),
       fetchAa<AaMediaModel>('/data/media/text-to-video', key),
       fetchAa<AaMediaModel>('/data/media/image-to-video', key),
+      fetchAaOptional<AaMediaModel>('/data/media/text-to-speech', key),
+      fetchAaOptional<AaMediaModel>('/data/media/music-generation', key),
     ])
 
     const llmModels = llms
@@ -372,8 +393,35 @@ export async function GET() {
       .map((model, index) => mapMediaModel(model, 'imageVideo', index + 1))
       .filter((model): model is AiModel => Boolean(model))
 
+    const textSpeechModels = textSpeeches
+      .filter((model) => model.elo != null)
+      .sort((a, b) => (a.rank ?? 9999) - (b.rank ?? 9999))
+      .slice(0, 40)
+      .map((model, index) => mapMediaModel(model, 'textSpeech', index + 1))
+      .filter((model): model is AiModel => Boolean(model))
+
+    const musicModels = musics
+      .filter((model) => model.elo != null)
+      .sort((a, b) => (a.rank ?? 9999) - (b.rank ?? 9999))
+      .slice(0, 40)
+      .map((model, index) => mapMediaModel(model, 'music', index + 1))
+      .filter((model): model is AiModel => Boolean(model))
+
+    // もしAPIでTTSやMusicが取得できなかった場合はFallbackのモデルを差し込む
+    const finalModels = [...llmModels, ...textImageModels, ...imageImageModels, ...textVideoModels, ...imageVideoModels]
+    if (textSpeechModels.length > 0) {
+      finalModels.push(...textSpeechModels)
+    } else {
+      finalModels.push(...FALLBACK_AI_PAYLOAD.models.filter((model) => model.visibleIn.includes('textSpeech')))
+    }
+    if (musicModels.length > 0) {
+      finalModels.push(...musicModels)
+    } else {
+      finalModels.push(...FALLBACK_AI_PAYLOAD.models.filter((model) => model.visibleIn.includes('music')))
+    }
+
     const payload: AiModelComparePayload = {
-      models: uniqueModels([...llmModels, ...textImageModels, ...imageImageModels, ...textVideoModels, ...imageVideoModels]),
+      models: uniqueModels(finalModels),
       updatedAt: new Date().toISOString(),
       source: 'live',
       sourceLabel: '公開ベンチマーク・料金情報・公式情報',

@@ -14,6 +14,8 @@ export type AiGenreId =
   | 'imageImage'
   | 'textVideo'
   | 'imageVideo'
+  | 'textSpeech'
+  | 'music'
 
 export type AiGenre = {
   id: AiGenreId
@@ -93,7 +95,7 @@ export type SubscriptionCatalogPlan = {
   includes?: string[]
   bestFor?: string
   cautions?: string
-  matrixX?: ('general' | 'coding' | 'media')[]
+  matrixX?: ('general' | 'coding' | 'media' | 'audio')[]
   matrixY?: 'free' | 'low' | 'mid' | 'high' | 'premium'
 }
 
@@ -125,7 +127,7 @@ export type PlanRow = {
   bestFor: string
   cautions: string
   sourceUrl: string
-  matrixX: ('general' | 'coding' | 'media')[]
+  matrixX: ('general' | 'coding' | 'media' | 'audio')[]
   matrixY: 'free' | 'low' | 'mid' | 'high' | 'premium'
   isApi?: boolean
 }
@@ -219,6 +221,8 @@ const ZERO_PERFORMANCE: Record<AiGenreId, number> = {
   imageImage: 0,
   textVideo: 0,
   imageVideo: 0,
+  textSpeech: 0,
+  music: 0,
 }
 
 function scores(values: Partial<Record<AiGenreId, number>>): Record<AiGenreId, number> {

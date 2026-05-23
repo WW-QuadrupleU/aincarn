@@ -11,8 +11,8 @@ import {
   getFlatSubscriptionPlans,
 } from '@/lib/ai-database'
 
-type PricingMode = 'plans' | 'llm' | 'image' | 'video'
-type ViewMode = 'matrix' | 'breakeven' | 'diagnosis'
+type PricingMode = 'plans' | 'llm' | 'image' | 'video' | 'audio' | 'music'
+type ViewMode = 'matrix' | 'breakeven' | 'diagnosis' | 'api'
 
 type PricingRow = {
   model: AiModel
@@ -45,6 +45,16 @@ const modeOptions: Array<{ id: PricingMode; label: string; description: string }
     label: '動画生成',
     description: '月間生成分数から、動画AIの生成コストを比較します。',
   },
+  {
+    id: 'audio',
+    label: '音声生成(TTS)',
+    description: '月間生成文字数から、音声読み上げAIのコストを比較します。',
+  },
+  {
+    id: 'music',
+    label: '音楽生成',
+    description: '月間生成曲数から、音楽生成AIのコストを比較します。',
+  },
 ]
 
 const modeTone: Record<PricingMode, string> = {
@@ -52,12 +62,15 @@ const modeTone: Record<PricingMode, string> = {
   llm: 'from-emerald-500 via-teal-500 to-sky-500',
   image: 'from-fuchsia-600 via-rose-500 to-orange-400',
   video: 'from-violet-600 via-indigo-500 to-sky-400',
+  audio: 'from-amber-500 via-orange-400 to-red-400',
+  music: 'from-pink-500 via-rose-400 to-orange-400',
 }
 
 const matrixXLabels = {
   general: { label: '総合・リサーチ', desc: 'ChatGPT / Perplexityなど万能型や調査特化' },
   coding: { label: '開発・コード', desc: 'GitHub Copilot / Cursorなどプログラミング支援' },
   media: { label: '画像・動画生成', desc: 'Midjourney / Runwayなどクリエイティブ系' },
+  audio: { label: '音声・音楽生成', desc: 'ElevenLabs / Sunoなどサウンド制作' },
 }
 
 const matrixYLabels = {
@@ -84,6 +97,8 @@ const USAGE_PROFILES = [
 function genrePerformance(model: AiModel, mode: PricingMode): number {
   if (mode === 'image') return Math.max(model.performance.textImage || 0, model.performance.imageImage || 0)
   if (mode === 'video') return Math.max(model.performance.textVideo || 0, model.performance.imageVideo || 0)
+  if (mode === 'audio') return model.performance.textSpeech || 0
+  if (mode === 'music') return model.performance.music || 0
   return Math.max(
     model.performance.research || 0,
     model.performance.writing || 0,
@@ -96,18 +111,24 @@ function genrePerformance(model: AiModel, mode: PricingMode): number {
 function unitLabel(mode: PricingMode) {
   if (mode === 'llm') return '100万tokens'
   if (mode === 'image') return '1生成'
+  if (mode === 'audio') return '1000文字'
+  if (mode === 'music') return '1月額/1曲'
   return '1分'
 }
 
 function eligibleForMode(model: AiModel, mode: PricingMode) {
-  if (mode === 'llm') return model.modality === 'LLM'
+  if (mode === 'llm') return model.modality === 'LLM' && !model.visibleIn.includes('textSpeech') && !model.visibleIn.includes('music')
   if (mode === 'image') return model.visibleIn.includes('textImage') || model.visibleIn.includes('imageImage')
+  if (mode === 'audio') return model.visibleIn.includes('textSpeech')
+  if (mode === 'music') return model.visibleIn.includes('music')
   return model.visibleIn.includes('textVideo') || model.visibleIn.includes('imageVideo')
 }
 
-function estimateCost(mode: PricingMode, unitPrice: number, tokenMillions: number, imageCount: number, videoMinutes: number) {
+function estimateCost(mode: PricingMode, unitPrice: number, tokenMillions: number, imageCount: number, videoMinutes: number, audioChars: number, musicSongs: number) {
   if (mode === 'llm') return unitPrice * tokenMillions
   if (mode === 'image') return unitPrice * imageCount
+  if (mode === 'audio') return unitPrice * (audioChars / 1000)
+  if (mode === 'music') return unitPrice // Music is basically fixed subscription cost or per generation, for simplicity here use fixed or * songs if per song
   return unitPrice * videoMinutes
 }
 
@@ -121,6 +142,8 @@ export default function AiPricingTool() {
   const [tokenMillions, setTokenMillions] = useState(10)
   const [imageCount, setImageCount] = useState(200)
   const [videoMinutes, setVideoMinutes] = useState(30)
+  const [audioChars, setAudioChars] = useState(100000)
+  const [musicSongs, setMusicSongs] = useState(50)
   const [query, setQuery] = useState('')
 
   // 損益分岐点シミュレータ用の状態
@@ -143,9 +166,9 @@ export default function AiPricingTool() {
 
     async function loadPricing() {
       try {
-        const response = await fetch('/api/ai-model-compare')
-        if (!response.ok) throw new Error('failed to load pricing data')
-        const data = (await response.json()) as AiModelComparePayload
+        const res = await fetch('/api/ai-model-compare', { cache: 'no-store' })
+        if (!res.ok) throw new Error('failed to load pricing data')
+        const data = (await res.json()) as AiModelComparePayload
         if (active && data.models?.length) setPayload(data)
       } catch {
         if (active) setPayload(FALLBACK_AI_PAYLOAD)
@@ -230,13 +253,13 @@ export default function AiPricingTool() {
           model,
           unitPrice,
           unitLabel: unitLabel(mode),
-          estimatedCost: estimateCost(mode, unitPrice, tokenMillions, imageCount, videoMinutes),
+          estimatedCost: estimateCost(mode, unitPrice, tokenMillions, imageCount, videoMinutes, audioChars, musicSongs),
           performance: genrePerformance(model, mode),
         }
       })
       .filter((row): row is PricingRow => Boolean(row))
       .sort((a, b) => a.estimatedCost - b.estimatedCost)
-  }, [imageCount, mode, payload.models, query, tokenMillions, videoMinutes])
+  }, [imageCount, mode, payload.models, query, tokenMillions, videoMinutes, audioChars, musicSongs])
 
   // コスパ・最安・性能上位の算出
   const cheapest = rows[0]
@@ -459,6 +482,17 @@ export default function AiPricingTool() {
                 }`}
               >
                 🧠 AIコンシェルジュ診断
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode('api')}
+                className={`rounded-full px-5 py-2.5 text-xs font-black transition-all ${
+                  viewMode === 'api'
+                    ? 'bg-slate-950 text-white shadow-md shadow-slate-950/15'
+                    : 'bg-white hover:bg-slate-100 text-gray-600 border border-slate-200'
+                }`}
+              >
+                ⚙️ API料金シミュレータ
               </button>
             </div>
           </div>
@@ -949,6 +983,7 @@ export default function AiPricingTool() {
                         writing: '✍️',
                         coding: '💻',
                         media: '🎨',
+                        audio: '🎵',
                       }
                       return (
                         <th key={key} className="p-4 text-center border-l border-slate-200/80 bg-slate-50/40">
@@ -985,8 +1020,8 @@ export default function AiPricingTool() {
                         </td>
 
                         {/* 各マトリックスセル */}
-                        <td colSpan={3} className="p-2 align-top border-l border-slate-200/80 bg-slate-50/10">
-                          <div className="grid grid-cols-3 gap-2 relative">
+                        <td colSpan={4} className="p-2 align-top border-l border-slate-200/80 bg-slate-50/10">
+                          <div className="grid grid-cols-4 gap-2 relative">
                             {(() => {
                               const plansInY = AI_PLANS.filter((plan) => plan.matrixY === yKey).sort((a, b) => a.monthlyUsd - b.monthlyUsd)
                               let matchedPlans = plansInY.map((plan) => {
@@ -999,7 +1034,7 @@ export default function AiPricingTool() {
                               })
 
                               if (matchedPlans.length === 0) {
-                                return <div className="col-span-3 text-[10px] font-bold text-gray-300 italic text-center py-4">-</div>
+                                return <div className="col-span-4 text-[10px] font-bold text-gray-300 italic text-center py-4">-</div>
                               }
 
                               const xKeys = Object.keys(matrixXLabels)

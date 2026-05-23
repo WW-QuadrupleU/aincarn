@@ -81,6 +81,12 @@ const AI_GENRE_GROUPS: Array<{
     description: 'Text to Video / Image to Video',
     genreIds: ['textVideo', 'imageVideo'],
   },
+  {
+    id: 'audio',
+    label: '音声・音楽AI',
+    description: '音声読み上げ(TTS) / 音楽生成',
+    genreIds: ['textSpeech', 'music'],
+  },
 ]
 
 function ScoreBar({ label, score }: { label: string; score: number }) {
@@ -267,7 +273,7 @@ export default function AiModelCompareTool() {
 
     async function loadModels() {
       try {
-        const response = await fetch('/api/ai-model-compare')
+        const response = await fetch('/api/ai-model-compare', { cache: 'no-store' })
         if (!response.ok) throw new Error('failed to load AI model data')
         const data = (await response.json()) as AiModelComparePayload
         if (!active || !data.models?.length) return
