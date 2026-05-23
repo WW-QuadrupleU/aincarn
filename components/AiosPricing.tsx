@@ -77,14 +77,24 @@ export default function AiosPricing({ plans, currentTier }: AiosPricingProps) {
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {plans.map((plan) => {
           const isFree = plan.tier === 'free'
+          const isCurrent = currentTier === plan.tier
           const disabled = !isFree && !plan.available
           return (
             <article
               key={plan.tier}
-              className={`relative flex flex-col rounded-3xl border bg-white p-6 shadow-sm shadow-slate-950/5 ${
-                plan.recommended ? 'border-indigo-400 ring-2 ring-indigo-100' : 'border-slate-200'
+              className={`relative flex h-full min-h-[344px] flex-col rounded-3xl border bg-white p-6 shadow-sm shadow-slate-950/5 ${
+                isCurrent
+                  ? 'border-slate-950 ring-2 ring-slate-200'
+                  : plan.recommended
+                    ? 'border-indigo-400 ring-2 ring-indigo-100'
+                    : 'border-slate-200'
               }`}
             >
+              {isCurrent && (
+                <span className="absolute -top-3 right-6 rounded-full bg-slate-950 px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-white shadow">
+                  Current
+                </span>
+              )}
               {plan.recommended && (
                 <span className="absolute -top-3 left-6 rounded-full bg-gradient-to-r from-indigo-500 to-sky-400 px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-white shadow">
                   Recommended
@@ -95,7 +105,7 @@ export default function AiosPricing({ plans, currentTier }: AiosPricingProps) {
                 {plan.priceJpy === 0 ? '無料' : formatJpy(plan.priceJpy)}
                 {plan.priceJpy > 0 && <span className="text-sm font-bold text-slate-500"> / 月</span>}
               </p>
-              <p className="mt-2 text-xs font-bold leading-relaxed text-slate-500">{plan.description}</p>
+              <p className="mt-2 min-h-[38px] text-xs font-bold leading-relaxed text-slate-500">{plan.description}</p>
 
               <ul className="mt-5 grid gap-2 text-sm font-bold text-slate-700">
                 {plan.bullets.map((bullet) => (
@@ -106,8 +116,15 @@ export default function AiosPricing({ plans, currentTier }: AiosPricingProps) {
                 ))}
               </ul>
 
-              <div className="mt-6">
-                {isFree ? (
+              <div className="mt-auto pt-6">
+                {isCurrent ? (
+                  <Link
+                    href="/tools/aios"
+                    className="inline-flex w-full justify-center rounded-full border border-slate-200 bg-slate-100 px-4 py-3 text-sm font-black text-slate-500"
+                  >
+                    利用中のプラン
+                  </Link>
+                ) : isFree ? (
                   <Link
                     href="/tools/aios"
                     className="inline-flex w-full justify-center rounded-full border border-slate-200 bg-white px-4 py-3 text-sm font-black text-slate-700 transition hover:border-slate-400"
@@ -134,7 +151,9 @@ export default function AiosPricing({ plans, currentTier }: AiosPricingProps) {
                       ? 'Stripeへ移動中...'
                       : disabled
                         ? '準備中'
-                        : `${plan.label}にアップグレード`}
+                        : currentTier === 'free'
+                          ? `${plan.label}にアップグレード`
+                          : `${plan.label}に変更`}
                   </button>
                 )}
                 {disabled && (

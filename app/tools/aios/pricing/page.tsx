@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
+import { auth } from '@clerk/nextjs/server'
 import AiosPricing from '@/components/AiosPricing'
 import { getStripePlans } from '@/lib/stripe'
+import { resolveEffectiveTier } from '@/lib/aios-tier'
 
 export const metadata: Metadata = {
   title: 'Aincarn OS 料金',
@@ -8,7 +10,11 @@ export const metadata: Metadata = {
     'Aincarn OSのプラン。月額でAI実行回数の上限が変わります。Free・Light・Pro・Powerから選べます。',
 }
 
-export default function AiosPricingPage() {
+export const dynamic = 'force-dynamic'
+
+export default async function AiosPricingPage() {
+  const { userId } = await auth()
+  const currentTier = userId ? (await resolveEffectiveTier({ userId })).tier : 'free'
   const plans = getStripePlans().map((plan) => ({
     tier: plan.tier,
     label: plan.label,
@@ -22,7 +28,7 @@ export default function AiosPricingPage() {
   return (
     <main className="min-h-screen">
       <div className="mx-auto max-w-6xl px-4 py-12">
-        <AiosPricing plans={plans} />
+        <AiosPricing plans={plans} currentTier={currentTier} />
       </div>
     </main>
   )

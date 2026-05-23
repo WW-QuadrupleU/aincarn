@@ -932,13 +932,13 @@ export default function AiPricingTool() {
                           <div className="grid grid-cols-4 gap-2 relative">
                             {(() => {
                               const plansInY = AI_PLANS.filter((plan) => plan.matrixY === yKey).sort((a, b) => a.monthlyUsd - b.monthlyUsd)
-                              const matchedPlans = plansInY.map((plan) => {
+                              let matchedPlans = plansInY.map((plan) => {
                                 const isMatch =
                                   !query.trim() ||
                                   `${plan.service} ${plan.plan} ${plan.category}`
                                     .toLowerCase()
                                     .includes(query.trim().toLowerCase())
-                                return { ...plan, isMatch }
+                                return { ...plan, isMatch, _gridRow: 1 }
                               })
 
                               if (matchedPlans.length === 0) {
@@ -946,11 +946,48 @@ export default function AiPricingTool() {
                               }
 
                               const xKeys = Object.keys(matrixXLabels)
+                              
+                              // Calculate explicit grid rows to maintain visual price order
+                              const occupied: Set<number>[] = []
+                              let minRowForCurrentPrice = 1
+                              let lastPrice = -1
+
+                              matchedPlans = matchedPlans.map((plan) => {
+                                const startKey = plan.matrixX[0]
+                                const startIdx = xKeys.indexOf(startKey) + 1
+                                const span = plan.matrixX.length
+
+                                if (plan.monthlyUsd > lastPrice) {
+                                  minRowForCurrentPrice = occupied.length + 1
+                                  lastPrice = plan.monthlyUsd
+                                }
+
+                                let r = minRowForCurrentPrice
+                                while (true) {
+                                  if (!occupied[r]) occupied[r] = new Set()
+                                  let canFit = true
+                                  for (let c = startIdx; c < startIdx + span; c++) {
+                                    if (occupied[r].has(c)) {
+                                      canFit = false
+                                      break
+                                    }
+                                  }
+                                  if (canFit) break
+                                  r++
+                                }
+
+                                for (let c = startIdx; c < startIdx + span; c++) {
+                                  occupied[r].add(c)
+                                }
+                                
+                                plan._gridRow = r
+                                return plan
+                              })
+
                               return matchedPlans.map((plan) => {
                                 const isKeep = keepList.some(
                                   (k) => k.serviceName === plan.service && k.planName === plan.plan
                                 )
-                                // matrixX is now an array, we find start and length
                                 const startKey = plan.matrixX[0]
                                 const startIdx = xKeys.indexOf(startKey) + 1
                                 const span = plan.matrixX.length
@@ -960,7 +997,7 @@ export default function AiPricingTool() {
                                 return (
                                   <div
                                     key={`${plan.service}-${plan.plan}`}
-                                    style={{ gridColumn: `${startIdx} / span ${span}` }}
+                                    style={{ gridColumn: `${startIdx} / span ${span}`, gridRow: plan._gridRow }}
                                   >
                                     <div
                                       className={`relative group flex items-center justify-between gap-2 rounded-lg border p-2 shadow-sm transition-all duration-300 ${
