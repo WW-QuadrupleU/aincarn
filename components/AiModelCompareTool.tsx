@@ -139,7 +139,7 @@ function MetricLeaderboard({
         </div>
       </div>
       <div className="divide-y divide-gray-100">
-        {models.slice(0, 5).map((model, index) => {
+        {models.slice(0, 7).map((model, index) => {
           const score =
             mode === 'intelligence'
               ? model.performance[genreId]
@@ -324,19 +324,18 @@ export default function AiModelCompareTool() {
 
   return (
     <div className="space-y-6">
-      <section className="rounded-[20px] border border-white/75 bg-white/88 p-4 shadow-sm shadow-slate-950/5 backdrop-blur">
-        <div className="mb-3">
+      <section className="rounded-[20px] border border-white/75 bg-white/88 p-3 sm:p-4 shadow-sm shadow-slate-950/5 backdrop-blur">
+        <div className="mb-2">
           <div className="flex flex-wrap items-center gap-2">
-            <p className="text-xs font-black uppercase tracking-[0.16em] text-slate-500">Model Metrics</p>
-            <span className="rounded-full bg-gradient-to-r from-slate-100 to-white px-2 py-1 text-[10px] font-bold text-slate-500">
+            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-500">Model Metrics</p>
+            <span className="rounded-full bg-gradient-to-r from-slate-100 to-white px-1.5 py-0.5 text-[9px] font-bold text-slate-500">
               {payload.isLive ? '自動更新' : '編集データ'}
             </span>
-            {loading && <span className="text-[10px] font-bold text-gray-400">更新確認中...</span>}
+            {loading && <span className="text-[9px] font-bold text-gray-400">更新確認中...</span>}
           </div>
-          <h2 className="mt-1 text-xl font-extrabold text-slate-950">ジャンルごとにAIモデルを比較</h2>
-          <p className="mt-2 text-sm leading-relaxed text-gray-500">{genre.description}</p>
-          <p className="mt-2 text-xs leading-relaxed text-gray-500">
-            賢さ、速度、価格効率を分けて表示します。用途によって重視すべき指標が変わるため、単一の総合点ではなく項目別に比較します。
+          <h2 className="text-lg font-extrabold text-slate-950 mt-0.5">ジャンルごとにAIモデルを比較</h2>
+          <p className="mt-1 text-xs leading-relaxed text-gray-500">
+            {genre.description}。用途によって重視すべき指標が変わるため、賢さ・速度・価格効率の項目別に比較します。
           </p>
         </div>
         <div className="grid gap-2 md:grid-cols-3">
@@ -345,14 +344,14 @@ export default function AiModelCompareTool() {
               key={group.id}
               type="button"
               onClick={() => setGenreId(group.genreIds[0])}
-              className={`rounded-xl border px-3 py-2 text-left transition-all ${
+              className={`rounded-xl border px-3 py-1.5 text-left transition-all ${
                 activeGroup.id === group.id
                   ? 'border-slate-300 bg-gradient-to-r from-[#111827] to-[#64748b] text-white shadow-sm shadow-slate-950/10'
                   : 'border-gray-200 bg-white/82 text-gray-500 hover:border-slate-300 hover:bg-white hover:text-slate-950'
               }`}
             >
               <span className="block text-sm font-black">{group.label}</span>
-              <span className={`mt-1 block text-[11px] font-bold leading-relaxed ${
+              <span className={`block text-[10px] font-bold leading-relaxed ${
                 activeGroup.id === group.id ? 'text-white/72' : 'text-gray-400'
               }`}>
                 {group.description}
@@ -360,13 +359,13 @@ export default function AiModelCompareTool() {
             </button>
           ))}
         </div>
-        <div className="mt-3 flex flex-wrap gap-2">
+        <div className="mt-2 flex flex-wrap gap-1.5">
           {groupGenres.map((item) => (
             <button
               key={item.id}
               type="button"
               onClick={() => setGenreId(item.id)}
-              className={`rounded-full border px-3 py-2 text-xs font-black transition-all ${
+              className={`rounded-full border px-3 py-1 text-xs font-black transition-all ${
                 genreId === item.id
                   ? 'border-brand-text bg-slate-950 text-white shadow-sm shadow-slate-900/10'
                   : 'border-gray-200 bg-white/72 text-gray-500 hover:border-slate-300 hover:bg-white hover:text-slate-950'
@@ -376,14 +375,14 @@ export default function AiModelCompareTool() {
             </button>
           ))}
         </div>
-        <div className="mt-4 flex flex-wrap gap-2">
+        <div className="mt-2 flex flex-wrap gap-1.5 items-center">
           {genre.primaryMetrics.map((metric) => (
-            <span key={metric} className="rounded-full border border-slate-200/70 bg-white/72 px-3 py-1 text-xs font-bold text-gray-500">
+            <span key={metric} className="rounded-full border border-slate-200/70 bg-white/72 px-2 py-0.5 text-[10px] font-bold text-gray-500">
               {metric}
             </span>
           ))}
+          <span className="text-[10px] leading-relaxed text-gray-400 ml-1">{genre.sourceMetric}</span>
         </div>
-        <p className="mt-3 text-xs leading-relaxed text-gray-500">{genre.sourceMetric}</p>
       </section>
 
       <section className="grid gap-4 lg:grid-cols-3">

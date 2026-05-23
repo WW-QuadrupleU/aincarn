@@ -518,6 +518,46 @@ export async function createAiosProject(userId: string, name: string) {
   return rowToProject(queryRows(rows)[0])
 }
 
+export async function deleteAiosProject(userId: string, projectId: string) {
+  await ensureAiosSchema()
+  const sql = getSql()
+  const projects = await listAiosProjects(userId)
+  const project = projects.find((item) => item.id === projectId)
+  if (!project) throw new Error('プロジェクトが見つかりません')
+  if (projects.length <= 1) throw new Error('最後のプロジェクトは削除できません')
+
+  await sql`
+    DELETE FROM aincarn_aios_runs
+    WHERE user_id = ${userId}
+      AND task_id IN (
+        SELECT id FROM aincarn_aios_tasks
+        WHERE user_id = ${userId} AND project_id = ${projectId}
+      )
+  `
+  await sql`
+    DELETE FROM aincarn_aios_tasks
+    WHERE user_id = ${userId} AND project_id = ${projectId}
+  `
+  await sql`
+    DELETE FROM aincarn_aios_messages
+    WHERE user_id = ${userId} AND project_id = ${projectId}
+  `
+  await sql`
+    DELETE FROM aincarn_aios_plans
+    WHERE user_id = ${userId} AND project_id = ${projectId}
+  `
+  await sql`
+    DELETE FROM aincarn_aios_project_profiles
+    WHERE user_id = ${userId} AND project_id = ${projectId}
+  `
+  await sql`
+    DELETE FROM aincarn_aios_projects
+    WHERE user_id = ${userId} AND id = ${projectId}
+  `
+
+  return projects.find((item) => item.id !== projectId) || null
+}
+
 async function resolveProject(userId: string, projectId?: string | null) {
   const projects = await listAiosProjects(userId)
   return projects.find((project) => project.id === projectId) || projects[0]

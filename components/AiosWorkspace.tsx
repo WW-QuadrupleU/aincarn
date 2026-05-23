@@ -163,17 +163,45 @@ export default function AiosWorkspace({ fallback }: { fallback: ReactNode }) {
     }
   }
 
+  async function deleteProject(project: SavedAiosProject) {
+    if (state && state.projects.length <= 1) {
+      setError('最後のプロジェクトは削除できません。')
+      return
+    }
+    if (!confirm(`「${project.name}」を削除しますか？\n会話・Memory・行動案・実行履歴も削除されます。`)) return
+    setBusy(true)
+    setError('')
+    try {
+      const response = await fetch(`/api/aios/projects/${project.id}`, { method: 'DELETE' })
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.error || '削除に失敗しました')
+      await loadState(data.nextProjectId || undefined)
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : '削除に失敗しました')
+    } finally {
+      setBusy(false)
+    }
+  }
+
   async function changeStatus(id: string, status: SavedAiosTask['status']) {
-    const response = await fetch(`/api/aios/tasks/${id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status }),
-    })
-    const data = await response.json()
-    if (!response.ok) throw new Error(data.error || '更新に失敗しました')
-    setState((current) =>
-      current ? { ...current, tasks: current.tasks.map((task) => (task.id === id ? data.task : task)) } : current,
-    )
+    setBusy(true)
+    setError('')
+    try {
+      const response = await fetch(`/api/aios/tasks/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status }),
+      })
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.error || '更新に失敗しました')
+      setState((current) =>
+        current ? { ...current, tasks: current.tasks.map((task) => (task.id === id ? data.task : task)) } : current,
+      )
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : '更新に失敗しました')
+    } finally {
+      setBusy(false)
+    }
   }
 
   if (!isLoaded || (isSignedIn && loading && !state)) {
@@ -220,18 +248,32 @@ export default function AiosWorkspace({ fallback }: { fallback: ReactNode }) {
           )}
           <nav className="mt-4 space-y-2">
             {state.projects.map((project) => (
-              <button
-                type="button"
+              <div
                 key={project.id}
-                onClick={() => project.id !== state.project.id && loadState(project.id)}
-                className={`w-full rounded-2xl border p-3 text-left transition ${project.id === state.project.id ? 'border-slate-950 bg-slate-950 text-white' : 'border-slate-100 bg-white text-slate-700 hover:border-slate-300'}`}
+                className={`rounded-2xl border p-3 transition ${project.id === state.project.id ? 'border-slate-950 bg-slate-950 text-white' : 'border-slate-100 bg-white text-slate-700 hover:border-slate-300'}`}
               >
-                <span className={`mb-2 block h-1 w-10 rounded-full bg-gradient-to-r ${accentStyles[project.accent] || accentStyles.indigo}`} />
-                <span className="block truncate text-sm font-black">{project.name}</span>
-                <span className={`mt-1 block text-[10px] font-bold ${project.id === state.project.id ? 'text-white/55' : 'text-slate-400'}`}>
-                  {project.id === state.project.id ? '開いています' : '切り替える'}
-                </span>
-              </button>
+                <button type="button" onClick={() => project.id !== state.project.id && loadState(project.id)} className="block w-full text-left">
+                  <span className={`mb-2 block h-1 w-10 rounded-full bg-gradient-to-r ${accentStyles[project.accent] || accentStyles.indigo}`} />
+                  <span className="block truncate text-sm font-black">{project.name}</span>
+                  <span className={`mt-1 block text-[10px] font-bold ${project.id === state.project.id ? 'text-white/55' : 'text-slate-400'}`}>
+                    {project.id === state.project.id ? '開いています' : '切り替える'}
+                  </span>
+                </button>
+                {state.projects.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => deleteProject(project)}
+                    disabled={busy}
+                    className={`mt-3 rounded-full px-3 py-1 text-[10px] font-black transition ${
+                      project.id === state.project.id
+                        ? 'bg-white/10 text-white/70 hover:bg-rose-500 hover:text-white'
+                        : 'bg-slate-50 text-slate-400 hover:bg-rose-50 hover:text-rose-600'
+                    } disabled:opacity-40`}
+                  >
+                    削除
+                  </button>
+                )}
+              </div>
             ))}
           </nav>
         </aside>
@@ -314,7 +356,12 @@ export default function AiosWorkspace({ fallback }: { fallback: ReactNode }) {
                     </div>
                     <div className="mt-3 flex flex-wrap gap-2">
                       {task.status !== 'done' && <button type="button" onClick={() => changeStatus(task.id, 'done')} className="rounded-full bg-slate-950 px-3 py-1.5 text-[11px] font-black text-white">完了</button>}
-                      {task.status === 'done' && <span className="rounded-full bg-emerald-100 px-3 py-1.5 text-[11px] font-black text-emerald-700">完了済み</span>}
+                      {task.status === 'done' && (
+                        <>
+                          <span className="rounded-full bg-emerald-100 px-3 py-1.5 text-[11px] font-black text-emerald-700">完了済み</span>
+                          <button type="button" onClick={() => changeStatus(task.id, 'todo')} disabled={busy} className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-black text-slate-600 hover:border-slate-400 disabled:opacity-40">未完了に戻す</button>
+                        </>
+                      )}
                       {task.recommendedTool && <span className="rounded-full bg-white px-3 py-1.5 text-[11px] font-bold text-slate-500">{task.recommendedTool}</span>}
                     </div>
                   </article>
