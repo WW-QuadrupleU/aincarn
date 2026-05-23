@@ -117,17 +117,17 @@ function AiosSignInPrompt() {
         <div className="p-6 sm:p-8">
           <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">Aincarn OS Test</p>
           <h1 className="mt-4 max-w-3xl text-4xl font-black tracking-tight text-slate-950 sm:text-6xl">
-            目標を入れると、最適なAIが動き出す。
+            話すほど、次の一手が見えてくる。
           </h1>
           <p className="mt-5 max-w-2xl text-sm font-bold leading-relaxed text-slate-600">
-            Aincarn OSは、あなたの目標から逆算してタスクを作り、各タスクに最適なAI（Claude / ChatGPT / Gemini / Perplexity ほか）と
-            そのまま貼り付けられるプロンプトを割り当てます。AIを使い分けるストレスを、Aincarn側に持ちます。
+            Aincarn OSは、決めきれていない目標や並行するプロジェクトを対話で整理し、
+            次にやるべき行動と実行手順へ変換します。プロジェクトごとの記憶はAincarnに残し、仕事に合うAIを選び分けます。
           </p>
           <ul className="mt-6 grid gap-2 text-sm font-bold text-slate-700">
-            <li>・目標 → 5〜7個の具体タスクをAIが生成</li>
-            <li>・各タスクに最適AIと使用プロンプトを同梱</li>
-            <li>・ワンクリックでAIを開く＋プロンプトをコピー</li>
-            <li>・進捗・実績はAincarn Memoryに残る</li>
+            <li>・問いかけながら、目標と成功条件を言語化</li>
+            <li>・複数プロジェクトをサイドバーで分けて管理</li>
+            <li>・会話から具体的な行動案と手順を生成</li>
+            <li>・進捗と判断の履歴はAincarn Memoryに残る</li>
           </ul>
           <SignInButton mode="modal">
             <button
