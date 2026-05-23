@@ -450,26 +450,37 @@ function AuthenticatedSubscriptionManager() {
 
   async function addPlan(service: SubscriptionCatalogService, plan: SubscriptionCatalogPlan, cycle: SubscriptionBillingCycle = 'monthly') {
     const input = planToInput(service, plan, cycle)
-    const alreadyExists = subscriptions.some(
+    const existingSubscription = subscriptions.find(
       (item) =>
         item.serviceName.toLowerCase() === service.name.toLowerCase() &&
-        (item.planName || '').toLowerCase() === (input.planName || '').toLowerCase() &&
         item.status !== 'cancelled',
     )
-    if (alreadyExists) {
+
+    if (existingSubscription && (existingSubscription.planName || '').toLowerCase() === (input.planName || '').toLowerCase()) {
       setMessage(`${service.name} ${input.planName} はすでにコレクションにあります。`)
       return
     }
-    await saveSubscription(input, null)
+
+    await saveSubscription(input, existingSubscription ? existingSubscription.id : null)
   }
 
   async function saveSubscription(input: SubscriptionInput = form, targetEditingId: string | null = editingId) {
     setSaving(true)
     setMessage('')
     try {
-      const endpoint = targetEditingId ? `/api/subscriptions/${targetEditingId}` : '/api/subscriptions'
+      let finalEditingId = targetEditingId
+      if (!finalEditingId) {
+        const existing = subscriptions.find(
+          (item) => item.serviceName.toLowerCase() === input.serviceName.toLowerCase() && item.status !== 'cancelled'
+        )
+        if (existing) {
+          finalEditingId = existing.id
+        }
+      }
+
+      const endpoint = finalEditingId ? `/api/subscriptions/${finalEditingId}` : '/api/subscriptions'
       const response = await fetch(endpoint, {
-        method: targetEditingId ? 'PUT' : 'POST',
+        method: finalEditingId ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(input),
       })
@@ -477,7 +488,7 @@ function AuthenticatedSubscriptionManager() {
       if (!response.ok) throw new Error(data.error || '保存に失敗しました')
       await loadSubscriptions()
       resetForm()
-      setMessage(targetEditingId ? '更新しました' : `${input.serviceName} ${input.planName || ''}をコレクションに追加しました`)
+      setMessage(finalEditingId ? 'プランを更新しました' : `${input.serviceName} ${input.planName || ''}をコレクションに追加しました`)
     } catch (error) {
       setMessage(error instanceof Error ? error.message : '保存に失敗しました')
     } finally {
