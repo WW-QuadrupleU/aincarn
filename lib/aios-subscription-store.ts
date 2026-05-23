@@ -66,6 +66,20 @@ export async function ensureSubscriptionsSchema() {
       updated_at timestamptz NOT NULL DEFAULT now()
     )
   `
+  await sql`ALTER TABLE aincarn_subscriptions ADD COLUMN IF NOT EXISTS stripe_customer_id text`
+  await sql`ALTER TABLE aincarn_subscriptions ADD COLUMN IF NOT EXISTS stripe_subscription_id text`
+  await sql`ALTER TABLE aincarn_subscriptions ADD COLUMN IF NOT EXISTS tier text NOT NULL DEFAULT 'free'`
+  await sql`ALTER TABLE aincarn_subscriptions ADD COLUMN IF NOT EXISTS status text NOT NULL DEFAULT 'inactive'`
+  await sql`ALTER TABLE aincarn_subscriptions ADD COLUMN IF NOT EXISTS current_period_end timestamptz`
+  await sql`ALTER TABLE aincarn_subscriptions ADD COLUMN IF NOT EXISTS cancel_at_period_end boolean NOT NULL DEFAULT false`
+  await sql`ALTER TABLE aincarn_subscriptions ADD COLUMN IF NOT EXISTS created_at timestamptz NOT NULL DEFAULT now()`
+  await sql`ALTER TABLE aincarn_subscriptions ADD COLUMN IF NOT EXISTS updated_at timestamptz NOT NULL DEFAULT now()`
+  await sql`
+    UPDATE aincarn_subscriptions
+    SET stripe_customer_id = user_id
+    WHERE stripe_customer_id IS NULL
+  `
+  await sql`ALTER TABLE aincarn_subscriptions ALTER COLUMN stripe_customer_id SET NOT NULL`
   await sql`
     CREATE INDEX IF NOT EXISTS aincarn_subscriptions_customer_idx
     ON aincarn_subscriptions (stripe_customer_id)

@@ -279,13 +279,8 @@ function PlanCard({
 
   return (
     <article
-      className="overflow-hidden rounded-2xl border bg-white shadow-sm shadow-slate-900/5"
-      style={{
-        borderColor: tone.border,
-        background: `linear-gradient(180deg, ${tone.soft} 0%, rgba(255,255,255,0.98) 22%, #fff 100%)`,
-      }}
+      className="overflow-hidden rounded-2xl border border-white/50 bg-white/60 shadow-sm transition hover:shadow-md hover:bg-white/80"
     >
-      <div className="h-1.5" style={{ background: tone.gradient }} />
       <div className="p-4">
         <p className="text-xs font-black uppercase tracking-[0.14em]" style={{ color: tone.ink }}>
           {service.name}
@@ -524,39 +519,42 @@ function AuthenticatedSubscriptionManager() {
   if (!isSignedIn) return <SignInPrompt />
 
   return (
-    <div className="space-y-6">
-      <section className="overflow-hidden rounded-[32px] border border-white/80 bg-white/92 shadow-xl shadow-slate-950/10 backdrop-blur">
-        <div className="grid gap-0 lg:grid-cols-[1fr_340px]">
-          <div className="p-5 sm:p-7">
-            <div className="flex flex-wrap items-center gap-3">
-              <p className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-black uppercase tracking-[0.18em] text-slate-500">
-                Subscription Collection
+    <div className="pb-16">
+      <section className="border-b border-white/80 bg-white/92 shadow-md shadow-slate-950/5 backdrop-blur">
+        <div className="mx-auto max-w-7xl px-4 py-12 lg:py-16">
+          <div className="grid gap-8 lg:grid-cols-[1fr_340px]">
+            <div className="sm:p-2">
+              <div className="flex flex-wrap items-center gap-3">
+                <p className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-black uppercase tracking-[0.18em] text-slate-500">
+                  Subscription Collection
+                </p>
+                <UserButton />
+              </div>
+              <h1 className="mt-6 max-w-3xl text-4xl font-black tracking-tight text-slate-950 sm:text-5xl lg:text-6xl">
+                AIサブスクを、カードで集める。
+              </h1>
+              <p className="mt-6 max-w-3xl text-base font-bold leading-relaxed text-gray-600">
+                このアカウントに紐づけて、契約中のAIサービスを保存します。
+                サービスを選んでからプランを選択でき、画像と動画など複数ジャンルのサービスもそのままタグ化します。
               </p>
-              <UserButton />
             </div>
-            <h1 className="mt-4 max-w-3xl text-4xl font-black tracking-tight text-slate-950 sm:text-5xl">
-              AIサブスクを、カードで集める。
-            </h1>
-            <p className="mt-4 max-w-3xl text-sm font-bold leading-relaxed text-gray-600">
-              このアカウントに紐づけて、契約中のAIサービスを保存します。
-              サービスを選んでからプランを選択でき、画像と動画など複数ジャンルのサービスもそのままタグ化します。
-            </p>
-          </div>
-          <div className="bg-slate-950 p-5 text-white sm:p-6">
-            <p className="text-xs font-black uppercase tracking-[0.18em] text-white/75">Monthly total</p>
-            <p className="mt-3 text-4xl font-black">{formatUsd(totalMonthly)}</p>
-            <p className="mt-2 text-sm font-bold text-white/82">年換算目安 {formatUsd(yearlyEstimate)}</p>
-            <div className="mt-5 rounded-2xl border border-white/35 bg-white/16 p-4 backdrop-blur">
-              <p className="text-xs font-black uppercase tracking-[0.16em] text-white/70">Next renewal</p>
-              <p className="mt-2 text-sm font-black">
-                {nextRenewal ? `${nextRenewal.serviceName} / ${formatDate(nextRenewal.renewalDate)}` : '未設定'}
-              </p>
+            <div className="rounded-[28px] bg-slate-950 p-6 text-white shadow-2xl sm:p-8">
+              <p className="text-xs font-black uppercase tracking-[0.18em] text-white/75">Monthly total</p>
+              <p className="mt-3 text-5xl font-black tracking-tight">{formatUsd(totalMonthly)}</p>
+              <p className="mt-2 text-sm font-bold text-white/82">年換算目安 {formatUsd(yearlyEstimate)}</p>
+              <div className="mt-6 rounded-2xl border border-white/20 bg-white/10 p-4 backdrop-blur">
+                <p className="text-xs font-black uppercase tracking-[0.16em] text-white/70">Next renewal</p>
+                <p className="mt-2 text-sm font-black">
+                  {nextRenewal ? `${nextRenewal.serviceName} / ${formatDate(nextRenewal.renewalDate)}` : '未設定'}
+                </p>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      <section className="rounded-[28px] border border-white/80 bg-white/90 p-5 shadow-sm shadow-slate-950/5 backdrop-blur sm:p-6">
+      <div className="mx-auto mt-10 max-w-7xl space-y-8 px-4">
+        <section className="rounded-[28px] border border-white/80 bg-white/90 p-5 shadow-sm shadow-slate-950/5 backdrop-blur sm:p-6">
         <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
           <div>
             <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">My Collection</p>
@@ -719,11 +717,9 @@ function AuthenticatedSubscriptionManager() {
             return (
               <article
                 key={service.id}
-                className="relative isolate max-w-full overflow-hidden rounded-[30px] border shadow-sm shadow-slate-900/5 transition hover:-translate-y-0.5"
-                style={getServiceFrameStyle(service.id, isSelected)}
+                className="relative isolate max-w-full overflow-hidden rounded-[30px] border border-white/50 bg-white/80 shadow-sm transition hover:shadow-md hover:bg-white"
               >
                 <button type="button" onClick={() => setSelectedServiceId(service.id)} className="block w-full text-left">
-                  <div className="absolute inset-y-0 left-0 w-2" style={{ background: tone.gradient }} />
                   <div className="absolute right-0 top-0 h-16 w-32 rounded-bl-[42px] opacity-10" style={{ background: tone.gradient }} />
                   <div className="flex max-w-full flex-col gap-4 p-4 pl-6 lg:flex-row lg:items-center">
                     <div className="flex min-w-0 items-center gap-3 lg:w-[240px] lg:shrink-0">
@@ -940,6 +936,7 @@ function AuthenticatedSubscriptionManager() {
           </section>
         </div>
       </section>
+      </div>
     </div>
   )
 }

@@ -10,9 +10,7 @@ export const metadata: Metadata = {
 export default function SubscriptionsPage() {
   return (
     <main className="min-h-screen overflow-x-hidden">
-      <div className="mx-auto max-w-7xl px-4 py-10">
-        <SubscriptionManager />
-      </div>
+      <SubscriptionManager />
     </main>
   )
 }
