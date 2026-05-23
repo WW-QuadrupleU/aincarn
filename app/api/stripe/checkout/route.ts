@@ -42,7 +42,7 @@ export async function POST(request: Request) {
   // Reuse the existing customer if we already created one, otherwise
   // let Stripe create a new one keyed to this Clerk userId.
   const existing = await getSubscriptionByUserId(auth.userId)
-  let customerId = existing?.stripeCustomerId
+  let customerId = existing?.stripeCustomerId?.startsWith('cus_') ? existing.stripeCustomerId : null
 
   if (!customerId) {
     const customer = await stripe.customers.create({
@@ -58,8 +58,8 @@ export async function POST(request: Request) {
     })
   }
 
-  const session = await stripe.checkout.sessions.create({
-    mode: 'subscription',
+  const checkoutParams = {
+    mode: 'subscription' as const,
     customer: customerId,
     line_items: [{ price: plan.priceId, quantity: 1 }],
     allow_promotion_codes: true,
@@ -75,7 +75,30 @@ export async function POST(request: Request) {
         tier,
       },
     },
-  })
+  }
+
+  let session
+  try {
+    session = await stripe.checkout.sessions.create(checkoutParams)
+  } catch (error) {
+    const message = error instanceof Error ? error.message : ''
+    if (!message.includes('No such customer')) throw error
+
+    const customer = await stripe.customers.create({
+      email: email || undefined,
+      metadata: { clerk_user_id: auth.userId },
+    })
+    await upsertSubscriptionRecord({
+      userId: auth.userId,
+      stripeCustomerId: customer.id,
+      tier: 'free',
+      status: 'inactive',
+    })
+    session = await stripe.checkout.sessions.create({
+      ...checkoutParams,
+      customer: customer.id,
+    })
+  }
 
   return NextResponse.json({ url: session.url })
   } catch (error) {

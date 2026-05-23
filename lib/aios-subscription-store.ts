@@ -81,6 +81,16 @@ export async function ensureSubscriptionsSchema() {
   `
   await sql`ALTER TABLE aincarn_subscriptions ALTER COLUMN stripe_customer_id SET NOT NULL`
   await sql`
+    DELETE FROM aincarn_subscriptions older
+    USING aincarn_subscriptions newer
+    WHERE older.user_id = newer.user_id
+      AND older.ctid < newer.ctid
+  `
+  await sql`
+    CREATE UNIQUE INDEX IF NOT EXISTS aincarn_subscriptions_user_id_idx
+    ON aincarn_subscriptions (user_id)
+  `
+  await sql`
     CREATE INDEX IF NOT EXISTS aincarn_subscriptions_customer_idx
     ON aincarn_subscriptions (stripe_customer_id)
   `

@@ -16,7 +16,7 @@ export async function POST() {
   }
 
   const record = await getSubscriptionByUserId(auth.userId)
-  if (!record?.stripeCustomerId) {
+  if (!record?.stripeCustomerId || !record.stripeCustomerId.startsWith('cus_')) {
     return NextResponse.json(
       { error: 'まだサブスクリプションが開始されていません。プランを選択してください。' },
       { status: 404 },
