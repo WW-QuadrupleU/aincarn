@@ -98,7 +98,7 @@ export type SubscriptionCatalogPlan = {
   includes?: string[]
   bestFor?: string
   cautions?: string
-  matrixX?: ('general' | 'coding' | 'media' | 'audio' | 'musicInst' | 'musicVocal')[]
+  matrixX?: ('general' | 'coding' | 'media' | 'audio' | 'music')[]
   matrixY?: 'free' | 'low' | 'mid' | 'high' | 'premium'
 }
 
@@ -130,7 +130,7 @@ export type PlanRow = {
   bestFor: string
   cautions: string
   sourceUrl: string
-  matrixX: ('general' | 'coding' | 'media' | 'audio' | 'musicInst' | 'musicVocal')[]
+  matrixX: ('general' | 'coding' | 'media' | 'audio' | 'music')[]
   matrixY: 'free' | 'low' | 'mid' | 'high' | 'premium'
   isApi?: boolean
 }
@@ -1165,7 +1165,7 @@ export const defaultSubscriptionCatalog: SubscriptionCatalogService[] = [
         includes: ['50クレジット/日', '個人利用のみ'],
         bestFor: '音楽生成AIを試してみたい人',
         cautions: '生成した楽曲を商用利用することはできません。',
-        matrixX: ['musicInst', 'musicVocal'],
+        matrixX: ['music'],
         matrixY: 'free',
       },
       {
@@ -1177,7 +1177,7 @@ export const defaultSubscriptionCatalog: SubscriptionCatalogService[] = [
         includes: ['2,500クレジット/月', '商用利用可', '優先キュー'],
         bestFor: 'コンテンツ向け楽曲制作、SNS用ジングル制作',
         cautions: '生成上限を超えるとPremier必須。',
-        matrixX: ['musicInst', 'musicVocal'],
+        matrixX: ['music'],
         matrixY: 'low',
         yearly: {
           monthlyCostUsd: 8,
@@ -1193,7 +1193,7 @@ export const defaultSubscriptionCatalog: SubscriptionCatalogService[] = [
         includes: ['10,000クレジット/月', 'Stem分離', '4並列生成', '商用利用可'],
         bestFor: 'プロ作家、楽曲アイデア大量生成、業務制作',
         cautions: 'Stem分離はバージョン依存で揺れる場合あり。',
-        matrixX: ['musicInst', 'musicVocal'],
+        matrixX: ['music'],
         matrixY: 'mid',
         yearly: {
           monthlyCostUsd: 24,
@@ -1223,7 +1223,7 @@ export const defaultSubscriptionCatalog: SubscriptionCatalogService[] = [
         includes: ['10曲/月', 'クリエイティブコモンズ・非商用'],
         bestFor: 'まず触ってみたい人',
         cautions: '商用配信はできません。',
-        matrixX: ['musicInst', 'musicVocal'],
+        matrixX: ['music'],
         matrixY: 'free',
       },
       {
@@ -1235,7 +1235,7 @@ export const defaultSubscriptionCatalog: SubscriptionCatalogService[] = [
         includes: ['1,200曲/月', '商用利用可', 'Inpainting'],
         bestFor: 'インディーズ制作、ボーカル入りデモ作成',
         cautions: '英語ボーカルが最も自然、日本語は揺れる。',
-        matrixX: ['musicInst', 'musicVocal'],
+        matrixX: ['music'],
         matrixY: 'low',
       },
       {
@@ -1247,7 +1247,7 @@ export const defaultSubscriptionCatalog: SubscriptionCatalogService[] = [
         includes: ['4,800曲/月', '高品質モード', '優先サポート'],
         bestFor: 'プロ作家、リミックス制作',
         cautions: 'Stem分離は別オプション。',
-        matrixX: ['musicInst', 'musicVocal'],
+        matrixX: ['music'],
         matrixY: 'mid',
       },
     ],

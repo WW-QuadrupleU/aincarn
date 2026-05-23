@@ -11,7 +11,7 @@ import {
   getFlatSubscriptionPlans,
 } from '@/lib/ai-database'
 
-type PricingMode = 'plans' | 'llm' | 'image' | 'video' | 'audio' | 'musicInst' | 'musicVocal'
+type PricingMode = 'plans' | 'llm' | 'image' | 'video' | 'audio' | 'music'
 type ViewMode = 'matrix' | 'breakeven' | 'diagnosis' | 'api'
 
 type PricingRow = {
@@ -51,14 +51,9 @@ const modeOptions: Array<{ id: PricingMode; label: string; description: string }
     description: '月間生成文字数から、音声読み上げAIのコストを比較します。',
   },
   {
-    id: 'musicInst',
-    label: '音楽生成(インスト)',
-    description: 'BGM・劇伴のような楽器のみの楽曲生成AIを比較します。',
-  },
-  {
-    id: 'musicVocal',
-    label: '音楽生成(ボーカル)',
-    description: '歌詞付き楽曲・デモソング向けの楽曲生成AIを比較します。',
+    id: 'music',
+    label: '音楽生成',
+    description: 'BGM・劇伴・ボーカル楽曲などの音楽生成AIを比較します。',
   },
 ]
 
@@ -68,8 +63,7 @@ const modeTone: Record<PricingMode, string> = {
   image: 'from-fuchsia-600 via-rose-500 to-orange-400',
   video: 'from-violet-600 via-indigo-500 to-sky-400',
   audio: 'from-amber-500 via-orange-400 to-red-400',
-  musicInst: 'from-pink-500 via-rose-400 to-orange-400',
-  musicVocal: 'from-purple-500 via-pink-500 to-rose-400',
+  music: 'from-pink-500 via-rose-400 to-orange-400',
 }
 
 const matrixXLabels = {
@@ -77,8 +71,7 @@ const matrixXLabels = {
   coding: { label: '開発・コード', desc: 'GitHub Copilot / Cursorなどプログラミング支援' },
   media: { label: '画像・動画生成', desc: 'Midjourney / Runwayなどクリエイティブ系' },
   audio: { label: '音声生成', desc: 'ElevenLabs / OpenAI TTSなどナレーション制作' },
-  musicInst: { label: '音楽(インスト)', desc: 'Stable Audio / Suno BGM等のインストゥルメンタル制作' },
-  musicVocal: { label: '音楽(ボーカル)', desc: 'Suno / Udioなど歌唱付き楽曲制作' },
+  music: { label: '音楽生成', desc: 'Suno / Udio / Stable Audioなど楽曲制作' },
 }
 
 const matrixYLabels = {
@@ -106,8 +99,9 @@ function genrePerformance(model: AiModel, mode: PricingMode): number {
   if (mode === 'image') return Math.max(model.performance.textImage || 0, model.performance.imageImage || 0)
   if (mode === 'video') return Math.max(model.performance.textVideo || 0, model.performance.imageVideo || 0)
   if (mode === 'audio') return model.performance.textSpeech || 0
-  if (mode === 'musicInst') return model.performance.musicInstrumental || 0
-  if (mode === 'musicVocal') return model.performance.musicVocal || 0
+  if (mode === 'music') {
+    return Math.max(model.performance.musicInstrumental || 0, model.performance.musicVocal || 0)
+  }
   return Math.max(
     model.performance.research || 0,
     model.performance.writing || 0,
@@ -121,8 +115,7 @@ function unitLabel(mode: PricingMode) {
   if (mode === 'llm') return '100万tokens'
   if (mode === 'image') return '1生成'
   if (mode === 'audio') return '1000文字'
-  if (mode === 'musicInst') return '1月額/1曲'
-  if (mode === 'musicVocal') return '1月額/1曲'
+  if (mode === 'music') return '1月額/1曲'
   return '1分'
 }
 
@@ -137,8 +130,9 @@ function eligibleForMode(model: AiModel, mode: PricingMode) {
   }
   if (mode === 'image') return model.visibleIn.includes('textImage') || model.visibleIn.includes('imageImage')
   if (mode === 'audio') return model.visibleIn.includes('textSpeech')
-  if (mode === 'musicInst') return model.visibleIn.includes('musicInstrumental')
-  if (mode === 'musicVocal') return model.visibleIn.includes('musicVocal')
+  if (mode === 'music') {
+    return model.visibleIn.includes('musicInstrumental') || model.visibleIn.includes('musicVocal')
+  }
   return model.visibleIn.includes('textVideo') || model.visibleIn.includes('imageVideo')
 }
 
@@ -146,9 +140,8 @@ function estimateCost(mode: PricingMode, unitPrice: number, tokenMillions: numbe
   if (mode === 'llm') return unitPrice * tokenMillions
   if (mode === 'image') return unitPrice * imageCount
   if (mode === 'audio') return unitPrice * (audioChars / 1000)
-  if (mode === 'musicInst' || mode === 'musicVocal') return unitPrice
+  if (mode === 'music') return unitPrice
   return unitPrice * videoMinutes
-  // musicSongs is referenced to keep parity with caller signature
   void musicSongs
 }
 
@@ -1040,8 +1033,11 @@ export default function AiPricingTool() {
                         </td>
 
                         {/* 各マトリックスセル */}
-                        <td colSpan={4} className="p-2 align-top border-l border-slate-200/80 bg-slate-50/10">
-                          <div className="grid grid-cols-4 gap-2 relative">
+                        <td colSpan={Object.keys(matrixXLabels).length} className="p-2 align-top border-l border-slate-200/80 bg-slate-50/10">
+                          <div
+                            className="grid gap-2 relative"
+                            style={{ gridTemplateColumns: `repeat(${Object.keys(matrixXLabels).length}, minmax(0, 1fr))` }}
+                          >
                             {(() => {
                               const plansInY = AI_PLANS.filter((plan) => plan.matrixY === yKey).sort((a, b) => a.monthlyUsd - b.monthlyUsd)
                               let matchedPlans = plansInY.map((plan) => {
@@ -1054,7 +1050,14 @@ export default function AiPricingTool() {
                               })
 
                               if (matchedPlans.length === 0) {
-                                return <div className="col-span-4 text-[10px] font-bold text-gray-300 italic text-center py-4">-</div>
+                                return (
+                                  <div
+                                    className="text-[10px] font-bold text-gray-300 italic text-center py-4"
+                                    style={{ gridColumn: `1 / span ${Object.keys(matrixXLabels).length}` }}
+                                  >
+                                    -
+                                  </div>
+                                )
                               }
 
                               const xKeys = Object.keys(matrixXLabels)
