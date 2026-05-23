@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 const tools = [
   {
     href: '/tools/ai-model-compare',
-    label: 'AIモデル比較',
+    label: 'AI性能比較',
     body: '賢さ、速度、価格効率を横並びで見て、用途に合うAIを探します。',
     tag: 'Compare',
     metric: '3指標',
@@ -43,7 +43,7 @@ const tools = [
 const toolStories = [
   {
     href: '/tools/ai-model-compare',
-    label: 'AIモデル比較',
+    label: 'AI性能比較',
     eyebrow: 'Model Intelligence',
     title: 'モデルの強さを、用途ごとに静かに比較する。',
     body: '公開ベンチマーク、速度、価格効率を用途別に整理。文章、コード、リサーチ、画像、動画など、自分の作業に効く指標だけを見やすく並べます。',

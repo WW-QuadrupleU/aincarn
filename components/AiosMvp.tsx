@@ -117,17 +117,16 @@ function AiosSignInPrompt() {
         <div className="p-6 sm:p-8">
           <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">Aincarn OS Test</p>
           <h1 className="mt-4 max-w-3xl text-4xl font-black tracking-tight text-slate-950 sm:text-6xl">
-            話すほど、次の一手が見えてくる。
+            あなたの断片が、<br />ひとつの自分になる。
           </h1>
           <p className="mt-5 max-w-2xl text-sm font-bold leading-relaxed text-slate-600">
-            Aincarn OSは、決めきれていない目標や並行するプロジェクトを対話で整理し、
-            次にやるべき行動と実行手順へ変換します。プロジェクトごとの記憶はAincarnに残し、仕事に合うAIを選び分けます。
+            Aincarn OSは、興味・目標・行動・実績・気づきをDigital DNAとして蓄積する、
+            あなた自身の外部記憶です。まずは気軽なひとことから、自分の輪郭を残していきます。
           </p>
           <ul className="mt-6 grid gap-2 text-sm font-bold text-slate-700">
-            <li>・問いかけながら、目標と成功条件を言語化</li>
-            <li>・複数プロジェクトをサイドバーで分けて管理</li>
-            <li>・会話から具体的な行動案と手順を生成</li>
-            <li>・進捗と判断の履歴はAincarn Memoryに残る</li>
+            <li>・ひとこと入力で、現在の関心や経験を記録</li>
+            <li>・蓄積した断片が浮遊するDigital DNAとして見える</li>
+            <li>・目標も迷いも、ひとつの自分の履歴として保存</li>
           </ul>
           <SignInButton mode="modal">
             <button

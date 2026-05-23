@@ -33,6 +33,42 @@ export type SavedAiosMessage = {
   createdAt: string
 }
 
+export type AiosSignalKind = 'interest' | 'goal' | 'action' | 'achievement' | 'insight'
+
+export type SavedAiosSignal = {
+  id: string
+  userId: string
+  projectId: string
+  kind: AiosSignalKind
+  content: string
+  createdAt: string
+}
+
+export type SavedAiosFuture = {
+  userId: string
+  signalId: string
+  statement: string
+  createdAt: string
+  updatedAt: string
+}
+
+export type AiosPathMove = {
+  title: string
+  reason: string
+  certainty: 'now' | 'next' | 'emerging'
+}
+
+export type SavedAiosPath = {
+  id: string
+  userId: string
+  futureStatement: string
+  moves: AiosPathMove[]
+  beyond: string[]
+  rationale: string
+  model: string
+  createdAt: string
+}
+
 export type AiosTaskInput = {
   title: string
   reason: string
@@ -109,6 +145,65 @@ function rowToMessage(row: Record<string, unknown>): SavedAiosMessage {
     projectId: String(row.project_id),
     role: String(row.role) === 'assistant' ? 'assistant' : 'user',
     content: String(row.content),
+    createdAt: new Date(String(row.created_at)).toISOString(),
+  }
+}
+
+function rowToSignal(row: Record<string, unknown>): SavedAiosSignal {
+  return {
+    id: String(row.id),
+    userId: String(row.user_id),
+    projectId: String(row.project_id),
+    kind: String(row.kind) as AiosSignalKind,
+    content: String(row.content),
+    createdAt: new Date(String(row.created_at)).toISOString(),
+  }
+}
+
+function rowToFuture(row: Record<string, unknown>): SavedAiosFuture {
+  return {
+    userId: String(row.user_id),
+    signalId: String(row.signal_id),
+    statement: String(row.statement),
+    createdAt: new Date(String(row.created_at)).toISOString(),
+    updatedAt: new Date(String(row.updated_at)).toISOString(),
+  }
+}
+
+function readJsonArray(value: unknown): unknown[] {
+  if (Array.isArray(value)) return value
+  if (typeof value === 'string') {
+    try {
+      const parsed = JSON.parse(value)
+      return Array.isArray(parsed) ? parsed : []
+    } catch {
+      return []
+    }
+  }
+  return []
+}
+
+function rowToPath(row: Record<string, unknown>): SavedAiosPath {
+  const moves = readJsonArray(row.moves_json).slice(0, 3).map((move, index) => {
+    const item = move && typeof move === 'object' ? (move as Record<string, unknown>) : {}
+    const fallbackCertainty: AiosPathMove['certainty'] = index === 0 ? 'now' : index === 1 ? 'next' : 'emerging'
+    const certainty = ['now', 'next', 'emerging'].includes(String(item.certainty))
+      ? (String(item.certainty) as AiosPathMove['certainty'])
+      : fallbackCertainty
+    return {
+      title: String(item.title || ''),
+      reason: String(item.reason || ''),
+      certainty,
+    }
+  })
+  return {
+    id: String(row.id),
+    userId: String(row.user_id),
+    futureStatement: String(row.future_statement),
+    moves,
+    beyond: readJsonArray(row.beyond_json).slice(0, 4).map(String),
+    rationale: String(row.rationale || ''),
+    model: String(row.model || ''),
     createdAt: new Date(String(row.created_at)).toISOString(),
   }
 }
@@ -202,6 +297,45 @@ export async function ensureAiosSchema() {
   await sql`
     CREATE INDEX IF NOT EXISTS aincarn_aios_messages_project_idx
     ON aincarn_aios_messages (user_id, project_id, created_at ASC)
+  `
+  await sql`
+    CREATE TABLE IF NOT EXISTS aincarn_aios_signals (
+      id text PRIMARY KEY,
+      project_id text NOT NULL,
+      user_id text NOT NULL,
+      kind text NOT NULL,
+      content text NOT NULL,
+      created_at timestamptz NOT NULL DEFAULT now()
+    )
+  `
+  await sql`
+    CREATE INDEX IF NOT EXISTS aincarn_aios_signals_user_idx
+    ON aincarn_aios_signals (user_id, created_at DESC)
+  `
+  await sql`
+    CREATE TABLE IF NOT EXISTS aincarn_aios_futures (
+      user_id text PRIMARY KEY,
+      signal_id text NOT NULL,
+      statement text NOT NULL,
+      created_at timestamptz NOT NULL DEFAULT now(),
+      updated_at timestamptz NOT NULL DEFAULT now()
+    )
+  `
+  await sql`
+    CREATE TABLE IF NOT EXISTS aincarn_aios_path_snapshots (
+      id text PRIMARY KEY,
+      user_id text NOT NULL,
+      future_statement text NOT NULL,
+      moves_json jsonb NOT NULL DEFAULT '[]'::jsonb,
+      beyond_json jsonb NOT NULL DEFAULT '[]'::jsonb,
+      rationale text NOT NULL,
+      model text NOT NULL,
+      created_at timestamptz NOT NULL DEFAULT now()
+    )
+  `
+  await sql`
+    CREATE INDEX IF NOT EXISTS aincarn_aios_path_user_idx
+    ON aincarn_aios_path_snapshots (user_id, created_at DESC)
   `
   // Migrate existing tables to include AI-routing columns
   await sql`ALTER TABLE aincarn_aios_tasks ADD COLUMN IF NOT EXISTS recommended_tool text`
@@ -543,6 +677,10 @@ export async function deleteAiosProject(userId: string, projectId: string) {
     WHERE user_id = ${userId} AND project_id = ${projectId}
   `
   await sql`
+    DELETE FROM aincarn_aios_signals
+    WHERE user_id = ${userId} AND project_id = ${projectId}
+  `
+  await sql`
     DELETE FROM aincarn_aios_plans
     WHERE user_id = ${userId} AND project_id = ${projectId}
   `
@@ -595,6 +733,110 @@ export async function getAiosMessages(userId: string, projectId: string) {
   return queryRows(rows).map(rowToMessage)
 }
 
+export async function recordAiosSignal(
+  userId: string,
+  projectId: string,
+  kind: AiosSignalKind,
+  content: string,
+) {
+  await ensureAiosSchema()
+  const sql = getSql()
+  const rows = await sql`
+    INSERT INTO aincarn_aios_signals (id, project_id, user_id, kind, content)
+    VALUES (${crypto.randomUUID()}, ${projectId}, ${userId}, ${kind}, ${content})
+    RETURNING *
+  `
+  await sql`
+    UPDATE aincarn_aios_projects SET updated_at = now()
+    WHERE id = ${projectId} AND user_id = ${userId}
+  `
+  return rowToSignal(queryRows(rows)[0])
+}
+
+export async function getAiosSignals(userId: string, limit = 40) {
+  await ensureAiosSchema()
+  const sql = getSql()
+  const rows = await sql`
+    SELECT * FROM aincarn_aios_signals
+    WHERE user_id = ${userId}
+    ORDER BY created_at DESC
+    LIMIT ${limit}
+  `
+  return queryRows(rows).map(rowToSignal)
+}
+
+export async function setAiosFuture(userId: string, signalId: string) {
+  await ensureAiosSchema()
+  const sql = getSql()
+  const signalRows = await sql`
+    SELECT * FROM aincarn_aios_signals
+    WHERE id = ${signalId} AND user_id = ${userId} AND kind = 'goal'
+    LIMIT 1
+  `
+  const signal = queryRows(signalRows)[0]
+  if (!signal) throw new Error('未来として選べる目標が見つかりません')
+  const rows = await sql`
+    INSERT INTO aincarn_aios_futures (user_id, signal_id, statement)
+    VALUES (${userId}, ${signalId}, ${String(signal.content)})
+    ON CONFLICT (user_id)
+    DO UPDATE SET
+      signal_id = EXCLUDED.signal_id,
+      statement = EXCLUDED.statement,
+      updated_at = now()
+    RETURNING *
+  `
+  return rowToFuture(queryRows(rows)[0])
+}
+
+export async function getAiosFuture(userId: string) {
+  await ensureAiosSchema()
+  const sql = getSql()
+  const rows = await sql`
+    SELECT * FROM aincarn_aios_futures
+    WHERE user_id = ${userId}
+    LIMIT 1
+  `
+  const row = queryRows(rows)[0]
+  return row ? rowToFuture(row) : null
+}
+
+export async function recordAiosPath(
+  userId: string,
+  futureStatement: string,
+  moves: AiosPathMove[],
+  beyond: string[],
+  rationale: string,
+  model: string,
+) {
+  await ensureAiosSchema()
+  const sql = getSql()
+  const rows = await sql`
+    INSERT INTO aincarn_aios_path_snapshots (
+      id, user_id, future_statement, moves_json, beyond_json, rationale, model
+    )
+    VALUES (
+      ${crypto.randomUUID()}, ${userId}, ${futureStatement},
+      ${JSON.stringify(moves)}::jsonb, ${JSON.stringify(beyond)}::jsonb,
+      ${rationale}, ${model}
+    )
+    RETURNING *
+  `
+  return rowToPath(queryRows(rows)[0])
+}
+
+export async function getLatestAiosPath(userId: string) {
+  await ensureAiosSchema()
+  const sql = getSql()
+  const rows = await sql`
+    SELECT * FROM aincarn_aios_path_snapshots
+    WHERE user_id = ${userId}
+    ORDER BY created_at DESC
+    LIMIT 1
+  `
+  const row = queryRows(rows)[0]
+  return row ? rowToPath(row) : null
+}
+
 export async function getAiosState(userId: string, requestedProjectId?: string | null) {
   await ensureAiosSchema()
   const sql = getSql()
@@ -616,6 +858,8 @@ export async function getAiosState(userId: string, requestedProjectId?: string |
       effort ASC,
       updated_at DESC
   `
+  const future = await getAiosFuture(userId)
+  const latestPath = await getLatestAiosPath(userId)
 
   return {
     projects,
@@ -623,6 +867,9 @@ export async function getAiosState(userId: string, requestedProjectId?: string |
     profile: queryRows(profileRows)[0] ? rowToProfile(queryRows(profileRows)[0]) : null,
     tasks: queryRows(taskRows).map(rowToTask),
     messages: await getAiosMessages(userId, project.id),
+    signals: await getAiosSignals(userId),
+    future,
+    path: latestPath?.futureStatement === future?.statement ? latestPath : null,
   }
 }
 

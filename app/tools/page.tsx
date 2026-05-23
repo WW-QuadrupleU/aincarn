@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 const tools = [
   {
     href: '/tools/ai-model-compare',
-    label: 'AIモデル比較',
+    label: 'AI性能比較',
     body: '賢さ、速度、価格効率を用途別に比較します。',
     meta: 'Performance',
   },

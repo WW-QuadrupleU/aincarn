@@ -49,6 +49,306 @@
   }
 }
 
+.dna-field {
+  position: relative;
+  background:
+    radial-gradient(circle at 18% 24%, rgba(56, 189, 248, 0.18), transparent 27%),
+    radial-gradient(circle at 76% 36%, rgba(139, 92, 246, 0.2), transparent 26%),
+    radial-gradient(circle at 62% 80%, rgba(244, 114, 182, 0.17), transparent 28%),
+    linear-gradient(140deg, #090d22 0%, #111836 54%, #081324 100%);
+}
+
+.dna-stage {
+  background:
+    radial-gradient(circle at 19% 26%, rgba(56, 189, 248, 0.15), transparent 25%),
+    radial-gradient(circle at 81% 18%, rgba(129, 140, 248, 0.23), transparent 22%),
+    radial-gradient(circle at 72% 74%, rgba(236, 72, 153, 0.12), transparent 26%),
+    linear-gradient(142deg, #070b1d 0%, #111731 52%, #071222 100%);
+}
+
+.path-constellation {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.path-beam {
+  position: absolute;
+  right: 19%;
+  top: 26%;
+  width: 42%;
+  height: 3px;
+  transform: rotate(-38deg);
+  transform-origin: right center;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, rgba(34, 211, 238, 0.34), rgba(129, 140, 248, 0.92));
+  box-shadow: 0 0 18px rgba(56, 189, 248, 0.32);
+}
+
+.path-orb {
+  position: absolute;
+  z-index: 12;
+  display: flex;
+  width: min(230px, 29%);
+  align-items: center;
+  gap: 9px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 999px;
+  background: rgba(13, 20, 42, 0.76);
+  padding: 9px 12px 9px 9px;
+  color: rgba(255, 255, 255, 0.82);
+  text-align: left;
+  pointer-events: auto;
+  backdrop-filter: blur(12px);
+  transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
+}
+
+.path-orb:hover,
+.path-orb-active {
+  border-color: rgba(103, 232, 249, 0.5);
+  background: rgba(22, 34, 65, 0.94);
+  transform: translateY(-2px);
+}
+
+.path-orb span {
+  display: flex;
+  width: 25px;
+  height: 25px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: rgba(103, 232, 249, 0.14);
+  color: #67e8f9;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.path-orb strong {
+  overflow: hidden;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.path-orb-1 {
+  left: 43%;
+  top: 69%;
+}
+
+.path-orb-2 {
+  left: 52%;
+  top: 52%;
+  opacity: 0.88;
+}
+
+.path-orb-3 {
+  left: 61%;
+  top: 35%;
+  opacity: 0.62;
+}
+
+.future-beacon::before {
+  content: '';
+  position: absolute;
+  inset: -18px;
+  z-index: -1;
+  border-radius: inherit;
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.24), transparent 70%);
+  filter: blur(7px);
+}
+
+.aios-fullscreen {
+  height: calc(100dvh - 4rem);
+  overflow: hidden;
+}
+
+body:has(.aios-fullscreen) > div > footer,
+body:has(.aios-fullscreen) footer {
+  display: none;
+}
+
+body:has(.aios-fullscreen) {
+  overflow: hidden;
+}
+
+.dna-orbit,
+.dna-strand {
+  position: absolute;
+  pointer-events: none;
+}
+
+.dna-orbit {
+  border: 1px solid rgba(148, 163, 184, 0.1);
+  border-radius: 999px;
+}
+
+.dna-orbit-a {
+  inset: 22% -25% 12% 20%;
+  transform: rotate(-13deg);
+}
+
+.dna-orbit-b {
+  inset: 10% 25% 36% -24%;
+  transform: rotate(18deg);
+}
+
+.dna-strand {
+  left: 8%;
+  right: 8%;
+  height: 1px;
+  opacity: 0.44;
+  background-image: linear-gradient(90deg, transparent, rgba(125, 211, 252, 0.56) 26%, rgba(167, 139, 250, 0.58) 53%, rgba(251, 113, 133, 0.46) 76%, transparent);
+  filter: blur(0.1px);
+}
+
+.dna-strand-a {
+  top: 40%;
+  transform: rotate(-9deg);
+}
+
+.dna-strand-b {
+  top: 61%;
+  transform: rotate(10deg);
+}
+
+.dna-node {
+  position: absolute;
+  z-index: 2;
+  left: var(--dna-left);
+  top: var(--dna-top);
+  display: flex;
+  max-width: 138px;
+  transform: translate(-50%, -50%);
+  align-items: center;
+  gap: 5px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
+  padding: 6px 9px 6px 7px;
+  color: white;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.25);
+  animation: dna-float var(--dna-duration) ease-in-out var(--dna-delay) infinite alternate;
+  backdrop-filter: blur(9px);
+}
+
+.dna-node::before {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  z-index: -1;
+  border-radius: inherit;
+  background: inherit;
+  opacity: 0.26;
+  filter: blur(11px);
+}
+
+.dna-node-current {
+  border-color: rgba(255, 255, 255, 0.36);
+}
+
+.dna-node-memory {
+  opacity: 0.56;
+  transform: translate(-50%, -50%) scale(0.9);
+}
+
+.dna-node-interest {
+  background: linear-gradient(120deg, rgba(14, 165, 233, 0.85), rgba(34, 211, 238, 0.68));
+}
+
+.dna-node-goal {
+  background: linear-gradient(120deg, rgba(99, 102, 241, 0.9), rgba(168, 85, 247, 0.72));
+}
+
+.dna-node-action {
+  background: linear-gradient(120deg, rgba(245, 158, 11, 0.9), rgba(249, 115, 22, 0.72));
+}
+
+.dna-node-achievement {
+  background: linear-gradient(120deg, rgba(16, 185, 129, 0.9), rgba(45, 212, 191, 0.7));
+}
+
+.dna-node-insight {
+  background: linear-gradient(120deg, rgba(244, 63, 94, 0.9), rgba(236, 72, 153, 0.7));
+}
+
+.dna-node-kind {
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.18);
+  padding: 2px 5px;
+  font-size: 8px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.dna-node-value {
+  overflow: hidden;
+  font-size: 11px;
+  font-weight: 900;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dna-field-caption {
+  position: absolute;
+  right: 12px;
+  bottom: 11px;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: rgba(226, 232, 240, 0.56);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+@keyframes dna-float {
+  from {
+    translate: -2px -5px;
+  }
+  to {
+    translate: 3px 7px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dna-node {
+    animation: none;
+  }
+}
+
+@media (max-width: 1023px) {
+  body:has(.aios-fullscreen) {
+    overflow: auto;
+  }
+
+  .aios-fullscreen {
+    height: auto;
+    min-height: calc(100dvh - 4rem);
+    overflow: visible;
+  }
+}
+
+@media (min-width: 640px) {
+  .path-move:not(:last-child) {
+    position: relative;
+  }
+
+  .path-move:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    top: 36px;
+    right: -13px;
+    z-index: 2;
+    width: 22px;
+    height: 1px;
+    background-image: linear-gradient(90deg, rgba(148, 163, 184, 0.62), rgba(148, 163, 184, 0.12));
+  }
+}
+
 /* Article content styles */
 .article-content h2 {
   @apply text-xl font-bold text-slate-950 mt-10 mb-4 pb-2 border-b border-slate-200;

@@ -1,10 +1,10 @@
 import type { Metadata } from 'next'
-import AiosMvp from '@/components/AiosMvp'
+import AiosAiLab from '@/components/AiosAiLab'
 
 export const metadata: Metadata = {
-  title: 'Aincarn OS MVP Test',
+  title: 'Aincarn AI Path Lab',
   description:
-    'Aincarn OSのテスト環境です。目標、行動、実績を保存し、最適なAIが支援する体験のMVPを検証します。',
+    'Aincarn OSのAI経路設計を、保存データとは分離して検証する非公開テスト環境です。',
   robots: {
     index: false,
     follow: false,
@@ -14,8 +14,8 @@ export const metadata: Metadata = {
 export default function AiosTestPage() {
   return (
     <main className="min-h-screen">
-      <div className="mx-auto max-w-7xl px-4 py-10">
-        <AiosMvp />
+      <div className="mx-auto max-w-[1320px] px-4 py-6">
+        <AiosAiLab />
       </div>
     </main>
   )
