@@ -34,13 +34,6 @@ const signalOptions: Array<{
   { kind: 'insight', label: '気づき', prompt: '迷い、判断材料、制約', node: 'dna-node-insight', tone: 'text-rose-700 bg-rose-50', selectedTone: 'border-rose-300/70 bg-rose-400/30 text-rose-50 shadow-sm shadow-rose-400/20', idleTone: 'border-rose-300/20 bg-rose-400/10 text-rose-100/80' },
 ]
 
-const initialSignals: LabSignal[] = [
-  { id: 'lab-interest-1', kind: 'interest', content: 'AIサービス' },
-  { id: 'lab-action-1', kind: 'action', content: '比較サイトを公開' },
-  { id: 'lab-achievement-1', kind: 'achievement', content: '課金導線を検証' },
-  { id: 'lab-insight-1', kind: 'insight', content: '次の一手が価値' },
-]
-
 function dnaHash(input: string) {
   let hash = 0
   for (let index = 0; index < input.length; index += 1) hash = (hash * 31 + input.charCodeAt(index)) % 10007
@@ -72,10 +65,10 @@ function usd(value: number | null) {
 }
 
 export default function AiosAiLab() {
-  const [signals, setSignals] = useState<LabSignal[]>(initialSignals)
+  const [signals, setSignals] = useState<LabSignal[]>([])
   const [signalKind, setSignalKind] = useState<AiosSignalKind>('goal')
   const [signalDraft, setSignalDraft] = useState('')
-  const [future, setFuture] = useState('Aincarn OSを、日々の意思決定を支えるサービスとして成立させる')
+  const [future, setFuture] = useState('')
   const [result, setResult] = useState<LabResult | null>(null)
   const [selectedMove, setSelectedMove] = useState(0)
   const [busy, setBusy] = useState(false)
@@ -87,6 +80,7 @@ export default function AiosAiLab() {
     () => signalOptions.map((option) => ({ ...option, count: signals.filter((signal) => signal.kind === option.kind).length })),
     [signals],
   )
+  const goals = signals.filter((signal) => signal.kind === 'goal')
   const move = result?.path.moves[selectedMove]
 
   function addSignal() {
@@ -97,7 +91,19 @@ export default function AiosAiLab() {
       ...current,
     ].slice(0, 20))
     setSignalDraft('')
-    setNotice('このセッションのDigital DNAに断片を浮かべました。保存はされません。')
+    setNotice(
+      signalKind === 'goal'
+        ? '目標候補を浮かべました。Chosen Futureとして選ぶまで、未来は確定しません。'
+        : 'このセッションのDigital DNAに断片を浮かべました。保存はされません。',
+    )
+  }
+
+  function chooseFuture(signal: LabSignal) {
+    setFuture(signal.content)
+    setResult(null)
+    setSelectedMove(0)
+    setError('')
+    setNotice('この目標をChosen Futureとして選びました。AIは未来を変えず、次の3手だけを設計します。')
   }
 
   async function generatePath() {
@@ -171,26 +177,51 @@ export default function AiosAiLab() {
                 浮かべる
               </button>
             </div>
+            {goals.length > 0 && (
+              <div className="mt-3 border-t border-white/10 pt-3">
+                <p className="mb-2 text-[9px] font-black uppercase tracking-[0.18em] text-white/42">Chosen Futureに選ぶ</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {goals.map((goal) => {
+                    const chosen = future === goal.content
+                    return (
+                      <button
+                        key={goal.id}
+                        type="button"
+                        onClick={() => chooseFuture(goal)}
+                        disabled={chosen}
+                        className={`max-w-full truncate rounded-full px-3 py-1.5 text-[10px] font-black ring-1 ring-inset ${
+                          chosen ? 'bg-indigo-400/38 text-white ring-indigo-200/55' : 'bg-white/[0.07] text-white/72 ring-white/12'
+                        }`}
+                      >
+                        {chosen ? `選択中: ${goal.content}` : goal.content}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
           </section>
 
-          <section className="future-beacon absolute right-[5%] top-[8%] z-20 w-[min(330px,43%)] rounded-[26px] border border-indigo-200/28 bg-white/[0.1] p-4 text-white backdrop-blur-xl">
-            <p className="text-[9px] font-black uppercase tracking-[0.22em] text-cyan-200">Chosen Future</p>
-            <textarea
-              value={future}
-              onChange={(event) => setFuture(event.target.value)}
-              rows={3}
-              className="mt-2 w-full resize-none bg-transparent text-sm font-black leading-relaxed text-white outline-none placeholder:text-white/40"
-            />
-            <p className="mt-2 text-[10px] font-bold leading-relaxed text-white/50">未来を選ぶのはユーザーです。AIは次の手だけを設計します。</p>
-            <button
-              type="button"
-              onClick={generatePath}
-              disabled={busy || !future.trim()}
-              className="mt-3 rounded-full bg-white px-3 py-2 text-[10px] font-black text-slate-950 disabled:opacity-40"
-            >
-              {busy ? '描いています...' : result ? '次の3手を再設計' : '最初の3手を描く'}
-            </button>
-          </section>
+          {future ? (
+            <section className="future-beacon absolute right-[5%] top-[8%] z-20 w-[min(330px,43%)] rounded-[26px] border border-indigo-200/28 bg-white/[0.1] p-4 text-white backdrop-blur-xl">
+              <p className="text-[9px] font-black uppercase tracking-[0.22em] text-cyan-200">Chosen Future</p>
+              <p className="mt-2 text-sm font-black leading-relaxed text-white">{future}</p>
+              <p className="mt-2 text-[10px] font-bold leading-relaxed text-white/50">未来を選ぶのはユーザーです。AIは次の手だけを設計します。</p>
+              <button
+                type="button"
+                onClick={generatePath}
+                disabled={busy}
+                className="mt-3 rounded-full bg-white px-3 py-2 text-[10px] font-black text-slate-950 disabled:opacity-40"
+              >
+                {busy ? '描いています...' : result ? '次の3手を再設計' : '最初の3手を描く'}
+              </button>
+            </section>
+          ) : (
+            <section className="absolute right-[5%] top-[8%] z-20 w-[min(330px,43%)] rounded-[26px] border border-dashed border-white/18 bg-white/[0.04] p-4 text-white/62 backdrop-blur-xl">
+              <p className="text-[9px] font-black uppercase tracking-[0.22em] text-white/35">Chosen Future</p>
+              <p className="mt-3 text-sm font-bold leading-relaxed">目標のDNAを浮かべ、その中から向かう未来を選んでください。</p>
+            </section>
+          )}
 
           {result && (
             <div className="path-constellation">
