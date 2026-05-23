@@ -4,6 +4,7 @@ import { SignInButton, UserButton, useUser } from '@clerk/nextjs'
 import Link from 'next/link'
 import { useEffect, useMemo, useState } from 'react'
 import type { SavedAiosProfile, SavedAiosTask } from '@/lib/aios-store'
+import AiosWorkspace from '@/components/AiosWorkspace'
 
 const clerkEnabled = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY)
 
@@ -94,7 +95,7 @@ function formatDateTime(iso?: string) {
 
 export default function AiosMvp() {
   if (!clerkEnabled) return <AiosUnavailable />
-  return <AuthenticatedAiosMvp />
+  return <AiosWorkspace fallback={<AiosSignInPrompt />} />
 }
 
 function AiosUnavailable() {
@@ -143,7 +144,7 @@ function AiosSignInPrompt() {
   )
 }
 
-function UsageMeter({ usage }: { usage: UsageState }) {
+export function UsageMeter({ usage }: { usage: UsageState }) {
   const [portalLoading, setPortalLoading] = useState(false)
   const [portalError, setPortalError] = useState('')
 
@@ -177,7 +178,7 @@ function UsageMeter({ usage }: { usage: UsageState }) {
   return (
     <div className="mt-5 rounded-2xl border border-white/70 bg-white/80 p-4 shadow-sm shadow-slate-950/5">
       <div className="flex flex-wrap items-center gap-2">
-        <p className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-400">AI Runs (今月)</p>
+        <p className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-400">AI Runs (利用期間)</p>
         <span className="rounded-full bg-slate-900 px-2 py-0.5 text-[10px] font-black text-white">
           {usage.tierLabel}
         </span>
@@ -208,7 +209,7 @@ function UsageMeter({ usage }: { usage: UsageState }) {
       )}
       {isOver && (
         <p className="mt-3 text-xs font-bold leading-relaxed text-rose-600">
-          今月の枠を使い切りました。プランをアップグレードすると上限が増えます。
+          現在の利用期間の枠を使い切りました。プランをアップグレードすると上限が増えます。
         </p>
       )}
       {!isOver && !isUnlimited && (

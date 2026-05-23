@@ -677,31 +677,43 @@ export async function deleteAiosTask(userId: string, id: string) {
   return queryRows(rows).length > 0
 }
 
-export async function deleteAllPendingAiosTasks(userId: string) {
+export async function deleteAllPendingAiosTasks(userId: string, projectId: string) {
   await ensureAiosSchema()
   const sql = getSql()
   await sql`
     DELETE FROM aincarn_aios_tasks
-    WHERE user_id = ${userId} AND status IN ('todo', 'doing')
+    WHERE user_id = ${userId} AND project_id = ${projectId} AND status IN ('todo', 'doing')
   `
 }
 
-export async function recordAiosPlan(userId: string, rationale: string, model: string) {
+export async function getAiosTask(userId: string, id: string) {
+  await ensureAiosSchema()
+  const sql = getSql()
+  const rows = await sql`
+    SELECT * FROM aincarn_aios_tasks
+    WHERE id = ${id} AND user_id = ${userId}
+    LIMIT 1
+  `
+  const row = queryRows(rows)[0]
+  return row ? rowToTask(row) : null
+}
+
+export async function recordAiosPlan(userId: string, projectId: string, rationale: string, model: string) {
   await ensureAiosSchema()
   const sql = getSql()
   await sql`
-    INSERT INTO aincarn_aios_plans (id, user_id, rationale, model)
-    VALUES (${crypto.randomUUID()}, ${userId}, ${rationale}, ${model})
+    INSERT INTO aincarn_aios_plans (id, user_id, project_id, rationale, model)
+    VALUES (${crypto.randomUUID()}, ${userId}, ${projectId}, ${rationale}, ${model})
   `
 }
 
-export async function getLatestAiosPlan(userId: string) {
+export async function getLatestAiosPlan(userId: string, projectId: string) {
   await ensureAiosSchema()
   const sql = getSql()
   const rows = await sql`
     SELECT rationale, model, created_at
     FROM aincarn_aios_plans
-    WHERE user_id = ${userId}
+    WHERE user_id = ${userId} AND project_id = ${projectId}
     ORDER BY created_at DESC
     LIMIT 1
   `

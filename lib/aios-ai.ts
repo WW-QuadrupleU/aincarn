@@ -1,4 +1,4 @@
-import type { AiosProfileInput, AiosTaskInput, SavedAiosTask } from '@/lib/aios-store'
+import type { AiosProfileInput, AiosTaskInput, SavedAiosMessage, SavedAiosTask } from '@/lib/aios-store'
 import { createStarterTasks } from '@/lib/aios-store'
 
 const ANTHROPIC_API = 'https://api.anthropic.com/v1/messages'
@@ -59,6 +59,11 @@ const SYSTEM_PROMPT = `あなたはAincarn OSの中核を担うAIプランナー
 
 type AnthropicResponse = {
   content: Array<{ type: string; text?: string }>
+  model: string
+}
+
+export type ConversationReply = {
+  content: string
   model: string
 }
 
@@ -209,6 +214,84 @@ export async function generateAiPlan(profile: AiosProfileInput): Promise<Generat
       rationale: `AI生成でエラーが発生したためテンプレートで起動しました（${error instanceof Error ? error.message : 'unknown'}）。`,
       model: 'template',
     }
+  }
+}
+
+function templateConversationReply(messages: SavedAiosMessage[]) {
+  const userTurns = messages.filter((message) => message.role === 'user').length
+  if (userTurns <= 1) {
+    return 'いいですね。まず、このプロジェクトで「達成できた」と判断できる変化を1つだけ教えてください。数字でなくても、明確な状態で大丈夫です。'
+  }
+  if (userTurns === 2) {
+    return 'その状態を目指すうえで、今すでに持っている資産と、いちばん詰まっていることは何でしょうか。時間、経験、集客、予算のどれでも構いません。'
+  }
+  if (userTurns === 3) {
+    return '優先順位を決めるため、使える時間と避けたいリスクを教えてください。ここまで整理できれば、最初の行動案へ変換できます。'
+  }
+  return '整理できてきました。「行動案を作る」を押すと、この会話をもとに次に進むためのタスクと実行手順を作成します。別の方針を検討したい場合は、迷っている選択肢を書いてください。'
+}
+
+export async function generateConversationReply(
+  projectName: string,
+  messages: SavedAiosMessage[],
+): Promise<ConversationReply> {
+  const apiKey = process.env.ANTHROPIC_API_KEY
+  if (!apiKey) {
+    return { content: templateConversationReply(messages), model: 'guided-template' }
+  }
+
+  const transcript = messages
+    .slice(-12)
+    .map((message) => `${message.role === 'user' ? 'ユーザー' : 'Aincarn'}: ${message.content}`)
+    .join('\n')
+
+  try {
+    const response = await fetch(ANTHROPIC_API, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify({
+        model: DEFAULT_MODEL,
+        max_tokens: 420,
+        system:
+          'あなたはAincarn OSの対話ナビゲーターです。結論を急がず、ユーザーが目標・成功条件・制約・選択肢を整理できるよう支援してください。返答は日本語で120〜240字程度。必要なら観点を整理し、最後に答えやすい問いを1つだけ置いてください。',
+        messages: [
+          {
+            role: 'user',
+            content: `プロジェクト名: ${projectName}\n\nこれまでの対話:\n${transcript}\n\n次に返すべき支援メッセージを書いてください。`,
+          },
+        ],
+      }),
+    })
+    if (!response.ok) throw new Error(`Anthropic ${response.status}`)
+    const data = (await response.json()) as AnthropicResponse
+    const content = data.content?.find((item) => item.type === 'text')?.text?.trim()
+    if (!content) throw new Error('empty response')
+    return { content, model: data.model || DEFAULT_MODEL }
+  } catch {
+    return { content: templateConversationReply(messages), model: 'guided-template' }
+  }
+}
+
+export function profileFromConversation(
+  projectName: string,
+  messages: SavedAiosMessage[],
+  existing?: AiosProfileInput | null,
+): AiosProfileInput {
+  const userNotes = messages
+    .filter((message) => message.role === 'user')
+    .map((message) => message.content.trim())
+    .filter(Boolean)
+  const first = userNotes[0] || existing?.goal || projectName
+  return {
+    goal: first,
+    horizon: existing?.horizon || '90日',
+    currentState: userNotes.slice(1).join('\n') || existing?.currentState || '',
+    values: existing?.values || '',
+    constraints: existing?.constraints || '',
   }
 }
 

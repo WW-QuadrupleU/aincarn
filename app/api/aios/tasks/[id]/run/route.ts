@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { getSubscriptionUserId, getUserEmail } from '@/lib/subscription-auth'
 import {
   countAiosRunsSince,
-  getAiosState,
+  getAiosTask,
   getAiosRunsForTask,
   hasAiosDatabase,
   recordAiosRun,
@@ -73,8 +73,7 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     // ignore
   }
 
-  const state = await getAiosState(auth.userId)
-  const task = state.tasks.find((item) => item.id === id)
+  const task = await getAiosTask(auth.userId, id)
   if (!task) {
     return NextResponse.json({ error: 'タスクが見つかりません' }, { status: 404 })
   }
