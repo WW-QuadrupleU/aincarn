@@ -369,6 +369,32 @@ async function fetchAaOptional<T>(path: string, key: string): Promise<T[]> {
   }
 }
 
+// Try multiple candidate slugs and return the first one that yields rows.
+// Useful when AA has not standardised a slug yet (e.g. music-generation).
+async function fetchAaFirstAvailable<T>(
+  paths: string[],
+  key: string,
+): Promise<{ data: T[]; usedPath: string | null; tried: Array<{ path: string; ok: boolean; count: number; error?: string }> }> {
+  const tried: Array<{ path: string; ok: boolean; count: number; error?: string }> = []
+  for (const path of paths) {
+    try {
+      const data = await fetchAa<T>(path, key)
+      tried.push({ path, ok: true, count: data.length })
+      if (data.length > 0) {
+        return { data, usedPath: path, tried }
+      }
+    } catch (error) {
+      tried.push({
+        path,
+        ok: false,
+        count: 0,
+        error: error instanceof Error ? error.message.slice(0, 120) : String(error).slice(0, 120),
+      })
+    }
+  }
+  return { data: [], usedPath: null, tried }
+}
+
 function uniqueModels(models: AiModel[]): AiModel[] {
   const seen = new Set<string>()
   return models.filter((model) => {
@@ -415,15 +441,29 @@ export async function GET(request: Request) {
   }
 
   try {
-    const [llms, textImages, imageImages, textVideos, imageVideos, textSpeeches, musics] = await Promise.all([
+    const [llms, textImages, imageImages, textVideos, imageVideos, textSpeeches, musicResult] = await Promise.all([
       fetchAa<AaLlmModel>('/data/llms/models', key),
       fetchAa<AaMediaModel>('/data/media/text-to-image', key),
       fetchAa<AaMediaModel>('/data/media/image-editing', key),
       fetchAa<AaMediaModel>('/data/media/text-to-video', key),
       fetchAa<AaMediaModel>('/data/media/image-to-video', key),
       fetchAaOptional<AaMediaModel>('/data/media/text-to-speech', key),
-      fetchAaOptional<AaMediaModel>('/data/media/music-generation', key),
+      // AA has not standardised the music slug. Probe several known
+      // candidates and accept the first that yields rows.
+      fetchAaFirstAvailable<AaMediaModel>(
+        [
+          '/data/media/music-generation',
+          '/data/media/text-to-music',
+          '/data/audio/music-generation',
+          '/data/audio/music',
+          '/data/music/music-generation',
+          '/data/music/generation',
+        ],
+        key,
+      ),
     ])
+    const musics = musicResult.data
+    const musicEndpointTrace = musicResult.tried
 
     const llmModels = llms
       .filter((model) => model.evaluations?.artificial_analysis_intelligence_index != null)
@@ -557,6 +597,10 @@ export async function GET(request: Request) {
             textSpeech: textSpeechModels.length,
             musicInstrumental: musicInstrumentalModels.length,
             musicVocal: musicVocalModels.length,
+          },
+          musicEndpoint: {
+            usedPath: musicResult.usedPath,
+            tried: musicEndpointTrace,
           },
         },
       })
