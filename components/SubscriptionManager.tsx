@@ -279,78 +279,82 @@ function PlanCard({
 
   return (
     <article
-      className="overflow-hidden rounded-2xl border border-white/50 bg-white/60 shadow-sm transition hover:shadow-md hover:bg-white/80"
+      className="overflow-hidden rounded-xl border bg-white/80 shadow-sm transition hover:shadow-md hover:bg-white"
+      style={{ borderColor: tone.border }}
     >
-      <div className="p-4">
-        <p className="text-xs font-black uppercase tracking-[0.14em]" style={{ color: tone.ink }}>
-          {service.name}
-        </p>
-        <h4 className="mt-2 text-lg font-black text-brand-text">{plan.name}</h4>
+      <div className="p-2.5">
+        <div className="flex items-start justify-between gap-2">
+          <h4 className="text-sm font-black tracking-tight text-brand-text">{plan.name}</h4>
+          {hasYearly ? (
+            <div
+              className="inline-flex shrink-0 rounded-full border bg-white p-0.5 text-[9px] font-black"
+              style={{ borderColor: tone.border }}
+              role="tablist"
+              aria-label={`${plan.name}の請求周期`}
+            >
+              {(['monthly', 'yearly'] as const).map((option) => {
+                const isActive = activeCycle === option
+                return (
+                  <button
+                    key={option}
+                    type="button"
+                    role="tab"
+                    aria-selected={isActive}
+                    onClick={(event) => {
+                      event.stopPropagation()
+                      setCycle(option)
+                    }}
+                    className="relative z-10 cursor-pointer rounded-full px-2 py-0.5 transition"
+                    style={{
+                      background: isActive ? tone.gradient : 'transparent',
+                      color: isActive ? '#fff' : tone.ink,
+                    }}
+                  >
+                    {option === 'monthly' ? '月' : '年'}
+                  </button>
+                )
+              })}
+            </div>
+          ) : (
+            <span
+              className="shrink-0 rounded-full border bg-white px-2 py-0.5 text-[9px] font-black"
+              style={{ borderColor: tone.border, color: tone.ink }}
+            >
+              月払い
+            </span>
+          )}
+        </div>
 
-        {hasYearly ? (
-          <div
-            className="mt-3 inline-flex rounded-full border bg-white p-0.5 text-[10px] font-black"
-            style={{ borderColor: tone.border }}
-            role="tablist"
-            aria-label={`${plan.name}の請求周期`}
-          >
-            {(['monthly', 'yearly'] as const).map((option) => {
-              const isActive = activeCycle === option
-              return (
-                <button
-                  key={option}
-                  type="button"
-                  role="tab"
-                  aria-selected={isActive}
-                  onClick={(event) => {
-                    event.stopPropagation()
-                    setCycle(option)
-                  }}
-                  className="relative z-10 cursor-pointer rounded-full px-2.5 py-1 transition"
-                  style={{
-                    background: isActive ? tone.gradient : 'transparent',
-                    color: isActive ? '#fff' : tone.ink,
-                  }}
-                >
-                  {option === 'monthly' ? '月払い' : '年払い'}
-                </button>
-              )
-            })}
-          </div>
-        ) : (
-          <span
-            className="mt-3 inline-flex rounded-full border bg-white px-2.5 py-1 text-[10px] font-black"
-            style={{ borderColor: tone.border, color: tone.ink }}
-          >
-            月払い
-          </span>
-        )}
-
-        <p className="mt-3 text-3xl font-black text-brand-text">{formatUsd(monthlyCostUsd)}</p>
-        <p className="text-xs font-bold text-gray-400">
-          {activeCycle === 'yearly' ? `年額 ${formatUsd(yearlyTotal || 0)}・月額換算` : '月払い'}
-        </p>
+        <div className="mt-2 flex items-baseline gap-1.5">
+          <p className="text-xl font-black tracking-tight text-brand-text">{formatUsd(monthlyCostUsd)}</p>
+          <p className="text-[9px] font-bold text-gray-400">
+            {activeCycle === 'yearly' ? `/月（年${formatUsd(yearlyTotal || 0)}）` : '/月'}
+          </p>
+        </div>
         {activeCycle === 'yearly' && hasYearly && (
-          <p className="mt-1 text-[11px] font-black text-emerald-600">
+          <p className="text-[10px] font-black text-emerald-600">
             月払いより {formatUsd(Math.max(0, plan.monthlyCostUsd - monthlyCostUsd))}/月お得
           </p>
         )}
-        <p className="mt-3 min-h-[54px] text-xs font-bold leading-relaxed text-gray-500">{summary}</p>
-        <div className="mt-4 flex flex-wrap gap-2">
+        <p className="mt-1.5 line-clamp-2 text-[10px] font-bold leading-snug text-gray-500" title={summary}>
+          {summary}
+        </p>
+        <div className="mt-2.5 flex flex-wrap gap-1.5">
           <button
             type="button"
             disabled={saving || exists}
             onClick={() => onAdd(service, plan, activeCycle)}
-            className="rounded-full bg-brand-text px-4 py-2.5 text-xs font-black text-white transition hover:-translate-y-0.5 hover:bg-gray-700 disabled:cursor-not-allowed disabled:bg-gray-300"
+            className="flex-1 rounded-full bg-brand-text px-3 py-1.5 text-[10px] font-black text-white transition hover:-translate-y-0.5 hover:bg-gray-700 disabled:cursor-not-allowed disabled:bg-gray-300"
           >
-            {exists ? '登録済み' : 'そのまま追加'}
+            {exists ? '登録済み' : '追加'}
           </button>
           <button
             type="button"
             onClick={() => onChoose(service, plan, activeCycle)}
-            className="rounded-full border border-gray-200 bg-white px-4 py-2.5 text-xs font-black text-gray-500 transition hover:border-brand-text hover:text-brand-text"
+            className="rounded-full border border-gray-200 bg-white px-2.5 py-1.5 text-[10px] font-black text-gray-500 transition hover:border-brand-text hover:text-brand-text"
+            title="編集して追加"
           >
-            編集して追加
+            ✎
           </button>
         </div>
       </div>
@@ -579,7 +583,7 @@ function AuthenticatedSubscriptionManager() {
           {loading && <span className="text-xs font-bold text-gray-400">読み込み中...</span>}
         </div>
 
-        <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+        <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
           {subscriptions.length === 0 && (
             <div className="col-span-full rounded-2xl border border-dashed border-gray-200 bg-white/70 p-5 text-sm font-bold text-gray-500">
               まずは下のサービスカードから、契約中または気になるAIサブスクをコレクションに追加してください。
@@ -588,65 +592,64 @@ function AuthenticatedSubscriptionManager() {
           {subscriptions.map((item) => {
             const service = getCatalogServiceForSubscription(item, catalog)
             const tone = getServiceTone(service?.id || item.serviceName.toLowerCase())
-            const statusLabel = statusOptions.find((status) => status.value === item.status)?.label || item.status
             const cycleLabel = billingCycleOptions.find((cycle) => cycle.value === item.billingCycle)?.label || item.billingCycle
             return (
               <article
                 key={item.id}
-                className="group relative isolate flex aspect-[4/5] flex-col overflow-hidden rounded-2xl border shadow-md shadow-slate-900/5 transition hover:-translate-y-0.5 hover:shadow-xl"
+                className="group relative isolate flex flex-col overflow-hidden rounded-xl border shadow-sm shadow-slate-900/5 transition hover:-translate-y-0.5 hover:shadow-md"
                 style={{
-                  background: `linear-gradient(160deg, ${tone.soft} 0%, rgba(255,255,255,0.94) 55%, rgba(255,255,255,0.98) 100%)`,
+                  background: `linear-gradient(160deg, ${tone.soft} 0%, rgba(255,255,255,0.96) 55%, rgba(255,255,255,0.99) 100%)`,
                   borderColor: tone.border,
                 }}
               >
-                <div className="h-1.5 w-full" style={{ background: tone.gradient }} />
-                <div className="flex flex-1 flex-col p-3.5">
-                  <div className="flex items-start justify-between gap-2">
+                <div className="h-1 w-full" style={{ background: tone.gradient }} />
+                <div className="flex flex-1 flex-col gap-1.5 p-2.5">
+                  <div className="flex items-center gap-2">
                     <div
-                      className="flex size-10 shrink-0 items-center justify-center rounded-xl text-[11px] font-black text-white shadow-sm shadow-slate-900/15"
+                      className="flex size-7 shrink-0 items-center justify-center rounded-lg text-[10px] font-black text-white shadow-sm shadow-slate-900/15"
                       style={{ background: tone.gradient }}
                     >
                       {getCollectionMark(item, catalog)}
                     </div>
-                    <span className="rounded-full bg-white/90 px-2 py-0.5 text-[9px] font-black text-slate-600 ring-1 ring-slate-200">
-                      {statusLabel}
-                    </span>
+                    <div className="min-w-0 flex-1">
+                      <h3 className="truncate text-xs font-black tracking-tight text-slate-900">{item.serviceName}</h3>
+                      <p className="truncate text-[10px] font-bold text-slate-500">{item.planName || 'プラン未設定'}</p>
+                    </div>
                   </div>
-                  <div className="mt-3 min-w-0">
-                    <h3 className="truncate text-sm font-black tracking-tight text-slate-900">{item.serviceName}</h3>
-                    <p className="truncate text-[11px] font-bold text-slate-500">{item.planName || 'プラン未設定'}</p>
-                  </div>
-
-                  <div className="mt-auto pt-3">
-                    <p className="text-2xl font-black tracking-tight leading-none" style={{ color: tone.ink }}>
-                      {formatUsd(item.monthlyCostUsd)}
-                    </p>
-                    <p className="mt-0.5 text-[10px] font-bold text-slate-500">{cycleLabel}</p>
+                  <div className="mt-auto flex items-end justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="text-lg font-black tracking-tight leading-none" style={{ color: tone.ink }}>
+                        {formatUsd(item.monthlyCostUsd)}
+                      </p>
+                      <p className="mt-0.5 text-[9px] font-bold text-slate-500">{cycleLabel}</p>
+                    </div>
                     {item.renewalDate && (
-                      <p className="mt-1 text-[10px] font-bold text-slate-400">更新 {formatDate(item.renewalDate)}</p>
+                      <span className="rounded-full bg-white/80 px-1.5 py-0.5 text-[9px] font-bold text-slate-500 ring-1 ring-slate-200">
+                        {formatDate(item.renewalDate).slice(5)}
+                      </span>
                     )}
                   </div>
                 </div>
 
-                <div className="absolute right-2 top-2 flex items-center gap-1 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100">
+                <div className="absolute right-1.5 top-1.5 flex items-center gap-0.5 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100">
                   <button
                     type="button"
                     onClick={() => {
                       setEditingId(item.id)
                       setForm(toInput(item))
                     }}
-                    className="rounded-full bg-white/95 p-1.5 text-slate-500 shadow-sm ring-1 ring-slate-200 transition hover:text-brand-text"
+                    className="rounded-full bg-white/95 p-1 text-slate-500 shadow-sm ring-1 ring-slate-200 transition hover:text-brand-text"
                     title="編集"
                   >
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
                   </button>
                   <button
                     type="button"
                     onClick={() => removeSubscription(item.id)}
-                    className="rounded-full bg-white/95 p-1.5 text-slate-500 shadow-sm ring-1 ring-slate-200 transition hover:text-red-500"
+                    className="rounded-full bg-white/95 p-1 text-slate-500 shadow-sm ring-1 ring-slate-200 transition hover:text-red-500"
                     title="削除"
                   >
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                   </button>
                 </div>
               </article>
@@ -655,23 +658,20 @@ function AuthenticatedSubscriptionManager() {
         </div>
       </section>
 
-      <section className="rounded-[28px] border border-white/80 bg-white/90 p-5 shadow-sm shadow-slate-950/5 backdrop-blur sm:p-6">
-        <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-          <div>
-            <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">Choose Service</p>
-            <h2 className="mt-2 text-2xl font-black tracking-tight text-slate-950">サービスを選んで、その場でプランを選択</h2>
-            <p className="mt-2 text-sm font-bold text-gray-500">
-              料金は公式ページをもとにした目安です。プラン情報はカタログ更新にあわせて差し替えます。
-              {catalogLoading && ' 最新カタログを確認中...'}
-            </p>
+      <section className="rounded-[24px] border border-white/80 bg-white/90 p-4 shadow-sm shadow-slate-950/5 backdrop-blur sm:p-5">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div className="flex items-baseline gap-3">
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Choose Service</p>
+            <h2 className="text-lg font-black tracking-tight text-slate-950 sm:text-xl">プランを追加</h2>
+            {catalogLoading && <span className="text-[10px] font-bold text-slate-400">更新中...</span>}
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-1.5">
             {[allFilter, ...categoryOptions].map((category) => (
               <button
                 key={category}
                 type="button"
                 onClick={() => setServiceFilter(category)}
-                className={`shrink-0 rounded-full px-3 py-2 text-xs font-black transition ${
+                className={`shrink-0 rounded-full px-2.5 py-1 text-[10px] font-black transition ${
                   serviceFilter === category
                     ? 'bg-slate-950 text-white shadow-sm shadow-slate-900/15'
                     : 'border border-gray-200 bg-white text-gray-500 hover:border-slate-300 hover:text-slate-950'
@@ -682,68 +682,69 @@ function AuthenticatedSubscriptionManager() {
             ))}
           </div>
         </div>
-        <div className="mt-5 space-y-3">
+        <div className="mt-4 space-y-2">
           {filteredCatalog.map((service) => {
             const isSelected = selectedService?.id === service.id
             const tone = getServiceTone(service.id)
             return (
               <article
                 key={service.id}
-                className="relative isolate max-w-full overflow-hidden rounded-[30px] border border-white/50 bg-white/80 shadow-sm transition hover:shadow-md hover:bg-white"
+                className="relative isolate overflow-hidden rounded-2xl border border-white/60 bg-white/80 transition hover:bg-white"
+                style={{ borderColor: isSelected ? tone.border : undefined }}
               >
-                <button type="button" onClick={() => setSelectedServiceId(service.id)} className="block w-full text-left">
-                  <div className="absolute right-0 top-0 h-16 w-32 rounded-bl-[42px] opacity-10" style={{ background: tone.gradient }} />
-                  <div className="flex max-w-full flex-col gap-4 p-4 pl-6 lg:flex-row lg:items-center">
-                    <div className="flex min-w-0 items-center gap-3 lg:w-[240px] lg:shrink-0">
-                      <div
-                        className="flex size-12 shrink-0 items-center justify-center rounded-[18px] text-xs font-black text-white shadow-md shadow-slate-900/10"
-                        style={{ background: tone.gradient }}
-                      >
-                        {service.mark}
-                      </div>
-                      <div className="min-w-0">
-                        <h3 className="truncate text-lg font-black text-brand-text">{service.name}</h3>
-                        <span
-                          className="mt-1 inline-flex rounded-full border px-2 py-1 text-[10px] font-black"
-                          style={{ borderColor: tone.border, color: tone.ink, backgroundColor: 'rgba(255,255,255,0.72)' }}
-                        >
-                          {service.vibe}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="flex min-w-0 flex-1 flex-wrap gap-1.5">
-                      {service.categories.map((category) => (
-                        <span
-                          key={category}
-                          className="rounded-full border border-white/70 bg-white/80 px-2.5 py-1.5 text-[11px] font-black text-gray-600 shadow-sm shadow-slate-900/5"
-                        >
-                          {category}
-                        </span>
-                      ))}
-                    </div>
-                    <span
-                      className="rounded-full px-4 py-2 text-center text-xs font-black text-white shadow-sm lg:ml-auto lg:shrink-0"
-                      style={{ background: isSelected ? tone.gradient : '#191724' }}
-                    >
-                      {isSelected ? 'プランを表示中' : 'プランを見る'}
-                    </span>
+                <button
+                  type="button"
+                  onClick={() => setSelectedServiceId(isSelected ? '' : service.id)}
+                  className="flex w-full items-center gap-3 px-3 py-2.5 text-left"
+                >
+                  <div
+                    className="flex size-9 shrink-0 items-center justify-center rounded-lg text-[10px] font-black text-white shadow-sm shadow-slate-900/10"
+                    style={{ background: tone.gradient }}
+                  >
+                    {service.mark}
                   </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <h3 className="truncate text-sm font-black text-brand-text">{service.name}</h3>
+                      <span
+                        className="hidden rounded-full border px-1.5 py-0.5 text-[9px] font-black sm:inline-flex"
+                        style={{ borderColor: tone.border, color: tone.ink, backgroundColor: 'rgba(255,255,255,0.72)' }}
+                      >
+                        {service.vibe}
+                      </span>
+                    </div>
+                    <p className="mt-0.5 truncate text-[10px] font-bold text-slate-400">
+                      {service.categories.slice(0, 4).join(' / ')}
+                      {service.categories.length > 4 ? ` +${service.categories.length - 4}` : ''}
+                    </p>
+                  </div>
+                  <span className="text-[10px] font-black text-slate-500">
+                    {service.plans.length}プラン
+                  </span>
+                  <span
+                    className="text-slate-400 transition"
+                    style={{ transform: isSelected ? 'rotate(180deg)' : 'rotate(0deg)' }}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="6 9 12 15 18 9" />
+                    </svg>
+                  </span>
                 </button>
 
                 {isSelected && (
-                  <div className="border-t border-white/80 bg-white/64 p-4 pl-6">
-                    <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                      <p className="max-w-3xl text-sm font-bold leading-relaxed text-gray-600">{service.description}</p>
+                  <div className="border-t border-white/80 bg-white/64 p-3">
+                    <div className="mb-3 flex items-center justify-between gap-3">
+                      <p className="line-clamp-1 flex-1 text-[11px] font-bold leading-relaxed text-gray-600">{service.description}</p>
                       <a
                         href={service.sourceUrl}
                         target="_blank"
                         rel="noreferrer"
-                        className="shrink-0 rounded-full border border-gray-200 bg-white px-3 py-2 text-xs font-black text-gray-500 transition hover:border-brand-text hover:text-brand-text"
+                        className="shrink-0 rounded-full border border-gray-200 bg-white px-2.5 py-1 text-[10px] font-black text-gray-500 transition hover:border-brand-text hover:text-brand-text"
                       >
                         公式料金
                       </a>
                     </div>
-                    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                    <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                       {service.plans.map((plan) => (
                         <PlanCard
                           key={plan.id}
