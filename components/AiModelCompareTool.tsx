@@ -234,25 +234,29 @@ function TextPanel({ title, items, tone }: { title: string; items: string[]; ton
 
 function ModelSummary({ model, genreId }: { model: AiModel; genreId: AiGenreId }) {
   return (
-    <div className="rounded-[20px] border border-white/75 bg-white/90 p-3 shadow-sm shadow-slate-950/5 backdrop-blur">
-      <div className="mb-3">
-        <p className="text-xs font-black text-slate-500">{model.creator} / {model.family}</p>
-        <h3 className="text-lg font-extrabold text-slate-950">{model.name}</h3>
-        <p className="mt-1 text-xs text-gray-400">
+    <div className="rounded-[16px] border border-white/75 bg-white/90 p-2 shadow-sm shadow-slate-950/5 backdrop-blur">
+      <div className="mb-2 flex items-start justify-between">
+        <div>
+          <p className="text-[10px] font-black text-slate-500">{model.creator} / {model.family}</p>
+          <h3 className="text-base font-extrabold text-slate-950 leading-tight">{model.name}</h3>
+        </div>
+        {model.metric && <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100 whitespace-nowrap ml-2">{model.metric}</span>}
+      </div>
+      <div className="mb-2">
+        <p className="text-[10px] text-gray-400 leading-tight">
           賢さ: {model.performance[genreId]} / 速度: {model.speed} / 価格効率: {priceEfficiencyScore(model, genreId)} / コスト感: {costLabel(model.costLevel)}
         </p>
-        {model.metric && <p className="mt-2 text-xs leading-relaxed text-gray-500">{model.metric}</p>}
       </div>
-      <div className="grid gap-2">
+      <div className="grid gap-1.5">
         <ScoreBar label="賢さ" score={model.performance[genreId]} />
         <ScoreBar label="速度" score={model.speed} />
         <ScoreBar label="価格効率" score={priceEfficiencyScore(model, genreId)} />
       </div>
-      <div className="mt-3 grid gap-2 sm:grid-cols-2">
+      <div className="mt-2 grid gap-1.5 sm:grid-cols-2">
         <TextPanel title="強み" items={model.strengths} tone="green" />
         <TextPanel title="注意点" items={model.cautions} tone="amber" />
       </div>
-      <div className="mt-3 rounded-xl border border-slate-100 bg-white/72 p-2 text-[11px] leading-relaxed text-gray-500">
+      <div className="mt-2 rounded-xl border border-slate-100 bg-white/72 p-1.5 text-[10px] leading-relaxed text-gray-500">
         <span className="font-bold text-slate-950">向いている人：</span>{model.bestFor}
         <br />
         <span className="font-bold text-slate-950">向きにくい人：</span>{model.avoidFor}

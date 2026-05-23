@@ -4,9 +4,9 @@ import AiPricingTool from '@/components/AiPricingTool'
 export const revalidate = 3600
 
 export const metadata: Metadata = {
-  title: 'AI料金比較ツール',
+  title: 'AI料金比較',
   description:
-    'AIモデルのAPI料金、画像生成コスト、動画生成コストを月間利用量から比較できるAincarnの料金比較ツールです。',
+    'ChatGPT、Claude、Geminiなど主要なAIモデルのAPI従量課金コストやサブスクとの損益分岐点をシミュレーションできるツールです。',
 }
 
 export default function AiPricingPage() {

@@ -30,7 +30,7 @@ const tools = [
     soft: 'from-emerald-50 to-sky-50',
   },
   {
-    href: '/tools/subscriptions',
+    href: '/tools/ai-subscription',
     label: 'AIサブスク管理',
     body: '契約中のAIサービス、更新日、月額換算コストをアカウントごとに保存します。',
     tag: 'Collection',
@@ -60,7 +60,7 @@ const toolStories = [
     accent: 'from-emerald-400 via-teal-400 to-sky-400',
   },
   {
-    href: '/tools/subscriptions',
+    href: '/tools/ai-subscription',
     label: 'AIサブスク管理',
     eyebrow: 'Subscription Collection',
     title: '増えていくAIサブスクを、ひとつの場所で管理する。',

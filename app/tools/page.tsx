@@ -20,7 +20,7 @@ const tools = [
     meta: 'Pricing',
   },
   {
-    href: '/tools/subscriptions',
+    href: '/tools/ai-subscription',
     label: 'AIサブスク管理',
     body: '契約中のAIサービス、更新日、月額換算コストをアカウントごとに保存します。',
     meta: 'Collection',
