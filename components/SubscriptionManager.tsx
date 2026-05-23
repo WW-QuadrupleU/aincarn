@@ -114,7 +114,7 @@ function getCollectionMark(subscription: SavedSubscription, catalog: Subscriptio
   return service?.mark || subscription.serviceName.slice(0, 2).toUpperCase()
 }
 
-function getServiceTone(serviceId: string) {
+export function getServiceTone(serviceId: string) {
   const tones: Record<string, { soft: string; border: string; ink: string; shadow: string; gradient: string }> = {
     chatgpt: {
       soft: 'rgba(21,245,186,0.12)',

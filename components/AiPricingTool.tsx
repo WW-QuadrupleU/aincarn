@@ -1,6 +1,8 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
+import Link from 'next/link'
+import { getServiceTone } from './SubscriptionManager'
 import {
   FALLBACK_AI_PAYLOAD,
   type AiModel,
@@ -926,8 +928,8 @@ export default function AiPricingTool() {
                         </td>
 
                         {/* 各マトリックスセル */}
-                        <td colSpan={4} className="p-3 align-top border-l border-slate-200/80 bg-slate-50/10">
-                          <div className="grid grid-cols-4 gap-3 min-h-[110px] relative">
+                        <td colSpan={4} className="p-2 align-top border-l border-slate-200/80 bg-slate-50/10">
+                          <div className="grid grid-cols-4 gap-2 relative">
                             {(() => {
                               const plansInY = AI_PLANS.filter((plan) => plan.matrixY === yKey)
                               const matchedPlans = plansInY.map((plan) => {
@@ -940,7 +942,7 @@ export default function AiPricingTool() {
                               })
 
                               if (matchedPlans.length === 0) {
-                                return <div className="col-span-4 text-[10px] font-bold text-gray-300 italic text-center my-auto">-</div>
+                                return <div className="col-span-4 text-[10px] font-bold text-gray-300 italic text-center py-4">-</div>
                               }
 
                               const xKeys = Object.keys(matrixXLabels)
@@ -952,6 +954,8 @@ export default function AiPricingTool() {
                                 const startKey = plan.matrixX[0]
                                 const startIdx = xKeys.indexOf(startKey) + 1
                                 const span = plan.matrixX.length
+                                const serviceId = plan.service.toLowerCase().replace(/\s+/g, '-')
+                                const tone = getServiceTone(serviceId)
 
                                 return (
                                   <div
@@ -959,44 +963,46 @@ export default function AiPricingTool() {
                                     style={{ gridColumn: `${startIdx} / span ${span}` }}
                                   >
                                     <div
-                                      className={`h-full relative group rounded-xl border p-2.5 shadow-sm transition-all duration-300 ${
+                                      className={`relative group flex items-center justify-between gap-2 rounded-lg border p-2 shadow-sm transition-all duration-300 ${
                                         plan.isMatch
                                           ? 'border-slate-200 bg-white hover:shadow-md hover:-translate-y-0.5 z-10'
                                           : 'border-slate-100 bg-white/40 opacity-20 pointer-events-none grayscale filter blur-[0.2px]'
                                       }`}
+                                      style={plan.isMatch ? { borderLeftWidth: '4px', borderLeftColor: tone.ink } : {}}
                                     >
-                                      <div className="flex items-start justify-between gap-1">
-                                        <div className="min-w-0">
-                                          <h4 className="text-xs font-black text-slate-900 truncate">{plan.service}</h4>
-                                          <span
-                                            className={`inline-block rounded px-1 py-0.5 text-[9px] font-black leading-none ${
-                                              plan.isApi ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-100 text-gray-500'
-                                            }`}
-                                          >
-                                            {plan.plan}
-                                          </span>
-                                        </div>
+                                      <div className="flex min-w-0 items-center gap-1.5 flex-1">
+                                        <h4 className="text-[11px] font-black truncate" style={{ color: tone.ink }}>{plan.service}</h4>
+                                        <span
+                                          className={`shrink-0 inline-block rounded px-1.5 py-0.5 text-[9px] font-black leading-none ${
+                                            plan.isApi ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-100 text-gray-500'
+                                          }`}
+                                        >
+                                          {plan.plan}
+                                        </span>
+                                      </div>
+                                      <div className="flex items-center gap-2 shrink-0">
+                                        <p className="text-[11px] font-black text-slate-900">
+                                          {plan.isApi
+                                            ? plan.monthlyUsd > 0
+                                              ? formatCost(plan.monthlyUsd).usd + '/u'
+                                              : '-'
+                                            : formatCost(plan.monthlyUsd).usd}
+                                        </p>
                                         <button
                                           type="button"
                                           onClick={() => toggleKeep(plan.service, plan.plan, plan.monthlyUsd)}
-                                          className={`text-[13px] font-bold focus:outline-none transition-colors shrink-0 ${
-                                            isKeep ? 'text-amber-500 hover:text-amber-600' : 'text-slate-300 hover:text-amber-500'
+                                          className={`text-[12px] font-bold focus:outline-none transition-colors shrink-0 ${
+                                            isKeep ? 'text-amber-500 hover:text-amber-600' : 'text-slate-200 hover:text-amber-500'
                                           }`}
                                           title={isKeep ? 'キープ解除' : 'キープに登録'}
                                         >
                                           ★
                                         </button>
                                       </div>
-                                      <p className="mt-1.5 text-[11px] font-black text-slate-950">
-                                        {plan.isApi
-                                          ? plan.monthlyUsd > 0
-                                            ? formatCost(plan.monthlyUsd).usd + ' / unit'
-                                            : '単価情報なし'
-                                          : formatCost(plan.monthlyUsd).usd}
-                                      </p>
 
-                                      {/* ホバー詳細ツールチップ (上側に吹き出し矢印付きで表示、z-50) */}
-                                      <div className="pointer-events-none absolute bottom-full left-1/2 z-50 mb-3 w-64 -translate-x-1/2 scale-95 rounded-2xl border border-slate-800 bg-slate-950/95 p-3.5 text-white opacity-0 shadow-2xl backdrop-blur transition-all duration-300 group-hover:pointer-events-auto group-hover:scale-100 group-hover:opacity-100">
+                                      {/* ホバー詳細ツールチップ */}
+                                      <div className="pointer-events-none absolute bottom-full left-1/2 z-50 mb-2 w-64 -translate-x-1/2 scale-95 rounded-2xl border border-slate-800 bg-slate-950/95 p-3.5 text-white opacity-0 shadow-2xl backdrop-blur transition-all duration-300 group-hover:pointer-events-auto group-hover:scale-100 group-hover:opacity-100">
+
                                         <div className="absolute top-full left-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1 rotate-45 border-r border-b border-slate-800 bg-slate-950" />
                                         <p className="mb-1 text-[9px] font-black uppercase leading-none tracking-widest text-emerald-400">
                                           {plan.category}
