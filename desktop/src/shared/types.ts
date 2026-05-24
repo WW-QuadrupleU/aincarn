@@ -26,6 +26,13 @@ export type AgentPlan = {
   candidateFiles: string[]
 }
 
+export type AgentConnection = {
+  proxyUrl: string
+  token: string
+  deviceId: string
+  deviceName: string
+}
+
 export type CommandResult = {
   command: string
   exitCode: number | null
@@ -36,6 +43,8 @@ export type CommandResult = {
 export type AgentApi = {
   selectWorkspace: () => Promise<WorkspaceSummary | null>
   getWorkspace: () => Promise<WorkspaceSummary | null>
+  getAgentConnection: () => Promise<AgentConnection>
+  saveAgentConnection: (connection: Partial<AgentConnection>) => Promise<AgentConnection>
   generatePlan: (task: string) => Promise<AgentPlan>
   runCommand: (command: string, approved: boolean) => Promise<CommandResult>
 }

@@ -20,11 +20,17 @@ npm run dev
 
 ## Optional Low-cost API Trial
 
-PowerShell example:
+For personal testing, create a token at:
+
+```text
+https://aincarn.com/tools/aios/desktop
+```
+
+Then paste it into the desktop app's "Desktop connection" panel, or set it from PowerShell:
 
 ```powershell
 $env:AINCARN_AGENT_PROXY_URL="https://aincarn.com/api/agent/plan"
-$env:AINCARN_AGENT_API_TOKEN="your-vercel-side-agent-token"
+$env:AINCARN_AGENT_API_TOKEN="aincarn_desktop_..."
 $env:AINCARN_AGENT_MODEL="gpt-5-mini"
 npm run dev
 ```
@@ -34,9 +40,13 @@ The current proxy sends only a compact workspace summary, candidate file paths, 
 Required Vercel environment variables:
 
 - `OPENAI_API_KEY`: provider key stored only on Vercel.
-- `AINCARN_AGENT_API_TOKEN`: shared secret required by the desktop app.
-- `AINCARN_AGENT_TOKEN_TIER`: optional `free`, `light`, `pro`, `power`, or `unlimited` limit for token-based desktop access.
 - `AINCARN_AGENT_MODEL`: optional default model, currently `gpt-5-mini`.
+- `DATABASE_URL` / `POSTGRES_URL` / `NEON_DATABASE_URL`: stores per-user desktop tokens, device binding, revocation, and usage logs.
+
+Legacy internal-only variables still work for emergency testing:
+
+- `AINCARN_AGENT_API_TOKEN`: shared fallback secret.
+- `AINCARN_AGENT_TOKEN_TIER`: optional `free`, `light`, `pro`, `power`, or `unlimited` limit for shared fallback access.
 
 ## MVP Flow
 

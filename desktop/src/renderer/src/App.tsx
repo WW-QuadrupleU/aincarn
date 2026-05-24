@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { createRoot } from 'react-dom/client'
-import type { AgentPlan, CommandResult, WorkspaceSummary } from '../../shared/types'
+import type { AgentConnection, AgentPlan, CommandResult, WorkspaceSummary } from '../../shared/types'
 import './styles.css'
 
 type ChatMessage = {
@@ -12,8 +12,16 @@ type ChatMessage = {
 
 type ApprovalMode = 'blocked' | 'once' | 'always'
 
+function maskToken(token: string) {
+  if (!token) return '未接続'
+  return `${token.slice(0, 16)}...${token.slice(-6)}`
+}
+
 function App() {
   const [workspace, setWorkspace] = useState<WorkspaceSummary | null>(null)
+  const [connection, setConnection] = useState<AgentConnection | null>(null)
+  const [tokenDraft, setTokenDraft] = useState('')
+  const [proxyDraft, setProxyDraft] = useState('https://aincarn.com/api/agent/plan')
   const [task, setTask] = useState('')
   const [plan, setPlan] = useState<AgentPlan | null>(null)
   const [approvalMode, setApprovalMode] = useState<ApprovalMode>('blocked')
@@ -22,17 +30,23 @@ function App() {
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
   const [terminalOpen, setTerminalOpen] = useState(false)
+  const [settingsOpen, setSettingsOpen] = useState(false)
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: 'welcome',
       role: 'agent',
       title: 'Aincarn Agent',
-      content: 'プロジェクトを開いて、やりたい開発タスクを入力してください。まずは安全な実行計画を作り、承認されたコマンドだけを動かします。'
+      content: 'プロジェクトを開いて、やりたい開発タスクを入力してください。Aincarnは安全な実行計画を作り、承認されたコマンドだけを動かします。'
     }
   ])
 
   useEffect(() => {
     window.aincarn.getWorkspace().then(setWorkspace).catch(() => undefined)
+    window.aincarn.getAgentConnection().then((next) => {
+      setConnection(next)
+      setProxyDraft(next.proxyUrl)
+      setTokenDraft(next.token)
+    }).catch(() => undefined)
   }, [])
 
   const visibleFiles = useMemo(() => {
@@ -56,7 +70,28 @@ function App() {
         id: `workspace-${Date.now()}`,
         role: 'agent',
         title: 'Workspace connected',
-        content: `${next.name} を開きました。${next.files.length}件の安全な候補ファイルを読み取り、${next.ignoredCount}件は安全のため除外しています。`
+        content: `${next.name} を開きました。${next.files.length}件の候補ファイルを読み取り、${next.ignoredCount}件は安全のため除外しています。`
+      }
+    ])
+  }
+
+  async function saveConnection() {
+    setError('')
+    const next = await window.aincarn.saveAgentConnection({
+      proxyUrl: proxyDraft.trim(),
+      token: tokenDraft.trim(),
+    })
+    setConnection(next)
+    setSettingsOpen(false)
+    setMessages((current) => [
+      ...current,
+      {
+        id: `connection-${Date.now()}`,
+        role: 'agent',
+        title: 'Desktop access updated',
+        content: next.token
+          ? 'この端末の接続トークンを保存しました。次の計画生成からVercel中継APIを使います。'
+          : '接続トークンを空にしました。次の計画生成からローカル計画モードで動きます。'
       }
     ])
   }
@@ -128,6 +163,9 @@ function App() {
           <span>{workspace ? workspace.name : 'No workspace'}</span>
         </div>
         <div className="topbarActions">
+          <button type="button" className="ghostButton" onClick={() => setSettingsOpen((open) => !open)}>
+            {connection?.token ? 'Desktop接続済み' : 'Desktop接続'}
+          </button>
           <button type="button" className="ghostButton" onClick={selectWorkspace}>
             {workspace ? '別のフォルダを開く' : 'フォルダを開く'}
           </button>
@@ -136,6 +174,20 @@ function App() {
           </button>
         </div>
       </header>
+
+      {settingsOpen && (
+        <section className="settingsPanel">
+          <div>
+            <p>Desktop Login</p>
+            <h2>ユーザー別トークンでAincarnに接続</h2>
+            <span>Device ID: {connection?.deviceId || 'loading'}</span>
+            <span>Token: {maskToken(connection?.token || '')}</span>
+          </div>
+          <input value={proxyDraft} onChange={(event) => setProxyDraft(event.target.value)} placeholder="Proxy URL" />
+          <input value={tokenDraft} onChange={(event) => setTokenDraft(event.target.value)} placeholder="Aincarn Desktop token" />
+          <button type="button" className="primaryButton" onClick={saveConnection}>保存</button>
+        </section>
+      )}
 
       <section className="agentLayout">
         <aside className="sidebar">
@@ -244,14 +296,14 @@ function App() {
           {plan ? (
             <>
               <div className="planMode">
-                <span>{plan.mode === 'ai' ? 'AI trial' : 'Local planner'}</span>
+                <span>{plan.mode === 'ai' ? 'AI proxy' : 'Local planner'}</span>
                 {plan.model && <strong>{plan.model}</strong>}
               </div>
               <h2>{plan.title}</h2>
               <p className="muted">{plan.summary}</p>
               <div className="todoList">
                 {plan.steps.map((step, index) => (
-                  <article key={step.title} className="todoItem">
+                  <article key={`${step.title}-${index}`} className="todoItem">
                     <span className="todoIndex">{index + 1}</span>
                     <div>
                       <strong>{step.title}</strong>
@@ -265,7 +317,7 @@ function App() {
           ) : (
             <div className="emptyState">
               <strong>実行計画はここに表示されます</strong>
-              <p>会話欄からタスクを送ると、AIによる計画、TODO、検証コマンドを右側で追えます。</p>
+              <p>会話欄からタスクを送ると、AIまたはローカルプランナーが計画、TODO、検証コマンドを整理します。</p>
             </div>
           )}
         </aside>

@@ -96,6 +96,57 @@ button {
   margin-left: auto;
 }
 
+.settingsPanel {
+  position: absolute;
+  z-index: 20;
+  top: 78px;
+  right: 14px;
+  display: grid;
+  width: min(560px, calc(100vw - 28px));
+  grid-template-columns: 1fr;
+  gap: 10px;
+  border: 1px solid rgba(218, 226, 240, 0.92);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 28px 70px rgba(34, 45, 68, 0.18);
+  padding: 16px;
+  backdrop-filter: blur(22px);
+}
+
+.settingsPanel p {
+  margin: 0;
+  color: #8a98ae;
+  font-size: 10px;
+  font-weight: 950;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.settingsPanel h2 {
+  margin: 5px 0 8px;
+  font-size: 18px;
+}
+
+.settingsPanel span {
+  display: block;
+  color: #657389;
+  font-size: 11px;
+  font-weight: 850;
+  line-height: 1.6;
+}
+
+.settingsPanel input {
+  width: 100%;
+  border: 1px solid #dbe5f2;
+  border-radius: 14px;
+  background: #f8fbff;
+  color: #172133;
+  font-size: 12px;
+  font-weight: 850;
+  outline: none;
+  padding: 12px;
+}
+
 .ghostButton,
 .primaryButton,
 .sendButton {

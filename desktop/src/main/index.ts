@@ -3,6 +3,7 @@ import { spawn } from 'node:child_process'
 import { join } from 'node:path'
 import { isAllowedCommand } from '../shared/commands'
 import type { CommandResult, WorkspaceSummary } from '../shared/types'
+import { getAgentConnection, saveAgentConnection } from './config'
 import { createAgentPlan } from './planner'
 import { scanWorkspace } from './security'
 
@@ -56,11 +57,13 @@ ipcMain.handle('workspace:select', async () => {
 })
 
 ipcMain.handle('workspace:get', async () => workspace)
+ipcMain.handle('agent:connection:get', async () => getAgentConnection())
+ipcMain.handle('agent:connection:save', async (_event, input) => saveAgentConnection(input))
 
 ipcMain.handle('agent:plan', async (_event, task: string) => {
   if (!workspace) throw new Error('先にプロジェクトフォルダを開いてください。')
   if (!task.trim()) throw new Error('タスクを入力してください。')
-  return createAgentPlan(task, workspace)
+  return createAgentPlan(task, workspace, getAgentConnection())
 })
 
 ipcMain.handle('command:run', async (_event, command: string, approved: boolean): Promise<CommandResult> => {

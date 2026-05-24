@@ -1,16 +1,14 @@
-import type { AgentPlan, WorkspaceSummary } from '../shared/types'
+import type { AgentConnection, AgentPlan, WorkspaceSummary } from '../shared/types'
 
-const DEFAULT_PROXY_URL = 'https://aincarn.com/api/agent/plan'
-
-export async function createAgentPlan(task: string, workspace: WorkspaceSummary): Promise<AgentPlan> {
-  const proxyToken = process.env.AINCARN_AGENT_API_TOKEN
-  const proxyUrl = process.env.AINCARN_AGENT_PROXY_URL || DEFAULT_PROXY_URL
+export async function createAgentPlan(task: string, workspace: WorkspaceSummary, connection: AgentConnection): Promise<AgentPlan> {
+  const proxyToken = connection.token
+  const proxyUrl = connection.proxyUrl
   const model = process.env.AINCARN_AGENT_MODEL || 'gpt-5-mini'
 
   if (!proxyToken) return createLocalPlan(task, workspace)
 
   try {
-    return await createProxyPlan(task, workspace, proxyUrl, proxyToken, model)
+    return await createProxyPlan(task, workspace, connection, model)
   } catch (error) {
     const fallback = createLocalPlan(task, workspace)
     return {
@@ -57,15 +55,16 @@ function createLocalPlan(task: string, workspace: WorkspaceSummary): AgentPlan {
 async function createProxyPlan(
   task: string,
   workspace: WorkspaceSummary,
-  proxyUrl: string,
-  proxyToken: string,
+  connection: AgentConnection,
   model: string
 ): Promise<AgentPlan> {
-  const response = await fetch(proxyUrl, {
+  const response = await fetch(connection.proxyUrl, {
     method: 'POST',
     headers: {
-      Authorization: `Bearer ${proxyToken}`,
-      'Content-Type': 'application/json'
+      Authorization: `Bearer ${connection.token}`,
+      'Content-Type': 'application/json',
+      'X-Aincarn-Device-Id': connection.deviceId,
+      'X-Aincarn-Device-Name': connection.deviceName
     },
     body: JSON.stringify({
       task,

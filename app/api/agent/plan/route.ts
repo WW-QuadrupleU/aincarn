@@ -1,6 +1,7 @@
 import { createHash, timingSafeEqual } from 'node:crypto'
 import { auth } from '@clerk/nextjs/server'
 import { NextResponse } from 'next/server'
+import { hasAgentTokenDatabase, validateAgentToken } from '@/lib/agent-token-store'
 import { countAiosRunsSince, hasAiosDatabase, recordAiosRun } from '@/lib/aios-store'
 import { getTierConfig, getUsageWindowReset, getUsageWindowStart, resolveEffectiveTier, type AiosTier } from '@/lib/aios-tier'
 import { getUserEmail, hasSubscriptionAuth } from '@/lib/subscription-auth'
@@ -55,10 +56,23 @@ function getBearerToken(request: Request) {
 }
 
 async function authenticate(request: Request): Promise<
-  | { ok: true; userId: string; email: string | null; source: 'token' | 'clerk'; tierOverride?: AiosTier }
+  | { ok: true; userId: string; email: string | null; source: 'user-token' | 'shared-token' | 'clerk'; tierOverride?: AiosTier }
   | { ok: false; response: NextResponse }
 > {
   const token = getBearerToken(request)
+  const deviceId = String(request.headers.get('x-aincarn-device-id') || '').trim().slice(0, 120)
+  const deviceName = String(request.headers.get('x-aincarn-device-name') || '').trim().slice(0, 120)
+
+  if (token && hasAgentTokenDatabase()) {
+    try {
+      if (!deviceId) return { ok: false, response: jsonError('Device id is required', 400) }
+      const record = await validateAgentToken({ token, deviceId, deviceName })
+      if (record) return { ok: true, userId: record.userId, email: null, source: 'user-token' }
+    } catch (error) {
+      return { ok: false, response: jsonError(error instanceof Error ? error.message : 'Invalid device token', 403) }
+    }
+  }
+
   const configuredToken = process.env.AINCARN_AGENT_API_TOKEN || ''
 
   if (token && configuredToken && safeEqual(token, configuredToken)) {
@@ -67,7 +81,7 @@ async function authenticate(request: Request): Promise<
       ok: true,
       userId: process.env.AINCARN_AGENT_TOKEN_USER_ID || `desktop:${hashToken(token).slice(0, 24)}`,
       email: null,
-      source: 'token',
+      source: 'shared-token',
       tierOverride: tier && ['free', 'light', 'pro', 'power', 'unlimited'].includes(tier) ? tier : 'free',
     }
   }
@@ -274,7 +288,7 @@ export async function POST(request: Request) {
       model,
       prompt,
       output: JSON.stringify(plan),
-      fallbackReason: identity.source === 'token' ? 'desktop-token' : undefined,
+      fallbackReason: identity.source === 'shared-token' ? 'desktop-shared-token' : identity.source === 'user-token' ? 'desktop-user-token' : undefined,
     }).catch(() => {})
   }
 
