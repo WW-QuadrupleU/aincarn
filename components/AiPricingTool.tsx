@@ -1009,10 +1009,10 @@ export default function AiPricingTool() {
             {/* マトリックス表 */}
             <div className="overflow-x-auto rounded-2xl border border-gray-200 bg-white/70 p-1 shadow-inner scrollbar-thin">
               <table className="w-full min-w-[950px] border-collapse table-fixed">
-                <thead>
-                  <tr className="border-b border-slate-200 bg-slate-50/50">
+                <thead className="sticky top-0 z-20">
+                  <tr className="border-b border-slate-200 bg-slate-50 shadow-sm shadow-slate-950/5">
                     {/* 左上隅のブランク */}
-                    <th className="w-[190px] p-4 text-left text-xs font-black uppercase text-slate-400 bg-slate-100/50 rounded-tl-2xl">
+                    <th className="w-[190px] p-4 text-left text-xs font-black uppercase text-slate-400 bg-slate-100 rounded-tl-2xl">
                       料金 \ 用途・強み
                     </th>
                     {Object.entries(matrixXLabels).map(([key, item]) => {
@@ -1024,7 +1024,7 @@ export default function AiPricingTool() {
                         audio: '🎙️',
                       }
                       return (
-                        <th key={key} className="p-4 text-center border-l border-slate-200/80 bg-slate-50/40">
+                        <th key={key} className="p-4 text-center border-l border-slate-200/80 bg-slate-50">
                           <span className="block text-sm font-black text-slate-900">
                             {iconMap[key]} {item.label}
                           </span>
