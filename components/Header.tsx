@@ -44,7 +44,7 @@ export default function Header() {
         <Link href="/tools/ai-pricing" className="shrink-0 rounded-full border border-slate-200 bg-white px-3 py-2 text-slate-600 shadow-sm shadow-slate-950/5">
           AI料金比較
         </Link>
-        <Link href="/tools/subscriptions" className="shrink-0 rounded-full bg-slate-950 px-3 py-2 text-white shadow-sm shadow-slate-950/10">
+        <Link href="/tools/subscriptions" className="shrink-0 rounded-full border border-slate-200 bg-white px-3 py-2 text-slate-600 shadow-sm shadow-slate-950/5">
           AIサブスク管理
         </Link>
       </nav>
