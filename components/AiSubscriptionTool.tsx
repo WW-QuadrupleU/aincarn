@@ -749,7 +749,7 @@ export default function AiSubscriptionTool() {
                         writing: '✍️',
                         coding: '💻',
                         media: '🎨',
-                        audio: '🎵',
+                        audio: '🎙️',
                       }
                       return (
                         <th key={key} className="p-4 text-center border-l border-slate-200/80 bg-slate-50/40">
