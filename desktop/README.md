@@ -8,7 +8,7 @@ The MVP is intentionally conservative:
 - Local operations are exposed through a narrow preload API.
 - Workspace access starts from an explicit folder picker.
 - Shell commands require an allowlisted command and explicit user approval.
-- AI execution is currently a local planning stub. Provider routing can be added after the safety layer is stable.
+- Optional API trial mode uses `OPENAI_API_KEY` only when it is set in the local shell. Without it, the app stays in local planning mode.
 
 ## Local Development
 
@@ -17,6 +17,18 @@ cd desktop
 npm install
 npm run dev
 ```
+
+## Optional Low-cost API Trial
+
+PowerShell example:
+
+```powershell
+$env:OPENAI_API_KEY="sk-..."
+$env:AINCARN_AGENT_MODEL="gpt-5-mini"
+npm run dev
+```
+
+The current API trial sends only a compact workspace summary, candidate file paths, package scripts, and the user's task. It does not send full repository contents.
 
 ## MVP Flow
 

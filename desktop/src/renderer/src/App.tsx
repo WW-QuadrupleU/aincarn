@@ -10,11 +10,13 @@ type ChatMessage = {
   content: string
 }
 
+type ApprovalMode = 'blocked' | 'once' | 'always'
+
 function App() {
   const [workspace, setWorkspace] = useState<WorkspaceSummary | null>(null)
   const [task, setTask] = useState('')
   const [plan, setPlan] = useState<AgentPlan | null>(null)
-  const [approved, setApproved] = useState(false)
+  const [approvalMode, setApprovalMode] = useState<ApprovalMode>('blocked')
   const [selectedCommand, setSelectedCommand] = useState('git status --short')
   const [commandResult, setCommandResult] = useState<CommandResult | null>(null)
   const [error, setError] = useState('')
@@ -38,9 +40,12 @@ function App() {
     return workspace.files.slice(0, 28)
   }, [workspace])
 
+  const canRunCommand = Boolean(workspace && plan && approvalMode !== 'blocked' && !busy)
+
   async function selectWorkspace() {
     setError('')
     setPlan(null)
+    setApprovalMode('blocked')
     const next = await window.aincarn.selectWorkspace()
     if (!next) return
 
@@ -68,7 +73,7 @@ function App() {
       const next = await window.aincarn.generatePlan(nextTask)
       setPlan(next)
       setSelectedCommand(next.suggestedCommands[0] || 'git status --short')
-      setApproved(false)
+      setApprovalMode('blocked')
       setCommandResult(null)
       setTask('')
       setMessages((current) => [
@@ -76,7 +81,7 @@ function App() {
         {
           id: `agent-${Date.now()}`,
           role: 'agent',
-          title: next.title,
+          title: next.model ? `${next.title} / ${next.model}` : next.title,
           content: next.summary
         }
       ])
@@ -88,12 +93,14 @@ function App() {
   }
 
   async function runCommand() {
+    if (approvalMode === 'blocked') return
+
     setBusy(true)
     setError('')
     setTerminalOpen(true)
 
     try {
-      const result = await window.aincarn.runCommand(selectedCommand, approved)
+      const result = await window.aincarn.runCommand(selectedCommand, true)
       setCommandResult(result)
       setMessages((current) => [
         ...current,
@@ -108,7 +115,7 @@ function App() {
       setError(caught instanceof Error ? caught.message : 'コマンド実行に失敗しました。')
     } finally {
       setBusy(false)
-      setApproved(false)
+      if (approvalMode === 'once') setApprovalMode('blocked')
     }
   }
 
@@ -170,7 +177,7 @@ function App() {
               <p>Conversation</p>
               <h1>開発タスクをAincarnに渡す</h1>
             </div>
-            <span className="statusPill">{busy ? 'Working' : 'Ready'}</span>
+            <span className="statusPill">{busy ? 'Working' : plan?.mode === 'ai' ? 'AI mode' : 'Ready'}</span>
           </div>
 
           <div className="messageList">
@@ -182,6 +189,33 @@ function App() {
             ))}
             {error && <p className="error">{error}</p>}
           </div>
+
+          {plan && (
+            <div className="approvalBar">
+              <div className="approvalMeta">
+                <span>Pending command</span>
+                <select value={selectedCommand} onChange={(event) => setSelectedCommand(event.target.value)}>
+                  {plan.suggestedCommands.map((command) => (
+                    <option key={command} value={command}>{command}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="approvalActions" role="group" aria-label="コマンド承認">
+                <button type="button" className={approvalMode === 'once' ? 'approvalChoice selected' : 'approvalChoice'} onClick={() => setApprovalMode('once')}>
+                  今回のみ
+                </button>
+                <button type="button" className={approvalMode === 'always' ? 'approvalChoice selected' : 'approvalChoice'} onClick={() => setApprovalMode('always')}>
+                  常に承認
+                </button>
+                <button type="button" className={approvalMode === 'blocked' ? 'approvalChoice danger selected' : 'approvalChoice danger'} onClick={() => setApprovalMode('blocked')}>
+                  拒否
+                </button>
+                <button type="button" className="runButton" onClick={runCommand} disabled={!canRunCommand}>
+                  実行
+                </button>
+              </div>
+            </div>
+          )}
 
           <form
             className="composer"
@@ -209,6 +243,10 @@ function App() {
 
           {plan ? (
             <>
+              <div className="planMode">
+                <span>{plan.mode === 'ai' ? 'AI trial' : 'Local planner'}</span>
+                {plan.model && <strong>{plan.model}</strong>}
+              </div>
               <h2>{plan.title}</h2>
               <p className="muted">{plan.summary}</p>
               <div className="todoList">
@@ -222,25 +260,6 @@ function App() {
                     <em className={`risk ${step.risk}`}>{step.risk}</em>
                   </article>
                 ))}
-              </div>
-
-              <div className="commandBox">
-                <div className="sectionHead compact">
-                  <p>Command</p>
-                  <span>approval required</span>
-                </div>
-                <select value={selectedCommand} onChange={(event) => setSelectedCommand(event.target.value)}>
-                  {plan.suggestedCommands.map((command) => (
-                    <option key={command} value={command}>{command}</option>
-                  ))}
-                </select>
-                <label className="approval">
-                  <input type="checkbox" checked={approved} onChange={(event) => setApproved(event.target.checked)} />
-                  このコマンドを実行する
-                </label>
-                <button className="primaryButton wide" type="button" onClick={runCommand} disabled={!workspace || !approved || busy}>
-                  承認して実行
-                </button>
               </div>
             </>
           ) : (

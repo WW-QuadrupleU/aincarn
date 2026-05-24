@@ -3,7 +3,7 @@ import { spawn } from 'node:child_process'
 import { join } from 'node:path'
 import { isAllowedCommand } from '../shared/commands'
 import type { CommandResult, WorkspaceSummary } from '../shared/types'
-import { createLocalPlan } from './planner'
+import { createAgentPlan } from './planner'
 import { scanWorkspace } from './security'
 
 let mainWindow: BrowserWindow | null = null
@@ -60,7 +60,7 @@ ipcMain.handle('workspace:get', async () => workspace)
 ipcMain.handle('agent:plan', async (_event, task: string) => {
   if (!workspace) throw new Error('先にプロジェクトフォルダを開いてください。')
   if (!task.trim()) throw new Error('タスクを入力してください。')
-  return createLocalPlan(task, workspace)
+  return createAgentPlan(task, workspace)
 })
 
 ipcMain.handle('command:run', async (_event, command: string, approved: boolean): Promise<CommandResult> => {

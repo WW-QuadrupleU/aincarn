@@ -15,6 +15,8 @@ export type WorkspaceSummary = {
 export type AgentPlan = {
   title: string
   summary: string
+  mode?: 'local' | 'ai'
+  model?: string
   steps: Array<{
     title: string
     detail: string
