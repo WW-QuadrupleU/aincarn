@@ -8,7 +8,7 @@ The MVP is intentionally conservative:
 - Local operations are exposed through a narrow preload API.
 - Workspace access starts from an explicit folder picker.
 - Shell commands require an allowlisted command and explicit user approval.
-- Optional API trial mode uses `OPENAI_API_KEY` only when it is set in the local shell. Without it, the app stays in local planning mode.
+- Optional API trial mode calls the Aincarn Vercel proxy when `AINCARN_AGENT_API_TOKEN` is set. The OpenAI key stays on Vercel and is never stored in the desktop app.
 
 ## Local Development
 
@@ -23,12 +23,20 @@ npm run dev
 PowerShell example:
 
 ```powershell
-$env:OPENAI_API_KEY="sk-..."
+$env:AINCARN_AGENT_PROXY_URL="https://aincarn.com/api/agent/plan"
+$env:AINCARN_AGENT_API_TOKEN="your-vercel-side-agent-token"
 $env:AINCARN_AGENT_MODEL="gpt-5-mini"
 npm run dev
 ```
 
-The current API trial sends only a compact workspace summary, candidate file paths, package scripts, and the user's task. It does not send full repository contents.
+The current proxy sends only a compact workspace summary, candidate file paths, package scripts, and the user's task. It does not send full repository contents. If the proxy token is missing or the proxy fails, the app falls back to the local planner.
+
+Required Vercel environment variables:
+
+- `OPENAI_API_KEY`: provider key stored only on Vercel.
+- `AINCARN_AGENT_API_TOKEN`: shared secret required by the desktop app.
+- `AINCARN_AGENT_TOKEN_TIER`: optional `free`, `light`, `pro`, `power`, or `unlimited` limit for token-based desktop access.
+- `AINCARN_AGENT_MODEL`: optional default model, currently `gpt-5-mini`.
 
 ## MVP Flow
 
