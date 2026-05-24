@@ -33,6 +33,13 @@ export type AgentConnection = {
   deviceName: string
 }
 
+export type AgentDeviceLogin = {
+  deviceCode: string
+  userCode: string
+  verificationUrl: string
+  expiresAt: string
+}
+
 export type CommandResult = {
   command: string
   exitCode: number | null
@@ -45,6 +52,8 @@ export type AgentApi = {
   getWorkspace: () => Promise<WorkspaceSummary | null>
   getAgentConnection: () => Promise<AgentConnection>
   saveAgentConnection: (connection: Partial<AgentConnection>) => Promise<AgentConnection>
+  startDeviceLogin: () => Promise<AgentDeviceLogin>
+  pollDeviceLogin: (deviceCode: string) => Promise<{ status: string; token?: string }>
   generatePlan: (task: string) => Promise<AgentPlan>
   runCommand: (command: string, approved: boolean) => Promise<CommandResult>
 }

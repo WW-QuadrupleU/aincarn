@@ -3,7 +3,7 @@ import { spawn } from 'node:child_process'
 import { join } from 'node:path'
 import { isAllowedCommand } from '../shared/commands'
 import type { CommandResult, WorkspaceSummary } from '../shared/types'
-import { getAgentConnection, saveAgentConnection } from './config'
+import { getAgentConnection, pollAgentDeviceLogin, saveAgentConnection, startAgentDeviceLogin } from './config'
 import { createAgentPlan } from './planner'
 import { scanWorkspace } from './security'
 
@@ -59,6 +59,8 @@ ipcMain.handle('workspace:select', async () => {
 ipcMain.handle('workspace:get', async () => workspace)
 ipcMain.handle('agent:connection:get', async () => getAgentConnection())
 ipcMain.handle('agent:connection:save', async (_event, input) => saveAgentConnection(input))
+ipcMain.handle('agent:device:start', async () => startAgentDeviceLogin())
+ipcMain.handle('agent:device:poll', async (_event, deviceCode: string) => pollAgentDeviceLogin(deviceCode))
 
 ipcMain.handle('agent:plan', async (_event, task: string) => {
   if (!workspace) throw new Error('先にプロジェクトフォルダを開いてください。')

@@ -147,6 +147,30 @@ button {
   padding: 12px;
 }
 
+.loginCode {
+  display: grid;
+  gap: 8px;
+  border-radius: 18px;
+  background: #071024;
+  padding: 14px;
+}
+
+.loginCode strong {
+  color: white;
+  font-family: "SFMono-Regular", Consolas, monospace;
+  font-size: 24px;
+  font-weight: 950;
+  letter-spacing: 0.16em;
+}
+
+.loginCode a {
+  overflow-wrap: anywhere;
+  color: #80eaff;
+  font-size: 11px;
+  font-weight: 850;
+  text-decoration: none;
+}
+
 .ghostButton,
 .primaryButton,
 .sendButton {

@@ -1,7 +1,7 @@
 import { app } from 'electron'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
-import type { AgentConnection } from '../shared/types'
+import type { AgentConnection, AgentDeviceLogin } from '../shared/types'
 
 const DEFAULT_PROXY_URL = 'https://aincarn.com/api/agent/plan'
 
@@ -54,4 +54,41 @@ export function saveAgentConnection(input: Partial<AgentConnection>): AgentConne
   mkdirSync(dirname(file), { recursive: true })
   writeFileSync(file, JSON.stringify(next, null, 2), 'utf8')
   return next
+}
+
+function agentApiBase(connection: AgentConnection) {
+  return connection.proxyUrl.replace(/\/api\/agent\/plan$/, '')
+}
+
+export async function startAgentDeviceLogin(): Promise<AgentDeviceLogin> {
+  const connection = getAgentConnection()
+  const response = await fetch(`${agentApiBase(connection)}/api/agent/device/start`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      deviceId: connection.deviceId,
+      deviceName: connection.deviceName,
+    }),
+  })
+  const data = await response.json().catch(() => null) as AgentDeviceLogin & { error?: string } | null
+  if (!response.ok || !data) throw new Error(data?.error || `Login start failed: ${response.status}`)
+  return data
+}
+
+export async function pollAgentDeviceLogin(deviceCode: string) {
+  const connection = getAgentConnection()
+  const response = await fetch(`${agentApiBase(connection)}/api/agent/device/poll`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      deviceCode,
+      deviceId: connection.deviceId,
+    }),
+  })
+  const data = await response.json().catch(() => null) as { status?: string; token?: string; error?: string } | null
+  if (!response.ok || !data) throw new Error(data?.error || `Login poll failed: ${response.status}`)
+  if (data.status === 'approved' && data.token) {
+    saveAgentConnection({ token: data.token })
+  }
+  return { status: data.status || 'unknown', token: data.token }
 }
