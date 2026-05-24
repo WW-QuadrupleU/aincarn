@@ -87,12 +87,6 @@ const AI_GENRE_GROUPS: Array<{
     description: 'テキストから音声を生成（TTS、ナレーション、対話）',
     genreIds: ['textSpeech'],
   },
-  {
-    id: 'music',
-    label: '音楽AI',
-    description: '楽曲生成（インスト / ボーカル）',
-    genreIds: ['musicInstrumental', 'musicVocal'],
-  },
 ]
 
 function ScoreBar({ label, score }: { label: string; score: number }) {
@@ -354,7 +348,7 @@ export default function AiModelCompareTool() {
             {genre.description}。用途によって重視すべき指標が変わるため、賢さ・速度・価格効率の項目別に比較します。
           </p>
         </div>
-        <div className="grid gap-2 md:grid-cols-3">
+        <div className="grid gap-2 sm:grid-cols-2 md:grid-cols-4">
           {AI_GENRE_GROUPS.map((group) => (
             <button
               key={group.id}

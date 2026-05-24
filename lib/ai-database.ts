@@ -15,8 +15,6 @@ export type AiGenreId =
   | 'textVideo'
   | 'imageVideo'
   | 'textSpeech'
-  | 'musicInstrumental'
-  | 'musicVocal'
 
 export type AiGenre = {
   id: AiGenreId
@@ -33,7 +31,7 @@ export type AiModel = {
   creator: string
   family: string
   releaseLabel: string
-  modality: 'LLM' | 'Image' | 'Video' | 'Audio' | 'Music'
+  modality: 'LLM' | 'Image' | 'Video' | 'Audio'
   accessType: 'Proprietary' | 'Open weights' | 'Specialized'
   costLevel: 1 | 2 | 3 | 4 | 5
   speed: number
@@ -73,7 +71,6 @@ export type SubscriptionCategory =
   | '画像'
   | '動画'
   | '音声'
-  | '音楽'
   | 'コーディング'
   | '検索・リサーチ'
   | 'デザイン'
@@ -98,7 +95,7 @@ export type SubscriptionCatalogPlan = {
   includes?: string[]
   bestFor?: string
   cautions?: string
-  matrixX?: ('general' | 'coding' | 'media' | 'audio' | 'music')[]
+  matrixX?: ('general' | 'coding' | 'media' | 'audio')[]
   matrixY?: 'free' | 'low' | 'mid' | 'high' | 'premium'
 }
 
@@ -130,7 +127,7 @@ export type PlanRow = {
   bestFor: string
   cautions: string
   sourceUrl: string
-  matrixX: ('general' | 'coding' | 'media' | 'audio' | 'music')[]
+  matrixX: ('general' | 'coding' | 'media' | 'audio')[]
   matrixY: 'free' | 'low' | 'mid' | 'high' | 'premium'
   isApi?: boolean
 }
@@ -220,22 +217,6 @@ export const AI_GENRES: AiGenre[] = [
     primaryMetrics: ['自然さ', '多言語対応', '感情表現', 'クローニング'],
     sourceMetric: 'TTSの自然さ、多言語対応、価格、クローニングの可否、商用利用時の制約を項目別に確認します。',
   },
-  {
-    id: 'musicInstrumental',
-    label: '音楽生成 - インストゥルメンタル',
-    shortLabel: 'インスト',
-    description: 'ボーカル無しのBGM・劇伴・ジングルを生成するモデルを比較します。動画背景音楽、ゲームBGM、ポッドキャストSE等に向きます。',
-    primaryMetrics: ['楽曲品質', 'ジャンル多様性', '構成の自然さ', '長尺対応'],
-    sourceMetric: 'インストゥルメンタル品質、ジャンル対応、価格、商用利用条件、Stem分離の可否を項目別に確認します。',
-  },
-  {
-    id: 'musicVocal',
-    label: '音楽生成 - ボーカル',
-    shortLabel: 'ボーカル',
-    description: '歌唱・歌詞付きの楽曲を生成するモデルを比較します。デモ曲制作、コンテンツ用ジングル、SNS用楽曲に向きます。',
-    primaryMetrics: ['ボーカル品質', '歌詞表現', 'ジャンル多様性', '商用ライセンス'],
-    sourceMetric: 'ボーカル合成の自然さ、歌詞追従、価格、商用利用条件を項目別に確認します。',
-  },
 ]
 
 const ZERO_PERFORMANCE: Record<AiGenreId, number> = {
@@ -249,8 +230,6 @@ const ZERO_PERFORMANCE: Record<AiGenreId, number> = {
   textVideo: 0,
   imageVideo: 0,
   textSpeech: 0,
-  musicInstrumental: 0,
-  musicVocal: 0,
 }
 
 function scores(values: Partial<Record<AiGenreId, number>>): Record<AiGenreId, number> {
@@ -487,81 +466,6 @@ export const FALLBACK_AI_MODELS: AiModel[] = [
     note: 'Vertex AI経由でカスタムボイス（Studio）も利用可能。',
   },
 
-  // ==========================================
-  // Music generation models
-  // ==========================================
-  {
-    id: 'suno-v55',
-    name: 'Suno v5.5',
-    creator: 'Suno',
-    family: 'Suno',
-    releaseLabel: '2026年5月',
-    modality: 'Music',
-    accessType: 'Specialized',
-    costLevel: 3,
-    speed: 82,
-    japanese: 90,
-    context: 0,
-    visibleIn: ['musicInstrumental', 'musicVocal'],
-    metric: 'AudioGen Arena top',
-    priceLabel: '$10 / 月（Pro=$30）',
-    sourceUrl: 'https://suno.com/pricing',
-    performance: scores({ musicInstrumental: 92, musicVocal: 94 }),
-    costPerformance: scores({ musicInstrumental: 88, musicVocal: 90 }),
-    strengths: ['歌詞 + 楽曲の同時生成', '直感的なUI', '商用ライセンス（Pro以上）', '最新v5.5でボーカル品質向上'],
-    cautions: ['Stem分離は上位プランのみ', '生成上限あり'],
-    bestFor: '楽曲アイデア出し、デモ制作、ジングル、コンテンツ用BGM。',
-    avoidFor: 'クラシック志向の細密制御や、特定スタイルの再現。',
-    note: 'Pro/Premier契約で商用利用可。クレジット制。',
-  },
-  {
-    id: 'udio-v15',
-    name: 'Udio v1.5',
-    creator: 'Udio',
-    family: 'Udio',
-    releaseLabel: '2025年11月',
-    modality: 'Music',
-    accessType: 'Specialized',
-    costLevel: 3,
-    speed: 78,
-    japanese: 82,
-    context: 0,
-    visibleIn: ['musicInstrumental', 'musicVocal'],
-    metric: 'AudioGen Arena top-2',
-    priceLabel: '$10 / 月（Pro=$30）',
-    sourceUrl: 'https://www.udio.com/pricing',
-    performance: scores({ musicInstrumental: 86, musicVocal: 92 }),
-    costPerformance: scores({ musicInstrumental: 82, musicVocal: 88 }),
-    strengths: ['高品質なボーカル', 'スタイルの再現性', 'Inpainting機能'],
-    cautions: ['歌詞編集のフロー慣れが必要', '日本語ボーカルは英語比でやや弱い'],
-    bestFor: '楽曲制作、Vocal入りデモ、リミックス検証。',
-    avoidFor: 'インストゥルメンタル中心のBGM大量制作（クレジット消費）。',
-    note: 'Standard/Pro契約で商用利用可。',
-  },
-  {
-    id: 'stable-audio-2',
-    name: 'Stable Audio 2.0',
-    creator: 'Stability AI',
-    family: 'Stable Audio',
-    releaseLabel: '2025年6月',
-    modality: 'Music',
-    accessType: 'Open weights',
-    costLevel: 2,
-    speed: 82,
-    japanese: 70,
-    context: 0,
-    visibleIn: ['musicInstrumental'],
-    metric: 'Open-source SOTA',
-    priceLabel: '$11.99 / 月（API: $0.06/min）',
-    sourceUrl: 'https://stability.ai/stable-audio',
-    performance: scores({ musicInstrumental: 82 }),
-    costPerformance: scores({ musicInstrumental: 92 }),
-    strengths: ['オープンウェイト', 'API経由でローカル統合可', '長尺対応'],
-    cautions: ['Vocal生成は不可（インスト中心）'],
-    bestFor: 'BGM、SE、自社プロダクトへのAPI組込み。',
-    avoidFor: '歌付き楽曲制作。',
-    note: 'StabilityAIのAPIまたはセルフホストで利用。',
-  },
 ]
 
 export const FALLBACK_AI_PAYLOAD: AiModelComparePayload = {
@@ -583,7 +487,6 @@ export const categoryOptions: SubscriptionCategory[] = [
   '画像',
   '動画',
   '音声',
-  '音楽',
   'コーディング',
   '検索・リサーチ',
   'デザイン',
@@ -1141,114 +1044,6 @@ export const defaultSubscriptionCatalog: SubscriptionCatalogService[] = [
         cautions: '個人ユースには過剰枠の可能性あり。',
         matrixX: ['audio'],
         matrixY: 'high',
-      },
-    ],
-  },
-  {
-    id: 'suno',
-    name: 'Suno',
-    provider: 'Suno',
-    categories: ['音楽'],
-    accent: 'from-[#ff6b6b] via-[#ff8e53] to-[#fcd34d]',
-    mark: 'SU',
-    vibe: '楽曲',
-    description: '歌詞・楽器演奏を含むフル楽曲をプロンプトから生成するAIサービス。',
-    sourceUrl: 'https://suno.com/pricing',
-    updatedAt: catalogUpdatedAt,
-    plans: [
-      {
-        id: 'free',
-        name: 'Free',
-        monthlyCostUsd: 0,
-        summary: '1日50クレジット（約10曲）まで無料で試せるプラン。',
-        category: '音楽生成',
-        includes: ['50クレジット/日', '個人利用のみ'],
-        bestFor: '音楽生成AIを試してみたい人',
-        cautions: '生成した楽曲を商用利用することはできません。',
-        matrixX: ['music'],
-        matrixY: 'free',
-      },
-      {
-        id: 'pro',
-        name: 'Pro',
-        monthlyCostUsd: 10,
-        summary: '月2,500クレジット（約500曲）、商用利用可。',
-        category: '音楽生成',
-        includes: ['2,500クレジット/月', '商用利用可', '優先キュー'],
-        bestFor: 'コンテンツ向け楽曲制作、SNS用ジングル制作',
-        cautions: '生成上限を超えるとPremier必須。',
-        matrixX: ['music'],
-        matrixY: 'low',
-        yearly: {
-          monthlyCostUsd: 8,
-          summary: '年払い時の月額換算（年額$96）。Suno Proを継続利用する人向け。',
-        },
-      },
-      {
-        id: 'premier',
-        name: 'Premier',
-        monthlyCostUsd: 30,
-        summary: '月10,000クレジット（約2,000曲）、Stem分離対応。',
-        category: '音楽生成',
-        includes: ['10,000クレジット/月', 'Stem分離', '4並列生成', '商用利用可'],
-        bestFor: 'プロ作家、楽曲アイデア大量生成、業務制作',
-        cautions: 'Stem分離はバージョン依存で揺れる場合あり。',
-        matrixX: ['music'],
-        matrixY: 'mid',
-        yearly: {
-          monthlyCostUsd: 24,
-          summary: '年払い時の月額換算（年額$288）。Premierを継続利用する人向け。',
-        },
-      },
-    ],
-  },
-  {
-    id: 'udio',
-    name: 'Udio',
-    provider: 'Uncharted Labs',
-    categories: ['音楽'],
-    accent: 'from-[#9333ea] via-[#ec4899] to-[#f97316]',
-    mark: 'UD',
-    vibe: '楽曲',
-    description: 'プロ品質ボーカルと多ジャンル対応で評価が高い楽曲生成AIサービス。',
-    sourceUrl: 'https://www.udio.com/pricing',
-    updatedAt: catalogUpdatedAt,
-    plans: [
-      {
-        id: 'free',
-        name: 'Free',
-        monthlyCostUsd: 0,
-        summary: '月10曲まで無料生成（個人利用）。',
-        category: '音楽生成',
-        includes: ['10曲/月', 'クリエイティブコモンズ・非商用'],
-        bestFor: 'まず触ってみたい人',
-        cautions: '商用配信はできません。',
-        matrixX: ['music'],
-        matrixY: 'free',
-      },
-      {
-        id: 'standard',
-        name: 'Standard',
-        monthlyCostUsd: 10,
-        summary: '月1,200曲、商用利用可、Inpainting利用可。',
-        category: '音楽生成',
-        includes: ['1,200曲/月', '商用利用可', 'Inpainting'],
-        bestFor: 'インディーズ制作、ボーカル入りデモ作成',
-        cautions: '英語ボーカルが最も自然、日本語は揺れる。',
-        matrixX: ['music'],
-        matrixY: 'low',
-      },
-      {
-        id: 'pro',
-        name: 'Pro',
-        monthlyCostUsd: 30,
-        summary: '月4,800曲、上位音質、優先サポート。',
-        category: '音楽生成',
-        includes: ['4,800曲/月', '高品質モード', '優先サポート'],
-        bestFor: 'プロ作家、リミックス制作',
-        cautions: 'Stem分離は別オプション。',
-        matrixX: ['music'],
-        matrixY: 'mid',
       },
     ],
   },

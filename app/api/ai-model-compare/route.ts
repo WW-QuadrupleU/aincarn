@@ -73,19 +73,6 @@ const ZERO_PERFORMANCE: Record<AiGenreId, number> = {
   textVideo: 0,
   imageVideo: 0,
   textSpeech: 0,
-  musicInstrumental: 0,
-  musicVocal: 0,
-}
-
-// Heuristic: decide whether an AA music model handles vocals.
-// Suno / Udio fully support vocals; Stable Audio / MusicGen are
-// instrumental-focused. Default to both when unsure so the model still
-// shows up in either compare panel.
-function musicSubtypes(name: string, creator: string): ('musicInstrumental' | 'musicVocal')[] {
-  const haystack = `${name} ${creator}`.toLowerCase()
-  if (/stable audio|musicgen|riffusion|audiocraft/.test(haystack)) return ['musicInstrumental']
-  if (/suno|udio|loudly|aiva/.test(haystack)) return ['musicInstrumental', 'musicVocal']
-  return ['musicInstrumental', 'musicVocal']
 }
 
 function scores(values: Partial<Record<AiGenreId, number>>): Record<AiGenreId, number> {
@@ -248,7 +235,7 @@ function mediaPrice(model: AaMediaModel): number | undefined {
   )
 }
 
-function mapMediaModel(model: AaMediaModel, type: 'textImage' | 'imageImage' | 'textVideo' | 'imageVideo' | 'textSpeech' | 'musicInstrumental' | 'musicVocal', fallbackRank: number): AiModel | null {
+function mapMediaModel(model: AaMediaModel, type: 'textImage' | 'imageImage' | 'textVideo' | 'imageVideo' | 'textSpeech', fallbackRank: number): AiModel | null {
   if (!model.name) return null
 
   const creator = model.model_creator?.name || 'Unknown'
@@ -261,7 +248,6 @@ function mapMediaModel(model: AaMediaModel, type: 'textImage' | 'imageImage' | '
   const isImage = type === 'textImage' || type === 'imageImage'
   const isVideo = type === 'textVideo' || type === 'imageVideo'
   const isSpeech = type === 'textSpeech'
-  const isMusic = type === 'musicInstrumental' || type === 'musicVocal'
 
   const modality: AiModel['modality'] = isImage
     ? 'Image'
@@ -269,9 +255,7 @@ function mapMediaModel(model: AaMediaModel, type: 'textImage' | 'imageImage' | '
       ? 'Video'
       : isSpeech
         ? 'Audio'
-        : isMusic
-          ? 'Music'
-          : 'LLM'
+        : 'LLM'
 
   const releaseLabel = model.release_date
     ? `Released ${model.release_date}`
@@ -283,11 +267,7 @@ function mapMediaModel(model: AaMediaModel, type: 'textImage' | 'imageImage' | '
           ? 'Text to Video'
           : type === 'imageVideo'
             ? 'Image to Video'
-            : type === 'textSpeech'
-              ? 'Text to Speech'
-              : type === 'musicInstrumental'
-                ? 'Music · Instrumental'
-                : 'Music · Vocal'
+            : 'Text to Speech'
 
   const sourceUrl = isImage
     ? type === 'textImage'
@@ -297,29 +277,19 @@ function mapMediaModel(model: AaMediaModel, type: 'textImage' | 'imageImage' | '
       ? type === 'textVideo'
         ? 'https://artificialanalysis.ai/video/leaderboard/text-to-video'
         : 'https://artificialanalysis.ai/video/leaderboard/image-to-video'
-      : isSpeech
-        ? 'https://artificialanalysis.ai/audio/leaderboard/text-to-speech'
-        : 'https://artificialanalysis.ai/audio/leaderboard/music-generation'
+      : 'https://artificialanalysis.ai/audio/leaderboard/text-to-speech'
 
   const strengthCopy = isImage
     ? '画像生成・編集の比較に使いやすい'
     : isVideo
       ? '動画生成品質の比較に使いやすい'
-      : isSpeech
-        ? '音声合成の自然さと価格を比較しやすい'
-        : type === 'musicInstrumental'
-          ? 'BGM・劇伴の生成品質を比較しやすい'
-          : 'ボーカル付き楽曲の表現力を比較しやすい'
+      : '音声合成の自然さと価格を比較しやすい'
 
   const bestForCopy = isImage
     ? '記事画像、サムネイル、広告素材の生成・編集。'
     : isVideo
       ? '短尺動画、Bロール、SNS向け映像素材の生成。'
-      : isSpeech
-        ? 'ナレーション、読み上げ、対話エージェント。'
-        : type === 'musicInstrumental'
-          ? '動画BGM、ゲーム劇伴、ポッドキャストSE。'
-          : 'デモ曲制作、コンテンツ用ジングル、SNS楽曲。'
+      : 'ナレーション、読み上げ、対話エージェント。'
 
   return {
     id: `${type}-${model.id || model.slug || slugify(`${creator}-${model.name}`)}`,
@@ -428,7 +398,6 @@ export async function GET(request: Request) {
             textVideo: 'fallback',
             imageVideo: 'fallback',
             textSpeech: 'fallback',
-            music: 'fallback',
           },
         },
       })
@@ -441,29 +410,14 @@ export async function GET(request: Request) {
   }
 
   try {
-    const [llms, textImages, imageImages, textVideos, imageVideos, textSpeeches, musicResult] = await Promise.all([
+    const [llms, textImages, imageImages, textVideos, imageVideos, textSpeeches] = await Promise.all([
       fetchAa<AaLlmModel>('/data/llms/models', key),
       fetchAa<AaMediaModel>('/data/media/text-to-image', key),
       fetchAa<AaMediaModel>('/data/media/image-editing', key),
       fetchAa<AaMediaModel>('/data/media/text-to-video', key),
       fetchAa<AaMediaModel>('/data/media/image-to-video', key),
       fetchAaOptional<AaMediaModel>('/data/media/text-to-speech', key),
-      // AA has not standardised the music slug. Probe several known
-      // candidates and accept the first that yields rows.
-      fetchAaFirstAvailable<AaMediaModel>(
-        [
-          '/data/media/music-generation',
-          '/data/media/text-to-music',
-          '/data/audio/music-generation',
-          '/data/audio/music',
-          '/data/music/music-generation',
-          '/data/music/generation',
-        ],
-        key,
-      ),
     ])
-    const musics = musicResult.data
-    const musicEndpointTrace = musicResult.tried
 
     const llmModels = llms
       .filter((model) => model.evaluations?.artificial_analysis_intelligence_index != null)
@@ -511,30 +465,7 @@ export async function GET(request: Request) {
       .map((model, index) => mapMediaModel(model, 'textSpeech', index + 1))
       .filter((model): model is AiModel => Boolean(model))
 
-    // Music: split each AA music model into the subtypes it can serve
-    // (instrumental / vocal). AA itself does not separate these today,
-    // so we apply a small heuristic based on model name + creator.
-    const musicSorted = musics
-      .filter((model) => model.elo != null)
-      .sort((a, b) => (a.rank ?? 9999) - (b.rank ?? 9999))
-      .slice(0, 40)
-
-    const musicInstrumentalModels: AiModel[] = []
-    const musicVocalModels: AiModel[] = []
-    musicSorted.forEach((model, index) => {
-      const creator = model.model_creator?.name || ''
-      const subtypes = musicSubtypes(model.name || '', creator)
-      if (subtypes.includes('musicInstrumental')) {
-        const mapped = mapMediaModel(model, 'musicInstrumental', index + 1)
-        if (mapped) musicInstrumentalModels.push(mapped)
-      }
-      if (subtypes.includes('musicVocal')) {
-        const mapped = mapMediaModel(model, 'musicVocal', index + 1)
-        if (mapped) musicVocalModels.push(mapped)
-      }
-    })
-
-    // もしAPIでTTSやMusicが取得できなかった場合はFallbackのモデルを差し込む
+    // TTS が AA から取れない場合は fallback で埋める
     const finalModels = [...llmModels, ...textImageModels, ...imageImageModels, ...textVideoModels, ...imageVideoModels]
     const genreSources = {
       llm: llmModels.length > 0 ? 'live' : 'empty',
@@ -543,23 +474,12 @@ export async function GET(request: Request) {
       textVideo: textVideoModels.length > 0 ? 'live' : 'empty',
       imageVideo: imageVideoModels.length > 0 ? 'live' : 'empty',
       textSpeech: 'live' as 'live' | 'fallback' | 'empty',
-      music: 'live' as 'live' | 'fallback' | 'empty',
     }
     if (textSpeechModels.length > 0) {
       finalModels.push(...textSpeechModels)
     } else {
       finalModels.push(...FALLBACK_AI_PAYLOAD.models.filter((model) => model.visibleIn.includes('textSpeech')))
       genreSources.textSpeech = 'fallback'
-    }
-    if (musicInstrumentalModels.length > 0 || musicVocalModels.length > 0) {
-      finalModels.push(...musicInstrumentalModels, ...musicVocalModels)
-    } else {
-      finalModels.push(
-        ...FALLBACK_AI_PAYLOAD.models.filter(
-          (model) => model.visibleIn.includes('musicInstrumental') || model.visibleIn.includes('musicVocal'),
-        ),
-      )
-      genreSources.music = 'fallback'
     }
 
     const stillFallbackGenres = Object.entries(genreSources)
@@ -595,12 +515,6 @@ export async function GET(request: Request) {
             textVideo: textVideoModels.length,
             imageVideo: imageVideoModels.length,
             textSpeech: textSpeechModels.length,
-            musicInstrumental: musicInstrumentalModels.length,
-            musicVocal: musicVocalModels.length,
-          },
-          musicEndpoint: {
-            usedPath: musicResult.usedPath,
-            tried: musicEndpointTrace,
           },
         },
       })
@@ -632,7 +546,6 @@ export async function GET(request: Request) {
             textVideo: 'fallback',
             imageVideo: 'fallback',
             textSpeech: 'fallback',
-            music: 'fallback',
           },
         },
       })
