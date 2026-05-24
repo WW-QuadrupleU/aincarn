@@ -12,7 +12,7 @@ import {
 } from '@/lib/ai-database'
 
 type PricingMode = 'plans' | 'llm' | 'image' | 'video' | 'audio'
-type ViewMode = 'matrix' | 'breakeven' | 'diagnosis' | 'api'
+type ViewMode = 'matrix' | 'breakeven' | 'diagnosis'
 
 type PricingRow = {
   model: AiModel
@@ -461,7 +461,7 @@ export default function AiPricingTool() {
                     : 'bg-white hover:bg-slate-100 text-gray-600 border border-slate-200'
                 }`}
               >
-                ⚖️ 損益分岐シミュレータ
+                ⚙️ API料金シミュレータ
               </button>
               <button
                 type="button"
@@ -473,17 +473,6 @@ export default function AiPricingTool() {
                 }`}
               >
                 🧠 AIコンシェルジュ診断
-              </button>
-              <button
-                type="button"
-                onClick={() => setViewMode('api')}
-                className={`rounded-full px-5 py-2.5 text-xs font-black transition-all ${
-                  viewMode === 'api'
-                    ? 'bg-slate-950 text-white shadow-md shadow-slate-950/15'
-                    : 'bg-white hover:bg-slate-100 text-gray-600 border border-slate-200'
-                }`}
-              >
-                ⚙️ API料金シミュレータ
               </button>
             </div>
           </div>
@@ -508,11 +497,11 @@ export default function AiPricingTool() {
         </div>
       </section>
 
-      {/* ---------------- ⚖️ VIEW: 損益分岐点シミュレータ ---------------- */}
+      {/* ---------------- ⚙️ VIEW: API料金シミュレータ ---------------- */}
       {viewMode === 'breakeven' && (
         <div className="space-y-6">
           <section className="rounded-[24px] border border-white/80 bg-white/88 p-5 shadow-sm shadow-slate-950/5 backdrop-blur">
-            <h2 className="text-xl font-black text-slate-950">⚖️ 「サブスク vs API」月額損益分岐点シミュレータ</h2>
+            <h2 className="text-xl font-black text-slate-950">⚙️ API料金シミュレータ（サブスクとの損益分岐点）</h2>
             <p className="mt-1 text-xs font-bold leading-relaxed text-gray-500">
               月々の想定文字数とAIへの質問頻度から、API従量課金にした方が安いのか、月額定額サブスク（ChatGPT Plusなど）を契約した方が安いのかのしきい値を計算します。
             </p>
