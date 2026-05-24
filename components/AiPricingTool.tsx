@@ -427,70 +427,121 @@ export default function AiPricingTool() {
     }
   }, [diagnosisUse, diagnosisFreq, diagnosisPriority])
 
+  // 掲載統計の集計
+  const planSummary = useMemo(() => {
+    const plans = AI_PLANS
+    const services = new Set(plans.map((p) => p.service)).size
+    const paidPlans = plans.filter((p) => p.monthlyUsd > 0)
+    const cheapest = paidPlans.reduce(
+      (min, p) => (p.monthlyUsd < min ? p.monthlyUsd : min),
+      Number.POSITIVE_INFINITY,
+    )
+    const highest = paidPlans.reduce((max, p) => (p.monthlyUsd > max ? p.monthlyUsd : max), 0)
+    return {
+      total: plans.length,
+      services,
+      cheapestUsd: Number.isFinite(cheapest) ? cheapest : 0,
+      highestUsd: highest,
+    }
+  }, [])
+
+  const tabConfig: Array<{ id: ViewMode; icon: string; label: string }> = [
+    { id: 'matrix', icon: '🗺️', label: '2次元ポジショニングマップ' },
+    { id: 'breakeven', icon: '⚙️', label: 'API料金シミュレータ' },
+    { id: 'diagnosis', icon: '🧠', label: 'AIコンシェルジュ診断' },
+  ]
+
   return (
     <div className="space-y-6">
-      {/* プレミアムヘッダーコントロール */}
-      <section className="overflow-hidden rounded-[28px] border border-white/80 bg-white/92 shadow-sm shadow-slate-950/5 backdrop-blur">
-        <div className="grid gap-0 lg:grid-cols-[1fr_380px]">
-          <div className="p-5 sm:p-6">
-            <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">Premium AI Estimator</p>
-            <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-950">AI料金比較ツール</h1>
-            <p className="mt-3 max-w-3xl text-sm font-bold leading-relaxed text-gray-500">
-              API従量課金コストやサブスクとの損益分岐点をシミュレーションします。
+      {/* ヒーロー：ダークグラデで存在感を出す */}
+      <section className="overflow-hidden rounded-[28px] border border-white/80 bg-white/92 shadow-xl shadow-slate-950/10 backdrop-blur">
+        <div className="grid gap-0 lg:grid-cols-[1fr_360px]">
+          <div className="p-6 sm:p-8">
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="rounded-full border border-slate-200 bg-white px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-slate-500">
+                Premium AI Estimator
+              </p>
+              <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-black text-emerald-700 ring-1 ring-emerald-200">
+                LIVE DATA
+              </span>
+            </div>
+            <h1 className="mt-4 max-w-2xl text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">
+              AI料金比較ツール
+            </h1>
+            <p className="mt-3 max-w-2xl text-sm font-bold leading-relaxed text-gray-500">
+              API従量課金コストとサブスクの損益分岐点を見える化。
+              主要AIサービス {planSummary.services}社・{planSummary.total}プランを一画面で比較できます。
             </p>
-            
-            {/* 動的ビュー切り替えトグル */}
-            <div className="mt-6 flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={() => setViewMode('matrix')}
-                className={`rounded-full px-5 py-2.5 text-xs font-black transition-all ${
-                  viewMode === 'matrix'
-                    ? 'bg-slate-950 text-white shadow-md shadow-slate-950/15'
-                    : 'bg-white hover:bg-slate-100 text-gray-600 border border-slate-200'
-                }`}
-              >
-                🗺️ 2次元ポジショニングマップ
-              </button>
-              <button
-                type="button"
-                onClick={() => setViewMode('breakeven')}
-                className={`rounded-full px-5 py-2.5 text-xs font-black transition-all ${
-                  viewMode === 'breakeven'
-                    ? 'bg-slate-950 text-white shadow-md shadow-slate-950/15'
-                    : 'bg-white hover:bg-slate-100 text-gray-600 border border-slate-200'
-                }`}
-              >
-                ⚙️ API料金シミュレータ
-              </button>
-              <button
-                type="button"
-                onClick={() => setViewMode('diagnosis')}
-                className={`rounded-full px-5 py-2.5 text-xs font-black transition-all ${
-                  viewMode === 'diagnosis'
-                    ? 'bg-slate-950 text-white shadow-md shadow-slate-950/15'
-                    : 'bg-white hover:bg-slate-100 text-gray-600 border border-slate-200'
-                }`}
-              >
-                🧠 AIコンシェルジュ診断
-              </button>
+
+            {/* タブ */}
+            <div className="mt-6 inline-flex flex-wrap gap-1.5 rounded-full border border-slate-200 bg-white/70 p-1 shadow-sm shadow-slate-950/5">
+              {tabConfig.map((tab) => {
+                const isActive = viewMode === tab.id
+                return (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => setViewMode(tab.id)}
+                    className={`rounded-full px-4 py-2 text-xs font-black transition-all ${
+                      isActive
+                        ? 'bg-gradient-to-r from-slate-950 via-slate-900 to-indigo-950 text-white shadow-md shadow-slate-950/20'
+                        : 'text-slate-500 hover:bg-slate-100 hover:text-slate-950'
+                    }`}
+                  >
+                    <span className="mr-1.5">{tab.icon}</span>
+                    {tab.label}
+                  </button>
+                )
+              })}
             </div>
           </div>
 
-          {/* 右側：為替レート動的コントロールパネル */}
-          <div className="flex flex-col justify-between bg-gradient-to-br from-slate-900 to-slate-950 p-5 text-white sm:p-6">
-            <div className="border-white/10 pt-4">
-              <p className="text-[10px] font-black uppercase tracking-[0.15em] text-white/50">My Keep List</p>
-              <div className="mt-2 flex flex-wrap gap-1.5 max-h-16 overflow-y-auto scrollbar-hide">
-                {keepList.length === 0 ? (
-                  <span className="text-[11px] font-bold text-white/40">★プランのキープはありません</span>
-                ) : (
-                  keepList.map((item) => (
-                    <span key={`${item.serviceName}-${item.planName}`} className="inline-flex items-center rounded-full bg-emerald-400/20 px-2 py-0.5 text-[10px] font-bold text-emerald-300">
-                      ★ {item.serviceName} {item.planName}
-                    </span>
-                  ))
-                )}
+          {/* 右側：ダーク統計バンド */}
+          <div className="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 p-6 text-white sm:p-7">
+            <div className="absolute -right-12 -top-12 h-40 w-40 rounded-full bg-gradient-to-br from-indigo-500/30 to-transparent blur-3xl" aria-hidden="true" />
+            <div className="absolute -bottom-16 -left-10 h-44 w-44 rounded-full bg-gradient-to-tr from-cyan-500/20 to-transparent blur-3xl" aria-hidden="true" />
+            <div className="relative">
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/60">
+                Compared right now
+              </p>
+              <div className="mt-4 grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.18em] text-white/55">Services</p>
+                  <p className="mt-1 text-3xl font-black tracking-tight">{planSummary.services}</p>
+                  <p className="text-[10px] font-bold text-white/55">AI providers</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.18em] text-white/55">Plans</p>
+                  <p className="mt-1 text-3xl font-black tracking-tight">{planSummary.total}</p>
+                  <p className="text-[10px] font-bold text-white/55">subscriptions</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.18em] text-white/55">From</p>
+                  <p className="mt-1 text-2xl font-black tracking-tight">${planSummary.cheapestUsd}</p>
+                  <p className="text-[10px] font-bold text-white/55">cheapest paid plan</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.18em] text-white/55">Up to</p>
+                  <p className="mt-1 text-2xl font-black tracking-tight">${planSummary.highestUsd}</p>
+                  <p className="text-[10px] font-bold text-white/55">premium tier</p>
+                </div>
+              </div>
+              <div className="mt-5 rounded-2xl border border-white/15 bg-white/[0.06] p-3 backdrop-blur">
+                <p className="text-[10px] font-black uppercase tracking-[0.16em] text-white/55">★ My Keep List</p>
+                <div className="mt-2 flex flex-wrap gap-1.5 max-h-12 overflow-y-auto scrollbar-hide">
+                  {keepList.length === 0 ? (
+                    <span className="text-[11px] font-bold text-white/45">★を押してお気に入りプランをここに集めます</span>
+                  ) : (
+                    keepList.map((item) => (
+                      <span
+                        key={`${item.serviceName}-${item.planName}`}
+                        className="inline-flex items-center rounded-full bg-emerald-400/15 px-2 py-0.5 text-[10px] font-bold text-emerald-200 ring-1 ring-emerald-400/30"
+                      >
+                        ★ {item.serviceName} {item.planName}
+                      </span>
+                    ))
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -930,23 +981,30 @@ export default function AiPricingTool() {
       {/* ---------------- 🗺️ VIEW: 2次元ポジショニングマトリックス ---------------- */}
       {viewMode === 'matrix' && (
         <div className="space-y-6">
-          <section className="overflow-hidden rounded-[24px] border border-white/80 bg-white/88 p-5 shadow-sm shadow-slate-950/5 backdrop-blur">
-            <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <h2 className="text-xl font-black text-slate-950">🗺️ AI料金・機能 2次元マトリックスマップ</h2>
-                <p className="mt-1 text-xs font-bold leading-relaxed text-gray-500">
-                  縦軸に「コストレンジ」、横軸に「主要用途・強み」を設定し、各AIサービスがどこに位置づくかをプロットした2次元マップです。直感的なAI選びをサポートします。
-                </p>
+          <section className="overflow-hidden rounded-[24px] border border-white/80 bg-white/92 shadow-md shadow-slate-950/5 backdrop-blur">
+            <div className="h-1 w-full bg-gradient-to-r from-indigo-500 via-sky-500 to-cyan-400" />
+            <div className="p-5">
+              <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="rounded-full bg-gradient-to-r from-indigo-500 via-sky-500 to-cyan-400 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-[0.16em] text-white shadow">
+                      Matrix
+                    </span>
+                    <h2 className="text-xl font-black text-slate-950">AI料金 × 用途 2次元マップ</h2>
+                  </div>
+                  <p className="mt-1 text-xs font-bold leading-relaxed text-gray-500">
+                    縦軸「コストレンジ」× 横軸「主要用途」で各AIサービスを位置付けたマップ。AI選びを直感的にサポートします。
+                  </p>
+                </div>
+                <div className="w-full sm:w-64">
+                  <input
+                    value={query}
+                    onChange={(event) => setQuery(event.target.value)}
+                    placeholder="マップ内を検索 (例: ChatGPT)..."
+                    className="w-full rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-950 outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
+                  />
+                </div>
               </div>
-              <div className="w-full sm:w-64">
-                <input
-                  value={query}
-                  onChange={(event) => setQuery(event.target.value)}
-                  placeholder="マップ内を検索 (例: ChatGPT)..."
-                  className="w-full rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-950 outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
-                />
-              </div>
-            </div>
 
             {/* マトリックス表 */}
             <div className="overflow-x-auto rounded-2xl border border-gray-200 bg-white/70 p-1 shadow-inner scrollbar-thin">
@@ -1161,6 +1219,7 @@ export default function AiPricingTool() {
                   })}
                 </tbody>
               </table>
+            </div>
             </div>
           </section>
         </div>
