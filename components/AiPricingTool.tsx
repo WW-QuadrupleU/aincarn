@@ -1006,9 +1006,11 @@ export default function AiPricingTool() {
                 </div>
               </div>
 
-            {/* マトリックス表 */}
-            <div className="overflow-x-auto rounded-2xl border border-gray-200 bg-white/70 p-1 shadow-inner scrollbar-thin">
-              <table className="w-full min-w-[950px] border-collapse table-fixed">
+            {/* マトリックス表
+                ウィンドウが広いときは全幅で表示し、狭い画面のみ横スクロール。
+                md+ では overflow-visible にして thead の sticky を機能させる */}
+            <div className="overflow-x-auto md:overflow-x-visible rounded-2xl border border-gray-200 bg-white/70 p-1 shadow-inner scrollbar-thin">
+              <table className="w-full min-w-[800px] md:min-w-0 border-collapse table-fixed">
                 <thead className="sticky top-0 z-20">
                   <tr className="border-b border-slate-200 bg-slate-50 shadow-sm shadow-slate-950/5">
                     {/* 左上隅のブランク */}
