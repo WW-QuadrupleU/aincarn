@@ -1008,13 +1008,14 @@ export default function AiPricingTool() {
 
             {/* マトリックス表
                 ウィンドウが広いときは全幅で表示し、狭い画面のみ横スクロール。
-                md+ では overflow-visible にして thead の sticky を機能させる */}
+                md+ では overflow-visible にして thead の sticky を機能させる。
+                border-separate にしないと thead の sticky が一部ブラウザでズレるため切替。 */}
             <div className="overflow-x-auto md:overflow-x-visible rounded-2xl border border-gray-200 bg-white/70 p-1 shadow-inner scrollbar-thin">
-              <table className="w-full min-w-[800px] md:min-w-0 border-collapse table-fixed">
-                <thead className="sticky top-0 z-20">
-                  <tr className="border-b border-slate-200 bg-slate-50 shadow-sm shadow-slate-950/5">
+              <table className="w-full min-w-[800px] md:min-w-0 border-separate border-spacing-0 table-fixed">
+                <thead className="sticky top-28 z-30 sm:top-16">
+                  <tr className="bg-slate-50">
                     {/* 左上隅のブランク */}
-                    <th className="w-[190px] p-4 text-left text-xs font-black uppercase text-slate-400 bg-slate-100 rounded-tl-2xl">
+                    <th className="w-[190px] p-4 text-left text-xs font-black uppercase text-slate-400 bg-slate-100 border-b border-slate-200 rounded-tl-2xl">
                       料金 \ 用途・強み
                     </th>
                     {Object.entries(matrixXLabels).map(([key, item]) => {
@@ -1026,7 +1027,7 @@ export default function AiPricingTool() {
                         audio: '🎙️',
                       }
                       return (
-                        <th key={key} className="p-4 text-center border-l border-slate-200/80 bg-slate-50">
+                        <th key={key} className="p-4 text-center border-l border-b border-slate-200 bg-slate-50 shadow-sm shadow-slate-950/5">
                           <span className="block text-sm font-black text-slate-900">
                             {iconMap[key]} {item.label}
                           </span>
@@ -1046,9 +1047,9 @@ export default function AiPricingTool() {
                       premium: 'bg-rose-500',
                     }
                     return (
-                      <tr key={yKey} className="border-t border-slate-200/80">
+                      <tr key={yKey}>
                         {/* 縦軸ラベルセル */}
-                        <td className="p-4 align-top bg-slate-50/20">
+                        <td className="p-4 align-top bg-slate-50/20 border-t border-slate-200/80">
                           <div className="flex items-center gap-1.5">
                             <span className={`inline-block size-2 shrink-0 rounded-full ${dotColors[yKey] || 'bg-slate-400'}`} />
                             <span className="text-sm font-black text-slate-900">{yItem.label}</span>
@@ -1060,7 +1061,7 @@ export default function AiPricingTool() {
                         </td>
 
                         {/* 各マトリックスセル */}
-                        <td colSpan={Object.keys(matrixXLabels).length} className="p-2 align-top border-l border-slate-200/80 bg-slate-50/10">
+                        <td colSpan={Object.keys(matrixXLabels).length} className="p-2 align-top border-l border-t border-slate-200/80 bg-slate-50/10">
                           <div
                             className="grid gap-2 relative"
                             style={{ gridTemplateColumns: `repeat(${Object.keys(matrixXLabels).length}, minmax(0, 1fr))` }}
