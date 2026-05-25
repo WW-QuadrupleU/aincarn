@@ -5,68 +5,53 @@ import SmoothHashLink from '@/components/SmoothHashLink'
 export const revalidate = 3600
 
 export const metadata: Metadata = {
-  title: 'Aincarn | AIモデルとサブスクを実測で比較する',
+  title: 'Aincarn | AIモデル・料金・サブスクを比較する実用ツール',
   description:
-    'Aincarnは、AIモデルの公開ベンチマーク、料金、用途別の使いどころを整理し、どのAIに課金すべきかを判断しやすくする比較サイトです。',
+    'Aincarnは、AIモデル比較、AI料金比較、AIサブスク管理をまとめた無料ツールサイトです。性能、速度、価格、用途を分けて、AI選びを判断しやすくします。',
 }
 
 const tools = [
   {
     href: '/tools/ai-model-compare',
-    label: 'AI性能比較',
-    body: '賢さ、速度、価格効率を横並びで見て、用途に合うAIを探します。',
+    label: 'AIモデル比較',
+    body: '主要AIモデルの賢さ、速度、価格効率を横並びで比較します。用途別にどのAIを選ぶべきかを確認できます。',
     tag: 'Compare',
-    metric: '3指標',
+    metric: '性能・速度・価格',
     accent: 'from-indigo-500 via-sky-400 to-cyan-300',
     soft: 'from-indigo-50 to-cyan-50',
   },
   {
     href: '/tools/ai-pricing',
     label: 'AI料金比較',
-    body: 'サブスク料金とAPI利用料を分けて、月額の目安を比較します。',
+    body: 'サブスク料金とAPI利用料を分けて整理し、月額の目安やプラン選びの違いを比較します。',
     tag: 'Pricing',
-    metric: '月額換算',
+    metric: '月額・API',
     accent: 'from-emerald-400 via-teal-400 to-sky-400',
     soft: 'from-emerald-50 to-sky-50',
   },
   {
     href: '/tools/ai-subscription',
-    label: 'AIサブスク管理',
-    body: '契約中のAIサービス、更新日、月額換算コストをアカウントごとに保存します。',
-    tag: 'Collection',
-    metric: '個別保存',
+    label: 'AIサブスク診断',
+    body: '用途や予算から、契約候補のAIサブスクを整理します。複数サービスの使い分けを考える入り口です。',
+    tag: 'Planner',
+    metric: '用途・予算',
     accent: 'from-fuchsia-500 via-rose-400 to-orange-300',
     soft: 'from-fuchsia-50 to-orange-50',
   },
 ]
 
-const toolStories = [
+const principles = [
   {
-    href: '/tools/ai-model-compare',
-    label: 'AI性能比較',
-    eyebrow: 'Model Intelligence',
-    title: 'モデルの強さを、用途ごとに静かに比較する。',
-    body: '公開ベンチマーク、速度、価格効率を用途別に整理。文章、コード、リサーチ、画像、動画など、自分の作業に効く指標だけを見やすく並べます。',
-    stats: ['Intelligence', 'Speed', 'Value'],
-    accent: 'from-indigo-500 via-sky-400 to-cyan-300',
+    title: '公開情報と実測予定データを分ける',
+    body: '公式料金、公開ベンチマーク、運営者による実測予定データを混同せず、情報源の性質が分かるように整理します。',
   },
   {
-    href: '/tools/ai-pricing',
-    label: 'AI料金比較',
-    eyebrow: 'Cost Simulator',
-    title: '複雑なAI料金を、月額感覚に変換する。',
-    body: 'サブスク、API、画像生成、動画生成は単位が違います。利用量を入れて同じ尺度に変換し、課金判断をシンプルにします。',
-    stats: ['Plan', 'API', 'Usage'],
-    accent: 'from-emerald-400 via-teal-400 to-sky-400',
+    title: '用途別に翻訳する',
+    body: '単純な総合点だけでなく、文章作成、コード、調査、画像、動画などの使い方に合わせて判断しやすくします。',
   },
   {
-    href: '/tools/ai-subscription',
-    label: 'AIサブスク管理',
-    eyebrow: 'Subscription Collection',
-    title: '増えていくAIサブスクを、ひとつの場所で管理する。',
-    body: 'ChatGPT、Claude、Gemini、Midjourneyなどをカードとして保存。更新日、月額換算、ジャンルを見ながら、いま契約しているAIを整理できます。',
-    stats: ['Cards', 'Renewal', 'Total'],
-    accent: 'from-fuchsia-500 via-rose-400 to-orange-300',
+    title: 'コスト感を重視する',
+    body: '高性能なAIでも、速度や単価が合わなければ日常利用では選びにくい場合があります。価格効率も重視します。',
   },
 ]
 
@@ -81,14 +66,14 @@ export default function HomePage() {
                 Aincarn
               </p>
               <h1 className="mt-7 max-w-4xl text-5xl font-black leading-[1.02] tracking-tight text-slate-950 sm:text-7xl">
-                AIを選ぶ時間を、
+                AI選びを、
                 <span className="block bg-gradient-to-r from-indigo-600 via-sky-500 to-teal-400 bg-clip-text text-transparent">
-                  もっと美しく。
+                  使う前に整理する。
                 </span>
               </h1>
               <p className="mt-6 max-w-2xl text-base font-semibold leading-relaxed text-slate-600 sm:text-lg">
-                Aincarnは、AIモデルの性能、料金、サブスクをひとつの視点で整理する比較ツールです。
-                迷いを減らし、今月どのAIに課金するかを落ち着いて判断できます。
+                Aincarnは、AIモデルの性能、料金、サブスク管理をひとつの視点で整理する比較サイトです。
+                公開データと公式料金をもとに、今どのAIに課金するべきかを判断しやすくします。
               </p>
               <div className="mt-9 flex flex-wrap gap-3">
                 <SmoothHashLink
@@ -101,7 +86,7 @@ export default function HomePage() {
                   href="/about"
                   className="rounded-full border border-slate-200 bg-white px-6 py-3 text-sm font-black text-slate-800 shadow-sm shadow-slate-950/5 transition hover:-translate-y-0.5 hover:border-slate-300"
                 >
-                  Aincarnについて
+                  編集方針を見る
                 </Link>
               </div>
             </div>
@@ -112,7 +97,7 @@ export default function HomePage() {
                 <div className="flex items-center justify-between gap-3">
                   <div>
                     <p className="text-xs font-bold uppercase tracking-[0.18em] text-white/50">Decision Panel</p>
-                    <h2 className="mt-2 text-2xl font-black tracking-tight">AIの選び方を、3つに分ける。</h2>
+                    <h2 className="mt-2 text-2xl font-black tracking-tight">AI選びの判断軸</h2>
                   </div>
                   <div className="grid size-12 place-items-center rounded-2xl bg-white text-sm font-black text-slate-950">AI</div>
                 </div>
@@ -144,7 +129,7 @@ export default function HomePage() {
       <section className="mx-auto max-w-6xl px-4 pb-12">
         <div id="tools" className="mb-7 scroll-mt-28">
           <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">Tools</p>
-          <h2 className="mt-2 text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">必要な比較を選ぶ</h2>
+          <h2 className="mt-2 text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">目的に合わせて使う</h2>
         </div>
         <div className="grid gap-4 md:grid-cols-3">
           {tools.map((tool) => (
@@ -171,40 +156,17 @@ export default function HomePage() {
       </section>
 
       <section className="mx-auto max-w-6xl px-4 pb-16">
-        <div className="grid gap-5">
-          {toolStories.map((tool) => (
-            <article
-              key={tool.href}
-              className="grid overflow-hidden rounded-[36px] border border-white/80 bg-white/80 shadow-xl shadow-slate-950/5 backdrop-blur-xl lg:grid-cols-[1fr_360px]"
-            >
-              <div className="p-6 sm:p-8">
-                <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">{tool.eyebrow}</p>
-                <h2 className="mt-3 max-w-2xl text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">{tool.title}</h2>
-                <p className="mt-4 max-w-3xl text-sm font-semibold leading-relaxed text-slate-600">{tool.body}</p>
-                <Link
-                  href={tool.href}
-                  className="mt-7 inline-flex rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-900 shadow-sm shadow-slate-950/5 transition hover:-translate-y-0.5 hover:border-slate-300"
-                >
-                  {tool.label}を開く
-                </Link>
-              </div>
-              <div className="border-t border-slate-100 bg-slate-50/80 p-6 lg:border-l lg:border-t-0">
-                <div className="grid h-full content-center gap-3">
-                  {tool.stats.map((stat, index) => (
-                    <div key={stat} className="rounded-2xl border border-slate-200/70 bg-white p-4 shadow-sm shadow-slate-950/5">
-                      <div className="flex items-center justify-between gap-3">
-                        <p className="text-xs font-black uppercase tracking-[0.15em] text-slate-400">{stat}</p>
-                        <p className="text-sm font-black text-slate-950">{index === 0 ? 'High' : index === 1 ? 'Fast' : 'Clear'}</p>
-                      </div>
-                      <div className="mt-4 h-2 overflow-hidden rounded-full bg-slate-100">
-                        <div className={`h-full rounded-full bg-gradient-to-r ${tool.accent}`} style={{ width: `${88 - index * 17}%` }} />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </article>
-          ))}
+        <div className="rounded-[36px] border border-white/80 bg-white/84 p-6 shadow-xl shadow-slate-950/5 backdrop-blur-xl sm:p-8">
+          <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">Editorial Policy</p>
+          <h2 className="mt-2 text-3xl font-black tracking-tight text-slate-950">Aincarnの比較方針</h2>
+          <div className="mt-6 grid gap-4 md:grid-cols-3">
+            {principles.map((item) => (
+              <article key={item.title} className="rounded-3xl border border-slate-200/80 bg-slate-50/80 p-5">
+                <h3 className="text-lg font-black text-slate-950">{item.title}</h3>
+                <p className="mt-3 text-sm font-semibold leading-relaxed text-slate-600">{item.body}</p>
+              </article>
+            ))}
+          </div>
         </div>
       </section>
     </>

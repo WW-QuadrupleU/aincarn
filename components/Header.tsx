@@ -13,20 +13,19 @@ export default function Header() {
             width={40}
             height={40}
             className="size-10 rounded-2xl border border-slate-200/70 object-cover shadow-sm shadow-slate-950/5"
-
             priority
           />
           Aincarn
         </Link>
         <nav className="hidden items-center gap-1 rounded-full border border-slate-200/70 bg-white/72 p-1 text-xs font-black shadow-sm shadow-slate-950/5 sm:flex">
           <Link href="/tools/ai-model-compare" className="rounded-full px-3 py-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-950">
-            AI性能比較
+            AIモデル比較
           </Link>
           <Link href="/tools/ai-pricing" className="rounded-full px-3 py-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-950">
             AI料金比較
           </Link>
           <Link href="/tools/subscriptions" className="rounded-full px-3 py-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-950">
-            AIサブスク管理
+            サブスク管理
           </Link>
           <Link href="/about" className="rounded-full bg-slate-950 px-4 py-2 text-white transition hover:bg-slate-800">
             About
@@ -39,13 +38,13 @@ export default function Header() {
       </div>
       <nav className="mx-auto flex max-w-6xl gap-2 overflow-x-auto px-4 pb-3 text-xs font-black sm:hidden">
         <Link href="/tools/ai-model-compare" className="shrink-0 rounded-full border border-slate-200 bg-white px-3 py-2 text-slate-600 shadow-sm shadow-slate-950/5">
-          AI性能比較
+          AIモデル比較
         </Link>
         <Link href="/tools/ai-pricing" className="shrink-0 rounded-full border border-slate-200 bg-white px-3 py-2 text-slate-600 shadow-sm shadow-slate-950/5">
           AI料金比較
         </Link>
         <Link href="/tools/subscriptions" className="shrink-0 rounded-full border border-slate-200 bg-white px-3 py-2 text-slate-600 shadow-sm shadow-slate-950/5">
-          AIサブスク管理
+          サブスク管理
         </Link>
       </nav>
     </header>

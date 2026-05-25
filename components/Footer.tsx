@@ -6,11 +6,12 @@ export default function Footer() {
       <div className="mx-auto flex max-w-6xl flex-col gap-5 px-4 py-8 text-xs font-bold text-slate-500 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="text-base font-black text-slate-950">Aincarn</p>
-          <p className="mt-1">AIモデルとサブスクを、実測で比較する。</p>
+          <p className="mt-1">AIモデル、料金、サブスクを実用目線で比較するサイトです。</p>
         </div>
         <nav className="flex flex-wrap gap-3 rounded-full border border-slate-200/70 bg-white/80 px-3 py-2 shadow-sm shadow-slate-950/5">
           <Link href="/about" className="hover:text-slate-950">運営者情報</Link>
           <Link href="/privacy" className="hover:text-slate-950">プライバシーポリシー</Link>
+          <Link href="/disclosure" className="hover:text-slate-950">広告開示</Link>
           <Link href="/contact" className="hover:text-slate-950">お問い合わせ</Link>
         </nav>
       </div>

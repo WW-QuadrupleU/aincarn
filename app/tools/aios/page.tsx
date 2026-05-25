@@ -8,8 +8,11 @@ export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
   title: 'Aincarn OS',
-  description:
-    'Aincarn OSは、興味・目標・行動・実績・気づきをDigital DNAとして蓄積し、あなた自身の履歴を可視化する外部記憶です。',
+  description: 'Aincarn OSの内部テスト用ページです。',
+  robots: {
+    index: false,
+    follow: false,
+  },
 }
 
 export default async function AiosPage() {
