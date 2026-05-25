@@ -7,7 +7,7 @@ export const revalidate = 3600
 export const metadata: Metadata = {
   title: 'Aincarn | AIモデル・料金・サブスクを比較する実用ツール',
   description:
-    'Aincarnは、AIモデル比較、API料金シミュレータ、AIサブスク管理をまとめた実用ツールサイトです。性能、速度、価格、用途を整理して、AI選びを判断しやすくします。',
+    'Aincarnは、AIモデル比較、AI料金比較、AIサブスク管理をまとめた実用ツールサイトです。性能、速度、価格、用途を整理して、AI選びを判断しやすくします。',
 }
 
 const tools = [
@@ -22,8 +22,8 @@ const tools = [
   },
   {
     href: '/tools/ai-pricing',
-    label: 'API料金シミュレータ',
-    body: 'API従量課金コストと定額サブスクの目安を一つの画面で整理します。利用量ごとの損益分岐も確認できます。',
+    label: 'AI料金比較',
+    body: '料金プラン比較、API料金シミュレータ、損益分岐の3つをまとめて確認できます。用途に合う課金方法を整理します。',
     tag: 'Pricing',
     metric: '月額・API',
     accent: 'from-emerald-400 via-teal-400 to-sky-400',

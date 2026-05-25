@@ -3,7 +3,7 @@ import Link from 'next/link'
 
 export const metadata: Metadata = {
   title: 'Aincarn Tools',
-  description: 'Aincarnで提供しているAIモデル比較、API料金シミュレータ、AIサブスク管理ツールの一覧です。',
+  description: 'Aincarnで提供しているAIモデル比較、AI料金比較、AIサブスク管理ツールの一覧です。',
 }
 
 const tools = [
@@ -15,8 +15,8 @@ const tools = [
   },
   {
     href: '/tools/ai-pricing',
-    label: 'API料金シミュレータ',
-    body: 'API従量課金と定額サブスクの月額目安、損益分岐をまとめて確認できます。',
+    label: 'AI料金比較',
+    body: '料金プラン比較、API料金シミュレータ、損益分岐をまとめて確認できます。',
     meta: 'Pricing',
   },
   {
