@@ -14,7 +14,7 @@ export const metadata: Metadata = {
     template: '%s | Aincarn',
   },
   description:
-    'Aincarnは、AIモデルの性能、料金、サブスク管理を用途別に整理する比較サイトです。公開ベンチマーク、公式料金、実測予定データを分けて、AI選びを判断しやすくします。',
+    'Aincarnは、AIモデルの性能、API料金、サブスク管理を用途別に整理する比較サイトです。公開ベンチマーク、公式料金、実測予定データを分けて、AI選びを判断しやすくします。',
   metadataBase: new URL('https://aincarn.com'),
   openGraph: {
     siteName: 'Aincarn',

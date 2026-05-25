@@ -4,9 +4,9 @@ import AiPricingTool from '@/components/AiPricingTool'
 export const revalidate = 3600
 
 export const metadata: Metadata = {
-  title: 'AI料金比較',
+  title: 'API料金シミュレータ',
   description:
-    'ChatGPT、Claude、Geminiなど主要なAIモデルのAPI従量課金コストやサブスクとの損益分岐点をシミュレーションできるツールです。',
+    'ChatGPT、Claude、Geminiなど主要なAIモデルのAPI従量課金コストや、定額サブスクとの損益分岐点をシミュレーションできるツールです。',
 }
 
 export default function AiPricingPage() {

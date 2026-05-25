@@ -3,7 +3,7 @@ import Link from 'next/link'
 
 export const metadata: Metadata = {
   title: 'Aincarn Tools',
-  description: 'Aincarnで提供しているAIモデル比較、AI料金比較、AIサブスク管理ツールの一覧です。',
+  description: 'Aincarnで提供しているAIモデル比較、API料金シミュレータ、AIサブスク管理ツールの一覧です。',
 }
 
 const tools = [
@@ -15,20 +15,14 @@ const tools = [
   },
   {
     href: '/tools/ai-pricing',
-    label: 'AI料金比較',
-    body: 'サブスク料金とAPI利用料を分けて、月額コストの目安を比較します。',
+    label: 'API料金シミュレータ',
+    body: 'API従量課金と定額サブスクの月額目安、損益分岐をまとめて確認できます。',
     meta: 'Pricing',
   },
   {
-    href: '/tools/ai-subscription',
-    label: 'AIサブスク診断',
-    body: '用途や予算から、どのAIサブスクを契約候補にするか整理します。',
-    meta: 'Planner',
-  },
-  {
     href: '/tools/subscriptions',
-    label: 'サブスク管理',
-    body: '契約中のAIサービス、更新日、月額換算をアカウントごとに管理します。',
+    label: 'AIサブスク管理',
+    body: '契約中のAIサービス、更新日、月額目安をアカウントごとに管理できます。',
     meta: 'Collection',
   },
 ]
@@ -40,11 +34,11 @@ export default function ToolsPage() {
         <p className="apple-eyebrow">Tools</p>
         <h1 className="mt-2 text-4xl font-black tracking-tight text-slate-950">Aincarn Tools</h1>
         <p className="mt-3 max-w-2xl text-sm font-semibold leading-relaxed text-slate-600">
-          AIを選ぶ、料金を見積もる、契約を管理する。Aincarnの比較ツールをここから利用できます。
+          AIを選ぶ、料金を見積もる、契約中のサブスクを管理する。Aincarnの比較ツールをここから利用できます。
         </p>
       </section>
 
-      <section className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <section className="mt-6 grid gap-4 md:grid-cols-3">
         {tools.map((tool) => (
           <Link
             key={tool.href}

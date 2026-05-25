@@ -7,14 +7,14 @@ export const revalidate = 3600
 export const metadata: Metadata = {
   title: 'Aincarn | AIモデル・料金・サブスクを比較する実用ツール',
   description:
-    'Aincarnは、AIモデル比較、AI料金比較、AIサブスク管理をまとめた無料ツールサイトです。性能、速度、価格、用途を分けて、AI選びを判断しやすくします。',
+    'Aincarnは、AIモデル比較、API料金シミュレータ、AIサブスク管理をまとめた実用ツールサイトです。性能、速度、価格、用途を整理して、AI選びを判断しやすくします。',
 }
 
 const tools = [
   {
     href: '/tools/ai-model-compare',
     label: 'AIモデル比較',
-    body: '主要AIモデルの賢さ、速度、価格効率を横並びで比較します。用途別にどのAIを選ぶべきかを確認できます。',
+    body: '主要AIモデルの賢さ、速度、価格効率を横並びで比較します。用途別にどのAIを選ぶべきか確認できます。',
     tag: 'Compare',
     metric: '性能・速度・価格',
     accent: 'from-indigo-500 via-sky-400 to-cyan-300',
@@ -22,19 +22,19 @@ const tools = [
   },
   {
     href: '/tools/ai-pricing',
-    label: 'AI料金比較',
-    body: 'サブスク料金とAPI利用料を分けて整理し、月額の目安やプラン選びの違いを比較します。',
+    label: 'API料金シミュレータ',
+    body: 'API従量課金コストと定額サブスクの目安を一つの画面で整理します。利用量ごとの損益分岐も確認できます。',
     tag: 'Pricing',
     metric: '月額・API',
     accent: 'from-emerald-400 via-teal-400 to-sky-400',
     soft: 'from-emerald-50 to-sky-50',
   },
   {
-    href: '/tools/ai-subscription',
-    label: 'AIサブスク診断',
-    body: '用途や予算から、契約候補のAIサブスクを整理します。複数サービスの使い分けを考える入り口です。',
-    tag: 'Planner',
-    metric: '用途・予算',
+    href: '/tools/subscriptions',
+    label: 'AIサブスク管理',
+    body: '契約中のAIサブスク、更新日、月額目安をアカウントごとに保存します。使っているサービスを一覧で把握できます。',
+    tag: 'Collection',
+    metric: '契約・更新日',
     accent: 'from-fuchsia-500 via-rose-400 to-orange-300',
     soft: 'from-fuchsia-50 to-orange-50',
   },
@@ -42,16 +42,16 @@ const tools = [
 
 const principles = [
   {
-    title: '公開情報と実測予定データを分ける',
-    body: '公式料金、公開ベンチマーク、運営者による実測予定データを混同せず、情報源の性質が分かるように整理します。',
+    title: '公開データと公式料金を分ける',
+    body: '公開ベンチマーク、公式料金、販売ページ、実測予定データを混ぜずに整理し、情報源の性質が分かるようにします。',
   },
   {
     title: '用途別に翻訳する',
-    body: '単純な総合点だけでなく、文章作成、コード、調査、画像、動画などの使い方に合わせて判断しやすくします。',
+    body: '単なる総合点だけでなく、文章作成、コード、調査、画像、動画などの使い方に合わせて判断しやすくします。',
   },
   {
     title: 'コスト感を重視する',
-    body: '高性能なAIでも、速度や単価が合わなければ日常利用では選びにくい場合があります。価格効率も重視します。',
+    body: '高性能なAIでも、速度や単価が合わなければ日常利用では選びにくい場合があります。性能と費用のバランスを見ます。',
   },
 ]
 
@@ -72,8 +72,8 @@ export default function HomePage() {
                 </span>
               </h1>
               <p className="mt-6 max-w-2xl text-base font-semibold leading-relaxed text-slate-600 sm:text-lg">
-                Aincarnは、AIモデルの性能、料金、サブスク管理をひとつの視点で整理する比較サイトです。
-                公開データと公式料金をもとに、今どのAIに課金するべきかを判断しやすくします。
+                Aincarnは、AIモデルの性能、API料金、サブスク管理をひとつの視点で整理する比較サイトです。
+                公開データと公式料金をもとに、今どのAIに課金すべきかを判断しやすくします。
               </p>
               <div className="mt-9 flex flex-wrap gap-3">
                 <SmoothHashLink

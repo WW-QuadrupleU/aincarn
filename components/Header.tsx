@@ -22,7 +22,7 @@ export default function Header() {
             AIモデル比較
           </Link>
           <Link href="/tools/ai-pricing" className="rounded-full px-3 py-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-950">
-            AI料金比較
+            API料金シミュレータ
           </Link>
           <Link href="/tools/subscriptions" className="rounded-full px-3 py-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-950">
             サブスク管理
@@ -41,7 +41,7 @@ export default function Header() {
           AIモデル比較
         </Link>
         <Link href="/tools/ai-pricing" className="shrink-0 rounded-full border border-slate-200 bg-white px-3 py-2 text-slate-600 shadow-sm shadow-slate-950/5">
-          AI料金比較
+          API料金シミュレータ
         </Link>
         <Link href="/tools/subscriptions" className="shrink-0 rounded-full border border-slate-200 bg-white px-3 py-2 text-slate-600 shadow-sm shadow-slate-950/5">
           サブスク管理
