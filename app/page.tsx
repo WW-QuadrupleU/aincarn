@@ -138,7 +138,7 @@ export default function HomePage() {
               href={tool.href}
               className={`group relative overflow-hidden rounded-[28px] border border-white/80 bg-gradient-to-br ${tool.soft} p-6 shadow-sm shadow-slate-950/5 backdrop-blur-xl transition hover:-translate-y-1 hover:bg-white hover:shadow-2xl hover:shadow-slate-950/10`}
             >
-              <div className={`absolute inset-x-0 top-0 h-2 bg-gradient-to-r ${tool.accent}`} />
+              <div className={`mb-5 h-2 rounded-full bg-gradient-to-r ${tool.accent}`} />
               <div className="mb-8 flex items-center justify-between gap-3">
                 <span className="rounded-full border border-white/80 bg-white/70 px-3 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-slate-600 shadow-sm shadow-slate-950/5">
                   {tool.tag}
