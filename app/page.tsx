@@ -7,7 +7,7 @@ export const revalidate = 3600
 export const metadata: Metadata = {
   title: 'Aincarn | AIモデル・料金・サブスクを比較する実用ツール',
   description:
-    'Aincarnは、AIモデル比較、AI料金比較、AIサブスク管理をまとめた実用ツールサイトです。性能、速度、価格、用途を整理して、AI選びを判断しやすくします。',
+    'Aincarnは、AIモデル比較、AI料金比較、AIサブスク管理、Aincarn Labの比較ログをまとめた実用サイトです。性能、速度、価格、用途を整理して、AI選びを判断しやすくします。',
 }
 
 const tools = [
@@ -23,7 +23,7 @@ const tools = [
   {
     href: '/tools/ai-pricing',
     label: 'AI料金比較',
-    body: '料金プラン比較、API料金シミュレータ、損益分岐の3つをまとめて確認できます。用途に合う課金方法を整理します。',
+    body: '料金プラン比較、API料金シミュレータ、損益分岐をまとめて確認できます。用途に合う課金方法を整理します。',
     tag: 'Pricing',
     metric: '月額・API',
     accent: 'from-emerald-400 via-teal-400 to-sky-400',
@@ -42,16 +42,16 @@ const tools = [
 
 const principles = [
   {
-    title: '公開データと公式料金を分ける',
-    body: '公開ベンチマーク、公式料金、販売ページ、実測予定データを混ぜずに整理し、情報源の性質が分かるようにします。',
+    title: '公開データと実測ログを分ける',
+    body: '公開ベンチマーク、公式料金、Aincarn Labの比較ログを混ぜずに整理し、情報源の性質が分かるようにします。',
   },
   {
     title: '用途別に翻訳する',
     body: '単なる総合点だけでなく、文章作成、コード、調査、画像、動画などの使い方に合わせて判断しやすくします。',
   },
   {
-    title: 'コスト感を重視する',
-    body: '高性能なAIでも、速度や単価が合わなければ日常利用では選びにくい場合があります。性能と費用のバランスを見ます。',
+    title: 'その時点の条件で見る',
+    body: 'AIは頻繁に更新されます。Aincarn Labでは比較日、使用モデル、プロンプトを残し、変化を追える形にします。',
   },
 ]
 
@@ -72,8 +72,8 @@ export default function HomePage() {
                 </span>
               </h1>
               <p className="mt-6 max-w-2xl text-base font-semibold leading-relaxed text-slate-600 sm:text-lg">
-                Aincarnは、AIモデルの性能、API料金、サブスク管理をひとつの視点で整理する比較サイトです。
-                公開データと公式料金をもとに、今どのAIに課金すべきかを判断しやすくします。
+                Aincarnは、AIモデルの性能、AI料金、サブスク管理、実際の比較ログをひとつの視点で整理するサイトです。
+                公開データとAincarn Labの検証をもとに、今どのAIを使うべきか判断しやすくします。
               </p>
               <div className="mt-9 flex flex-wrap gap-3">
                 <SmoothHashLink
@@ -83,10 +83,10 @@ export default function HomePage() {
                   ツールを選ぶ
                 </SmoothHashLink>
                 <Link
-                  href="/about"
+                  href="/lab"
                   className="rounded-full border border-slate-200 bg-white px-6 py-3 text-sm font-black text-slate-800 shadow-sm shadow-slate-950/5 transition hover:-translate-y-0.5 hover:border-slate-300"
                 >
-                  編集方針を見る
+                  Labを見る
                 </Link>
               </div>
             </div>
@@ -105,7 +105,7 @@ export default function HomePage() {
                   {[
                     ['Performance', '賢さ・速度・価格効率', 'from-indigo-400 to-sky-300'],
                     ['Pricing', 'サブスク・API・生成単価', 'from-emerald-300 to-teal-300'],
-                    ['Collection', '契約中サービスと更新日', 'from-fuchsia-400 to-orange-300'],
+                    ['Lab', '同じ条件で試した比較ログ', 'from-fuchsia-400 to-orange-300'],
                   ].map(([label, body, accent], index) => (
                     <div key={label} className="rounded-2xl border border-white/10 bg-white/[0.06] p-4">
                       <div className="flex items-center justify-between gap-3">
@@ -153,6 +153,32 @@ export default function HomePage() {
             </Link>
           ))}
         </div>
+      </section>
+
+      <section className="mx-auto max-w-6xl px-4 pb-12">
+        <Link
+          href="/lab"
+          className="group grid overflow-hidden rounded-[36px] border border-white/80 bg-white/84 shadow-xl shadow-slate-950/5 backdrop-blur-xl transition hover:-translate-y-1 hover:shadow-2xl hover:shadow-slate-950/10 lg:grid-cols-[1fr_360px]"
+        >
+          <div className="p-6 sm:p-8">
+            <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">Aincarn Lab</p>
+            <h2 className="mt-3 text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">実際に比べたデータを、同じページに蓄積する。</h2>
+            <p className="mt-4 max-w-2xl text-sm font-bold leading-relaxed text-slate-600">
+              文章作成、コード生成、調査・要約など、用途ごとに最新モデルを同じ条件で比較します。
+              記事のように読めて、データベースのように積み上がるAincarn独自の比較ログです。
+            </p>
+          </div>
+          <div className="bg-slate-950 p-6 text-white">
+            <div className="h-2 rounded-full bg-gradient-to-r from-indigo-500 via-sky-400 to-rose-300" />
+            <div className="mt-6 grid gap-3">
+              {['文章作成', 'コード生成', '調査・要約'].map((item) => (
+                <div key={item} className="rounded-2xl border border-white/10 bg-white/[0.06] p-4 text-sm font-black">
+                  {item}比較ログ
+                </div>
+              ))}
+            </div>
+          </div>
+        </Link>
       </section>
 
       <section className="mx-auto max-w-6xl px-4 pb-16">

@@ -3,7 +3,7 @@ import Link from 'next/link'
 
 export const metadata: Metadata = {
   title: 'Aincarn Tools',
-  description: 'Aincarnで提供しているAIモデル比較、AI料金比較、AIサブスク管理ツールの一覧です。',
+  description: 'Aincarnで提供しているAIモデル比較、AI料金比較、AIサブスク管理、Aincarn Labの一覧です。',
 }
 
 const tools = [
@@ -20,6 +20,12 @@ const tools = [
     meta: 'Pricing',
   },
   {
+    href: '/lab',
+    label: 'Aincarn Lab',
+    body: '最新AIを同じ条件で試した比較ログを用途別に蓄積します。',
+    meta: 'Lab',
+  },
+  {
     href: '/tools/subscriptions',
     label: 'AIサブスク管理',
     body: '契約中のAIサービス、更新日、月額目安をアカウントごとに管理できます。',
@@ -34,11 +40,11 @@ export default function ToolsPage() {
         <p className="apple-eyebrow">Tools</p>
         <h1 className="mt-2 text-4xl font-black tracking-tight text-slate-950">Aincarn Tools</h1>
         <p className="mt-3 max-w-2xl text-sm font-semibold leading-relaxed text-slate-600">
-          AIを選ぶ、料金を見積もる、契約中のサブスクを管理する。Aincarnの比較ツールをここから利用できます。
+          AIを選ぶ、料金を見積もる、実測ログを見る、契約中のサブスクを管理する。Aincarnの比較ツールをここから利用できます。
         </p>
       </section>
 
-      <section className="mt-6 grid gap-4 md:grid-cols-3">
+      <section className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {tools.map((tool) => (
           <Link
             key={tool.href}
