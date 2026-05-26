@@ -13,6 +13,9 @@ export function generateStaticParams() {
   return labCategories.map((category) => ({ slug: category.slug }))
 }
 
+// 5 分ごとに ISR で再生成。Notion 編集後 5 分以内に反映される。
+export const revalidate = 300
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
   const category = getLabCategory(slug)
