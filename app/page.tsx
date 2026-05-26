@@ -5,9 +5,9 @@ import SmoothHashLink from '@/components/SmoothHashLink'
 export const revalidate = 3600
 
 export const metadata: Metadata = {
-  title: 'Aincarn | AIモデル・料金・サブスクを比較する実用ツール',
+  title: 'Aincarn | AIモデル・料金を比較する実用ツール',
   description:
-    'Aincarnは、AIモデル比較、AI料金比較、AIサブスク管理、Aincarn Labの比較ログをまとめた実用サイトです。性能、速度、価格、用途を整理して、AI選びを判断しやすくします。',
+    'Aincarnは、AIモデル比較、AI料金比較、Aincarn Labの比較ログをまとめた実用サイトです。性能、速度、価格、用途を整理して、AI選びを判断しやすくします。',
 }
 
 const tools = [
@@ -30,11 +30,11 @@ const tools = [
     soft: 'from-emerald-50 to-sky-50',
   },
   {
-    href: '/tools/subscriptions',
-    label: 'AIサブスク管理',
-    body: '契約中のAIサブスク、更新日、月額目安をアカウントごとに保存します。使っているサービスを一覧で把握できます。',
-    tag: 'Collection',
-    metric: '契約・更新日',
+    href: '/lab',
+    label: 'Aincarn Lab',
+    body: '同じ条件で各AIに依頼した結果を、用途別の比較ログとして残します。実測の差を追える研究ノートです。',
+    tag: 'Lab',
+    metric: '比較ログ',
     accent: 'from-fuchsia-500 via-rose-400 to-orange-300',
     soft: 'from-fuchsia-50 to-orange-50',
   },
@@ -72,7 +72,7 @@ export default function HomePage() {
                 </span>
               </h1>
               <p className="mt-6 max-w-2xl text-base font-semibold leading-relaxed text-slate-600 sm:text-lg">
-                Aincarnは、AIモデルの性能、AI料金、サブスク管理、実際の比較ログをひとつの視点で整理するサイトです。
+                Aincarnは、AIモデルの性能、AI料金、実際の比較ログをひとつの視点で整理するサイトです。
                 公開データとAincarn Labの検証をもとに、今どのAIを使うべきか判断しやすくします。
               </p>
               <div className="mt-9 flex flex-wrap gap-3">
@@ -104,7 +104,7 @@ export default function HomePage() {
                 <div className="mt-6 grid gap-3">
                   {[
                     ['Performance', '賢さ・速度・価格効率', 'from-indigo-400 to-sky-300'],
-                    ['Pricing', 'サブスク・API・生成単価', 'from-emerald-300 to-teal-300'],
+                    ['Pricing', '月額・API・生成単価', 'from-emerald-300 to-teal-300'],
                     ['Compare', '同じ条件で試した比較ログ', 'from-fuchsia-400 to-orange-300'],
                   ].map(([label, body, accent], index) => (
                     <div key={label} className="rounded-2xl border border-white/10 bg-white/[0.06] p-4">

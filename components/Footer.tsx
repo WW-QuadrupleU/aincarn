@@ -6,7 +6,7 @@ export default function Footer() {
       <div className="mx-auto flex max-w-6xl flex-col gap-5 px-4 py-8 text-xs font-bold text-slate-500 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="text-base font-black text-slate-950">Aincarn</p>
-          <p className="mt-1">AIモデル、料金、サブスク、比較ログを実用目線で整理するサイトです。</p>
+          <p className="mt-1">AIモデル、料金、比較ログを実用目線で整理するサイトです。</p>
         </div>
         <nav className="flex flex-wrap gap-3 rounded-full border border-slate-200/70 bg-white/80 px-3 py-2 shadow-sm shadow-slate-950/5">
           <Link href="/about" className="hover:text-slate-950">About</Link>

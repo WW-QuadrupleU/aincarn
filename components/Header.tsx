@@ -5,7 +5,6 @@ import AuthNav from '@/components/AuthNav'
 const navItems = [
   { href: '/tools/ai-model-compare', label: 'AIモデル比較' },
   { href: '/tools/ai-pricing', label: 'AI料金比較' },
-  { href: '/tools/subscriptions', label: 'サブスク管理' },
 ]
 
 export default function Header() {
