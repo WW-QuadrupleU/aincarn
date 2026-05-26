@@ -5,7 +5,7 @@ import { labCategories } from '@/lib/aincarn-lab'
 export const metadata: Metadata = {
   title: 'Aincarn Lab',
   description:
-    'Aincarn Labは、その時点の最新AIを同じ条件で比較し、文章作成、コード生成、調査・要約などの用途別に結果を蓄積する比較ログです。',
+    'Aincarn Labは、最新AIを同じ条件で比較し、文章作成、コード生成、調査・要約などの用途別に結果を蓄積する比較ログです。',
 }
 
 export default function LabIndexPage() {
@@ -20,8 +20,8 @@ export default function LabIndexPage() {
               AINCARN LAB
             </h1>
             <p className="mt-5 max-w-2xl text-sm font-bold leading-relaxed text-white/68 sm:text-base">
-              最新AIに同じ条件でタスクを実行させ、出力の傾向、使いやすさ、料金感を記録していく比較ログです。
-              単発の記事ではなく、月ごとの検証結果を同じページに蓄積します。
+              最新AIに同じ条件でタスクを実行させ、出力の傾向、使いやすさ、修正の少なさを記録する比較ログです。
+              単発の記事ではなく、月ごとの検証結果を同じページに蓄積していきます。
             </p>
           </div>
           <div className="border-t border-white/10 bg-white/[0.04] p-6 lg:border-l lg:border-t-0">
@@ -63,7 +63,7 @@ export default function LabIndexPage() {
         <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">Rule</p>
         <h2 className="mt-2 text-2xl font-black text-slate-950">比較ログの基本ルール</h2>
         <div className="mt-5 grid gap-3 md:grid-cols-4">
-          {['比較日を明記する', '同じプロンプトで試す', '出力全文は載せすぎない', '今回の条件で評価する'].map((rule) => (
+          {['比較日を記録する', '同じプロンプトで試す', '出力全文を転載しすぎない', 'その時点の条件で評価する'].map((rule) => (
             <div key={rule} className="rounded-2xl border border-slate-200/80 bg-slate-50/80 p-4 text-sm font-bold text-slate-700">
               {rule}
             </div>

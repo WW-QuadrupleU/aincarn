@@ -33,17 +33,16 @@ export default function LabModelTabs({ outputs }: { outputs: LabModelOutput[] })
     <section className="rounded-[28px] border border-white/80 bg-white/86 p-5 shadow-sm shadow-slate-950/5 backdrop-blur-xl sm:p-6">
       <div className="flex flex-wrap items-center gap-2">
         <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">Per-model output</p>
-        <h2 className="text-xl font-black tracking-tight text-slate-950">モデル別の実出力</h2>
+        <h2 className="text-xl font-black tracking-tight text-slate-950">モデル別の出力結果</h2>
       </div>
       <p className="mt-2 text-xs font-bold leading-relaxed text-slate-500">
-        同じプロンプトに対する3モデルの出力をタブで切り替えて比較できます。
+        同じプロンプトに対する各モデルの出力を、タブで切り替えて比較できます。
       </p>
 
-      {/* タブ */}
       <div className="mt-4 flex flex-wrap gap-2">
         {outputs.map((output, index) => {
           const isActive = index === activeIndex
-          const a = modelAccent(index)
+          const itemAccent = modelAccent(index)
           return (
             <button
               key={output.model}
@@ -54,21 +53,20 @@ export default function LabModelTabs({ outputs }: { outputs: LabModelOutput[] })
                   ? 'border-transparent text-white shadow-md shadow-slate-950/15'
                   : 'border-slate-200 bg-white text-slate-600 hover:border-slate-400'
               }`}
-              style={isActive ? { background: `linear-gradient(135deg, ${a.from} 0%, ${a.via} 48%, ${a.to} 100%)` } : undefined}
+              style={isActive ? { background: `linear-gradient(135deg, ${itemAccent.from} 0%, ${itemAccent.via} 48%, ${itemAccent.to} 100%)` } : undefined}
             >
               <span
                 className="grid size-6 place-items-center rounded-full text-[9px] font-black text-white shadow-sm"
-                style={{ background: `linear-gradient(135deg, ${a.from} 0%, ${a.via} 48%, ${a.to} 100%)` }}
+                style={{ background: `linear-gradient(135deg, ${itemAccent.from} 0%, ${itemAccent.via} 48%, ${itemAccent.to} 100%)` }}
               >
                 {modelMark(output.model, index)}
               </span>
-              <span className="truncate max-w-[200px]">{output.model}</span>
+              <span className="max-w-[200px] truncate">{output.model}</span>
             </button>
           )
         })}
       </div>
 
-      {/* 黒ボックス */}
       <article className="mt-4 overflow-hidden rounded-[24px] bg-slate-950 text-slate-100 shadow-2xl shadow-slate-950/30">
         <div className="h-1 w-full" style={{ background: gradient }} />
         <div className="p-5 sm:p-6">
@@ -92,7 +90,7 @@ export default function LabModelTabs({ outputs }: { outputs: LabModelOutput[] })
               <div key={`${active.model}-${section.heading}`} className="rounded-2xl border border-white/10 bg-white/[0.06] p-4">
                 <p className="text-[11px] font-black uppercase tracking-[0.16em] text-white/55">{section.heading}</p>
                 {section.body && (
-                  <p className="mt-2 text-sm font-semibold leading-relaxed text-white/86 whitespace-pre-wrap">{section.body}</p>
+                  <p className="mt-2 whitespace-pre-wrap text-sm font-semibold leading-relaxed text-white/86">{section.body}</p>
                 )}
                 {section.bullets && section.bullets.length > 0 && (
                   <ul className="mt-2 space-y-1.5">

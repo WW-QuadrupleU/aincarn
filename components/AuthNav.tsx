@@ -1,7 +1,6 @@
 'use client'
 
 import { SignInButton, UserButton, useUser } from '@clerk/nextjs'
-import Link from 'next/link'
 import { useEffect, useState } from 'react'
 
 const clerkEnabled = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY)
@@ -57,13 +56,12 @@ function SignedInState() {
   return (
     <div className="flex items-center gap-2">
       {planLabel && (
-        <Link
-          href="/tools/aios/pricing"
-          className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-[10px] font-black uppercase tracking-[0.12em] text-slate-600 transition hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700"
+        <span
+          className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-[10px] font-black uppercase tracking-[0.12em] text-slate-600"
           title="現在のAincarn OSプラン"
         >
           {planLabel}
-        </Link>
+        </span>
       )}
       <UserButton />
     </div>

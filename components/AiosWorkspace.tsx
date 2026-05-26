@@ -226,7 +226,7 @@ export default function AiosWorkspace({ fallback }: { fallback: ReactNode }) {
         </div>
         <div className="ml-auto flex items-center gap-3">
           <UsageChip usage={state.usage} />
-          <Link href="/tools/aios/pricing" className="text-xs font-black text-slate-500 hover:text-slate-950">プラン</Link>
+          <span className="text-xs font-black text-slate-400">プラン準備中</span>
           <UserButton />
         </div>
       </header>

@@ -24,29 +24,22 @@ export default function PrivacyPage() {
           <section>
             <h2 className="text-lg font-black text-slate-950">アクセス解析</h2>
             <p className="mt-2">
-              当サイトでは、利用状況の把握と改善のためにGoogle Analyticsなどのアクセス解析ツールを利用する場合があります。
-              これらのツールはCookieを使用することがあります。Cookieはブラウザ設定で無効化できます。
+              当サイトでは、利用状況の把握と改善のためにGoogle Analyticsなどのアクセス解析ツールを利用する場合があります。これらのツールはCookieを使用することがあります。
+              Cookieはブラウザ設定で無効化できます。
             </p>
           </section>
 
           <section>
             <h2 className="text-lg font-black text-slate-950">広告Cookieについて</h2>
             <p className="mt-2">
-              当サイトでは、今後Google AdSenseなどの広告配信サービスを利用する場合があります。
-              第三者配信事業者（Googleを含む）は、ユーザーが当サイトや他のサイトへアクセスした情報に基づいて広告を配信するためにCookieを使用することがあります。
-              Googleによる広告Cookieの使用により、ユーザーの当サイトや他サイトへのアクセス情報に基づいた広告が表示される場合があります。
-            </p>
-            <p className="mt-2">
-              パーソナライズ広告は、Googleの広告設定ページから無効にできます。
-              また、第三者配信事業者のCookie利用については、各事業者の案内をご確認ください。
+              当サイトでは、今後Google AdSenseなどの広告配信サービスを利用する場合があります。第三者配信事業者は、ユーザーが当サイトや他のサイトへアクセスした情報に基づいて広告を配信するためにCookieを使用することがあります。
             </p>
           </section>
 
           <section>
             <h2 className="text-lg font-black text-slate-950">外部リンク・外部サービス</h2>
             <p className="mt-2">
-              当サイトから外部サイトへ移動した場合、移動先で収集される情報は各サービスのプライバシーポリシーに従います。
-              Aincarnは、外部サイトの内容や個人情報の取り扱いについて責任を負いません。
+              当サイトから外部サイトへ移動した場合、移動先で収集される情報は各サービスのプライバシーポリシーに従います。Aincarnは外部サイトの内容や個人情報の取り扱いについて責任を負いません。
             </p>
           </section>
 

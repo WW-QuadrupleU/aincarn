@@ -217,12 +217,9 @@ export function UsageMeter({ usage }: { usage: UsageState }) {
         </p>
       )}
       <div className="mt-3 flex flex-wrap gap-2">
-        <Link
-          href="/tools/aios/pricing"
-          className="rounded-full bg-slate-950 px-3 py-1.5 text-[11px] font-black text-white transition hover:bg-slate-800"
-        >
-          プランを見る
-        </Link>
+        <span className="rounded-full bg-slate-100 px-3 py-1.5 text-[11px] font-black text-slate-500">
+          プラン機能は準備中
+        </span>
         {isPaidLikeTier && (
           <button
             type="button"
@@ -523,12 +520,9 @@ function AuthenticatedAiosMvp() {
               変更時の請求額やクレジットはStripeの確認画面で確認できます。
             </p>
             <div className="mt-3 flex flex-wrap gap-2">
-              <Link
-                href="/tools/aios/pricing"
-                className="rounded-full bg-slate-950 px-3 py-1.5 text-xs font-black text-white transition hover:bg-slate-800"
-              >
-                プランを見る
-              </Link>
+              <span className="rounded-full bg-slate-100 px-3 py-1.5 text-xs font-black text-slate-500">
+                プラン機能は準備中
+              </span>
               <Link
                 href="/tools/subscriptions"
                 className="rounded-full border border-slate-300 bg-white px-3 py-1.5 text-xs font-black text-slate-700 transition hover:border-slate-500"
