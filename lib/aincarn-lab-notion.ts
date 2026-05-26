@@ -77,17 +77,34 @@ function plainText(rich: NotionRichText[] | undefined): string {
 
 function readTitle(page: NotionPage, key: string): string {
   const prop = page.properties[key] as PropertyValue | undefined
-  if (!prop) return ''
-  if (prop.title && prop.title.length > 0) return plainText(prop.title)
-  if (prop.rich_text && prop.rich_text.length > 0) return plainText(prop.rich_text)
+  if (prop) {
+    if (prop.title && prop.title.length > 0) return plainText(prop.title)
+    if (prop.rich_text && prop.rich_text.length > 0) return plainText(prop.rich_text)
+  }
+  // フォールバック: title型を持つ最初のプロパティを探す
+  for (const k of Object.keys(page.properties)) {
+    const p = page.properties[k] as Record<string, unknown> | undefined
+    if (p && Array.isArray(p.title) && p.title.length > 0) {
+      return plainText(p.title as NotionRichText[])
+    }
+  }
   return ''
 }
 
 function readRichText(page: NotionPage, key: string): string {
   const prop = page.properties[key] as PropertyValue | undefined
-  if (!prop) return ''
-  if (prop.rich_text) return plainText(prop.rich_text)
-  if (prop.title) return plainText(prop.title)
+  if (prop) {
+    if (prop.rich_text) return plainText(prop.rich_text)
+    if (prop.title) return plainText(prop.title)
+  }
+  // フォールバック: 大文字小文字を無視して一致するキーを探す
+  const lowerKey = key.toLowerCase()
+  for (const k of Object.keys(page.properties)) {
+    if (k.toLowerCase() === lowerKey) {
+      const p = page.properties[k] as PropertyValue | undefined
+      if (p?.rich_text) return plainText(p.rich_text)
+    }
+  }
   return ''
 }
 
@@ -145,15 +162,36 @@ function blocksToSections(blocks: NotionBlock[]): Array<{ heading: string; body?
 }
 
 function compareOrder(a: NotionPage, b: NotionPage): number {
-  const ao = (a.properties['Order'] as PropertyValue | undefined)?.number ?? Number.POSITIVE_INFINITY
-  const bo = (b.properties['Order'] as PropertyValue | undefined)?.number ?? Number.POSITIVE_INFINITY
-  return ao - bo
+  const getOrder = (page: NotionPage) => {
+    const prop = page.properties['Order'] as PropertyValue | undefined
+    if (prop?.number !== undefined && prop.number !== null) return prop.number
+    
+    // フォールバック: 大文字小文字無視または日本語名
+    for (const k of Object.keys(page.properties)) {
+      const lk = k.toLowerCase()
+      if (lk === 'order' || lk === '順序' || lk === '並び順') {
+        const p = page.properties[k] as PropertyValue | undefined
+        if (p?.number !== undefined && p?.number !== null) return p.number
+      }
+    }
+    return Number.POSITIVE_INFINITY
+  }
+  return getOrder(a) - getOrder(b)
 }
 
 function readLogDate(page: NotionPage): string {
   const prop = page.properties['LogDate'] as PropertyValue | undefined
-  const start = prop?.date?.start
-  return typeof start === 'string' ? start : ''
+  if (prop?.date?.start) return prop.date.start
+  
+  // フォールバック: 大文字小文字無視または日本語名
+  for (const k of Object.keys(page.properties)) {
+    const lk = k.toLowerCase()
+    if (lk === 'logdate' || lk === 'date' || lk === '日付' || lk === '更新日') {
+      const p = page.properties[k] as PropertyValue | undefined
+      if (p?.date?.start) return p.date.start
+    }
+  }
+  return ''
 }
 
 function pickLatestLogPages(pages: NotionPage[]): NotionPage[] {
@@ -183,17 +221,35 @@ export async function fetchLabOutputsFromNotion(slug: string): Promise<LabModelO
       {
         method: 'POST',
         body: JSON.stringify({
-          filter: {
-            property: 'Category',
-            select: { equals: slug },
-          },
-          page_size: 20,
+          page_size: 100,
         }),
       },
     )
 
+    // カテゴリでフィルタリング（大文字・小文字を区別せず、カラム名のブレも許容する）
+    const matchedPages = query.results.filter((page) => {
+      let catName: string | undefined
+      
+      const prop = page.properties['Category'] as PropertyValue | undefined
+      if (prop?.select?.name) {
+        catName = prop.select.name
+      } else {
+        for (const k of Object.keys(page.properties)) {
+          const lk = k.toLowerCase()
+          if (lk === 'category' || lk === 'カテゴリ' || lk === '分類') {
+            const p = page.properties[k] as PropertyValue | undefined
+            if (p?.select?.name) {
+              catName = p.select.name
+              break
+            }
+          }
+        }
+      }
+      return catName?.toLowerCase() === slug.toLowerCase()
+    })
+
     // LogDate が新しい行群だけに絞り込み、その中で Order 昇順に整列する
-    const latestLogPages = pickLatestLogPages(query.results)
+    const latestLogPages = pickLatestLogPages(matchedPages)
     const pages = [...latestLogPages].sort(compareOrder)
     const outputs: LabModelOutput[] = []
 
