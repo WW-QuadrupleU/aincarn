@@ -38,15 +38,6 @@ const tools = [
     accent: 'from-violet-500 via-purple-400 to-fuchsia-300',
     soft: 'from-violet-50 to-fuchsia-50',
   },
-  {
-    href: '/lab',
-    label: 'Aincarn Lab',
-    body: '同じ条件で各AIに依頼した結果を、用途別の比較ログとして残します。実測の差を追える研究ノートです。',
-    tag: 'Lab',
-    metric: '比較ログ',
-    accent: 'from-fuchsia-500 via-rose-400 to-orange-300',
-    soft: 'from-fuchsia-50 to-orange-50',
-  },
 ]
 
 const principles = [
@@ -140,7 +131,7 @@ export default function HomePage() {
           <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">Tools</p>
           <h2 className="mt-2 text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">目的に合わせて使う</h2>
         </div>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-3">
           {tools.map((tool) => (
             <Link
               key={tool.href}
