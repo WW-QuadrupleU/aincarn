@@ -5,7 +5,6 @@ import AuthNav from '@/components/AuthNav'
 const navItems = [
   { href: '/tools/ai-model-compare', label: 'AIモデル比較' },
   { href: '/tools/ai-pricing', label: 'AI料金比較' },
-  { href: '/lab', label: 'Lab' },
   { href: '/tools/subscriptions', label: 'サブスク管理' },
 ]
 
@@ -30,8 +29,8 @@ export default function Header() {
               {item.label}
             </Link>
           ))}
-          <Link href="/about" className="rounded-full bg-slate-950 px-4 py-2 text-white transition hover:bg-slate-800">
-            About
+          <Link href="/lab" className="rounded-full bg-slate-950 px-4 py-2 text-white transition hover:bg-slate-800">
+            Aincarn Lab
           </Link>
           <AuthNav />
         </nav>
@@ -45,6 +44,9 @@ export default function Header() {
             {item.label}
           </Link>
         ))}
+        <Link href="/lab" className="shrink-0 rounded-full bg-slate-950 px-3 py-2 text-white shadow-sm shadow-slate-950/10">
+          Aincarn Lab
+        </Link>
       </nav>
     </header>
   )

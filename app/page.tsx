@@ -51,7 +51,7 @@ const principles = [
   },
   {
     title: 'その時点の条件で見る',
-    body: 'AIは頻繁に更新されます。Aincarn Labでは比較日、使用モデル、プロンプトを残し、変化を追える形にします。',
+    body: 'AIは頻繁に更新されます。比較日、使用モデル、プロンプトを残し、モデルごとの変化を追える形にします。',
   },
 ]
 
@@ -86,7 +86,7 @@ export default function HomePage() {
                   href="/lab"
                   className="rounded-full border border-slate-200 bg-white px-6 py-3 text-sm font-black text-slate-800 shadow-sm shadow-slate-950/5 transition hover:-translate-y-0.5 hover:border-slate-300"
                 >
-                  Labを見る
+                  Aincarn Labを見る
                 </Link>
               </div>
             </div>
@@ -138,7 +138,7 @@ export default function HomePage() {
               href={tool.href}
               className={`group relative overflow-hidden rounded-[28px] border border-white/80 bg-gradient-to-br ${tool.soft} p-6 shadow-sm shadow-slate-950/5 backdrop-blur-xl transition hover:-translate-y-1 hover:bg-white hover:shadow-2xl hover:shadow-slate-950/10`}
             >
-              <div className={`absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r ${tool.accent}`} />
+              <div className={`absolute inset-x-0 top-0 h-2 bg-gradient-to-r ${tool.accent}`} />
               <div className="mb-8 flex items-center justify-between gap-3">
                 <span className="rounded-full border border-white/80 bg-white/70 px-3 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-slate-600 shadow-sm shadow-slate-950/5">
                   {tool.tag}
@@ -158,22 +158,25 @@ export default function HomePage() {
       <section className="mx-auto max-w-6xl px-4 pb-12">
         <Link
           href="/lab"
-          className="group grid overflow-hidden rounded-[36px] border border-white/80 bg-white/84 shadow-xl shadow-slate-950/5 backdrop-blur-xl transition hover:-translate-y-1 hover:shadow-2xl hover:shadow-slate-950/10 lg:grid-cols-[1fr_360px]"
+          className="group grid overflow-hidden rounded-[36px] border border-slate-900/80 bg-slate-950 text-white shadow-2xl shadow-slate-950/20 transition hover:-translate-y-1 hover:shadow-slate-950/30 lg:grid-cols-[1fr_360px]"
         >
           <div className="p-6 sm:p-8">
-            <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">Aincarn Lab</p>
-            <h2 className="mt-3 text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">実際に比べたデータを、同じページに蓄積する。</h2>
-            <p className="mt-4 max-w-2xl text-sm font-bold leading-relaxed text-slate-600">
+            <div className="h-2 rounded-full bg-gradient-to-r from-indigo-500 via-sky-400 to-rose-300" />
+            <p className="mt-7 text-xs font-black uppercase tracking-[0.2em] text-white/45">Aincarn Lab</p>
+            <h2 className="mt-3 text-3xl font-black tracking-tight sm:text-4xl">実際に比べたデータを、同じページに蓄積する。</h2>
+            <p className="mt-4 max-w-2xl text-sm font-bold leading-relaxed text-white/68">
               文章作成、コード生成、調査・要約など、用途ごとに最新モデルを同じ条件で比較します。
               記事のように読めて、データベースのように積み上がるAincarn独自の比較ログです。
             </p>
+            <span className="mt-7 inline-flex rounded-full bg-white px-4 py-2 text-xs font-black text-slate-950 transition group-hover:scale-[1.02]">
+              比較ログを見る
+            </span>
           </div>
-          <div className="bg-slate-950 p-6 text-white">
-            <div className="h-2 rounded-full bg-gradient-to-r from-indigo-500 via-sky-400 to-rose-300" />
-            <div className="mt-6 grid gap-3">
-              {['文章作成', 'コード生成', '調査・要約'].map((item) => (
-                <div key={item} className="rounded-2xl border border-white/10 bg-white/[0.06] p-4 text-sm font-black">
-                  {item}比較ログ
+          <div className="border-t border-white/10 bg-white/[0.04] p-6 lg:border-l lg:border-t-0">
+            <div className="grid gap-3">
+              {['文章作成比較ログ', 'コード生成比較ログ', '調査・要約比較ログ'].map((item) => (
+                <div key={item} className="rounded-2xl border border-white/10 bg-white/[0.06] p-4 text-sm font-black text-white/92">
+                  {item}
                 </div>
               ))}
             </div>
