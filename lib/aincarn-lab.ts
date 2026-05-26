@@ -48,11 +48,16 @@ ChatGPT PlusとAPI利用はどちらが向いているか
     logs: [
       {
         date: '2026-05',
-        title: 'ChatGPT PlusとAPI利用の記事構成を比較する',
-        status: 'template',
-        models: ['ChatGPT', 'Claude', 'Gemini'],
-        summary: '初回比較用のテンプレートです。実測後に結果表、所感、出力傾向を追記します。',
-        findings: ['検索意図の理解を見る', '料金変動への注意書きを見る', '初心者向けの説明力を見る'],
+        title: 'ChatGPT PlusとAPI利用の記事構成を3モデルで比較する',
+        status: 'published',
+        models: ['ChatGPT 5.5 Thinking拡張', 'Gemini 3.1 Pro拡張', 'Claude 4.7 アダプティブ'],
+        summary:
+          '同じ記事構成プロンプトに対して、ChatGPTは網羅性と記事化のしやすさ、Geminiは初心者向けの簡潔さ、Claudeは自然な導入と論点整理に強みが出ました。',
+        findings: [
+          'ChatGPTは比較表・注意点・誤解されやすい点まで最も具体的',
+          'GeminiはAPIを非エンジニアにも説明する実用補足が分かりやすい',
+          'ClaudeはPlusとAPIの本質的な違いを自然な文章で整理できる',
+        ],
       },
     ],
   },
