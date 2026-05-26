@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import LabModelTabs from '@/components/LabModelTabs'
 import { getLabCategory, labCategories } from '@/lib/aincarn-lab'
+import { fetchLabOutputsFromNotion } from '@/lib/aincarn-lab-notion'
 
 type Props = {
   params: Promise<{ slug: string }>
@@ -35,6 +36,11 @@ export default async function LabDetailPage({ params }: Props) {
   //  4. モデル別の実出力 (タブ切替の黒ボックス)
   //  5. 比較データ収集用プロンプト (常に白文字で表示)
   const log = category.logs[0]
+
+  // Notion からモデル別出力を取得 (失敗すれば null → 埋め込みデータにフォールバック)。
+  // ISR で 5 分キャッシュされるので Notion 編集後の反映タイムラグはおよそ 5 分。
+  const notionOutputs = await fetchLabOutputsFromNotion(slug)
+  const outputs = notionOutputs && notionOutputs.length > 0 ? notionOutputs : log?.outputs
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-12">
@@ -171,10 +177,10 @@ export default async function LabDetailPage({ params }: Props) {
         </section>
       )}
 
-      {/* 4. モデル別の実出力タブ */}
-      {log?.outputs && log.outputs.length > 0 && (
+      {/* 4. モデル別の実出力タブ (Notion 優先、失敗時は埋め込みデータ) */}
+      {outputs && outputs.length > 0 && (
         <div className="mt-6">
-          <LabModelTabs outputs={log.outputs} />
+          <LabModelTabs outputs={outputs} />
         </div>
       )}
 
