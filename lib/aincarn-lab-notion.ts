@@ -7,9 +7,12 @@
 //
 // Notion 側のデータベース設計は docs/aincarn-lab-notion-schema.md を参照。
 // 必要なプロパティ: Model (Title), Category (Select: writing|coding|research),
-//                  Order (Number), Brief (Rich text)
+//                  Order (Number), Brief (Rich text), LogDate (Date)
 // 各ページの本文: 見出し (Heading 2/3) + 箇条書き (Bulleted list)。
 // 見出しごとに 1 セクションになる。
+//
+// LogDate ごとに「1回の比較セッション」になる。サイトでは同じ Category 内で
+// 最新の LogDate を持つ行群だけを表示する。過去ログは Notion 側にスタックで残る。
 
 import type { LabModelOutput } from '@/lib/aincarn-lab'
 
@@ -42,6 +45,7 @@ type PropertyValue = {
   rich_text?: NotionRichText[]
   select?: { name?: string } | null
   number?: number | null
+  date?: { start?: string | null; end?: string | null } | null
 }
 
 export function hasLabNotion() {
@@ -146,6 +150,30 @@ function compareOrder(a: NotionPage, b: NotionPage): number {
   return ao - bo
 }
 
+function readLogDate(page: NotionPage): string {
+  const prop = page.properties['LogDate'] as PropertyValue | undefined
+  const start = prop?.date?.start
+  return typeof start === 'string' ? start : ''
+}
+
+function pickLatestLogPages(pages: NotionPage[]): NotionPage[] {
+  // LogDate プロパティ未設定の場合は「すべて同じ最新ログ」とみなす（後方互換）
+  const dated = pages.filter((page) => Boolean(readLogDate(page)))
+  if (dated.length === 0) return pages
+
+  // 同じ Category 内で最新の LogDate (YYYY-MM-DD の辞書順 = 時系列順) を選ぶ
+  const latestDate = dated
+    .map(readLogDate)
+    .sort()
+    .reverse()[0]
+
+  return pages.filter((page) => {
+    const logDate = readLogDate(page)
+    // LogDate 未設定の行は無視する。日付があるグループの方を信頼する。
+    return logDate === latestDate
+  })
+}
+
 export async function fetchLabOutputsFromNotion(slug: string): Promise<LabModelOutput[] | null> {
   if (!hasLabNotion()) return null
 
@@ -164,7 +192,9 @@ export async function fetchLabOutputsFromNotion(slug: string): Promise<LabModelO
       },
     )
 
-    const pages = [...query.results].sort(compareOrder)
+    // LogDate が新しい行群だけに絞り込み、その中で Order 昇順に整列する
+    const latestLogPages = pickLatestLogPages(query.results)
+    const pages = [...latestLogPages].sort(compareOrder)
     const outputs: LabModelOutput[] = []
 
     for (const page of pages) {
