@@ -11,24 +11,21 @@ export const metadata: Metadata = {
 export default function LabIndexPage() {
   return (
     <main className="mx-auto max-w-6xl px-4 py-12">
-      <section className="overflow-hidden rounded-[36px] border border-white/80 bg-white/84 shadow-xl shadow-slate-950/5 backdrop-blur-xl">
+      <section className="overflow-hidden rounded-[36px] border border-slate-900/80 bg-slate-950 text-white shadow-2xl shadow-slate-950/20">
         <div className="grid gap-0 lg:grid-cols-[1fr_380px]">
           <div className="p-6 sm:p-8">
-            <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">Aincarn Lab</p>
-            <h1 className="mt-3 max-w-3xl text-4xl font-black leading-tight tracking-tight text-slate-950 sm:text-6xl">
-              その時点のAIを、
-              <span className="block bg-gradient-to-r from-indigo-600 via-sky-500 to-fuchsia-500 bg-clip-text text-transparent">
-                同じ条件で比べる。
-              </span>
+            <div className="h-2 rounded-full bg-gradient-to-r from-indigo-500 via-sky-400 to-rose-300" />
+            <p className="mt-7 text-xs font-black uppercase tracking-[0.2em] text-white/45">Compare</p>
+            <h1 className="mt-3 max-w-3xl text-5xl font-black leading-tight tracking-tight sm:text-6xl">
+              AINCARN LAB
             </h1>
-            <p className="mt-5 max-w-2xl text-sm font-bold leading-relaxed text-slate-600 sm:text-base">
-              Aincarn Labは、主要AIに同じタスクを実行させ、出力の傾向、使いやすさ、料金感を記録していく比較ログです。
+            <p className="mt-5 max-w-2xl text-sm font-bold leading-relaxed text-white/68 sm:text-base">
+              最新AIに同じ条件でタスクを実行させ、出力の傾向、使いやすさ、料金感を記録していく比較ログです。
               単発の記事ではなく、月ごとの検証結果を同じページに蓄積します。
             </p>
           </div>
-          <div className="relative min-h-64 overflow-hidden bg-slate-950 p-6 text-white">
-            <div className="absolute inset-x-6 top-6 h-2 rounded-full bg-gradient-to-r from-indigo-500 via-sky-400 to-rose-300" />
-            <div className="mt-12 grid gap-3">
+          <div className="border-t border-white/10 bg-white/[0.04] p-6 lg:border-l lg:border-t-0">
+            <div className="grid gap-3">
               {['Same prompt', 'Latest models', 'Monthly log'].map((item, index) => (
                 <div key={item} className="rounded-2xl border border-white/10 bg-white/[0.06] p-4">
                   <p className="text-xs font-black uppercase tracking-[0.16em] text-white/45">Step {index + 1}</p>
@@ -47,7 +44,7 @@ export default function LabIndexPage() {
             href={`/lab/${category.slug}`}
             className={`group relative overflow-hidden rounded-[28px] border border-white/80 bg-gradient-to-br ${category.soft} p-6 shadow-sm shadow-slate-950/5 transition hover:-translate-y-1 hover:shadow-2xl hover:shadow-slate-950/10`}
           >
-            <div className={`absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r ${category.accent}`} />
+            <div className={`mb-5 h-2 rounded-full bg-gradient-to-r ${category.accent}`} />
             <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-400">Compare Log</p>
             <h2 className="mt-7 text-2xl font-black tracking-tight text-slate-950">{category.title}</h2>
             <p className="mt-3 text-sm font-semibold leading-relaxed text-slate-600">{category.description}</p>

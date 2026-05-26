@@ -14,8 +14,8 @@ const tools = [
   {
     href: '/tools/ai-model-compare',
     label: 'AIモデル比較',
-    body: '主要AIモデルの賢さ、速度、価格効率を横並びで比較します。用途別にどのAIを選ぶべきか確認できます。',
-    tag: 'Compare',
+    body: '主要AIモデルの賢さ、速度、価格効率を横並びで比較します。用途ごとの向き不向きを、まず数値で把握できます。',
+    tag: 'Performance',
     metric: '性能・速度・価格',
     accent: 'from-indigo-500 via-sky-400 to-cyan-300',
     soft: 'from-indigo-50 to-cyan-50',
@@ -105,7 +105,7 @@ export default function HomePage() {
                   {[
                     ['Performance', '賢さ・速度・価格効率', 'from-indigo-400 to-sky-300'],
                     ['Pricing', 'サブスク・API・生成単価', 'from-emerald-300 to-teal-300'],
-                    ['Lab', '同じ条件で試した比較ログ', 'from-fuchsia-400 to-orange-300'],
+                    ['Compare', '同じ条件で試した比較ログ', 'from-fuchsia-400 to-orange-300'],
                   ].map(([label, body, accent], index) => (
                     <div key={label} className="rounded-2xl border border-white/10 bg-white/[0.06] p-4">
                       <div className="flex items-center justify-between gap-3">
@@ -162,11 +162,11 @@ export default function HomePage() {
         >
           <div className="p-6 sm:p-8">
             <div className="h-2 rounded-full bg-gradient-to-r from-indigo-500 via-sky-400 to-rose-300" />
-            <p className="mt-7 text-xs font-black uppercase tracking-[0.2em] text-white/45">Aincarn Lab</p>
-            <h2 className="mt-3 text-3xl font-black tracking-tight sm:text-4xl">実際に比べたデータを、同じページに蓄積する。</h2>
+            <p className="mt-7 text-xs font-black uppercase tracking-[0.2em] text-white/45">Compare</p>
+            <h2 className="mt-3 text-4xl font-black tracking-tight sm:text-5xl">AINCARN LAB</h2>
             <p className="mt-4 max-w-2xl text-sm font-bold leading-relaxed text-white/68">
-              文章作成、コード生成、調査・要約など、用途ごとに最新モデルを同じ条件で比較します。
-              記事のように読めて、データベースのように積み上がるAincarn独自の比較ログです。
+              最新モデルに同じプロンプトを投げ、文章作成、コード生成、調査・要約などの結果を用途別に蓄積します。
+              単なる印象ではなく、比較日・使用モデル・評価軸を残して、AIの変化を追えるログにしていきます。
             </p>
             <span className="mt-7 inline-flex rounded-full bg-white px-4 py-2 text-xs font-black text-slate-950 transition group-hover:scale-[1.02]">
               比較ログを見る
