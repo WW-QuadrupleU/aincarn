@@ -1,10 +1,16 @@
-import { notFound } from 'next/navigation'
+import type { Metadata } from 'next'
+import SubscriptionManager from '@/components/SubscriptionManager'
 
-export const dynamic = 'force-static'
+export const metadata: Metadata = {
+  title: 'AIサブスク管理',
+  description:
+    '主要AIサービスを選んでプラン、料金、更新日、ステータスをアカウントごとに保存できるAincarnのサブスク管理ツールです。',
+}
 
-// サブスク管理ツールは公開停止中。直URLでアクセスされても 404 を返す。
-// 過去のリンクや検索結果からの流入をブロックする目的。再公開する場合は
-// このファイルを差し戻し、Header と /tools のリンクも復活させる。
 export default function SubscriptionsPage() {
-  notFound()
+  return (
+    <main className="min-h-screen overflow-x-hidden">
+      <SubscriptionManager />
+    </main>
+  )
 }

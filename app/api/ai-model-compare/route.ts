@@ -339,32 +339,6 @@ async function fetchAaOptional<T>(path: string, key: string): Promise<T[]> {
   }
 }
 
-// Try multiple candidate slugs and return the first one that yields rows.
-// Useful when AA has not standardised a slug yet (e.g. music-generation).
-async function fetchAaFirstAvailable<T>(
-  paths: string[],
-  key: string,
-): Promise<{ data: T[]; usedPath: string | null; tried: Array<{ path: string; ok: boolean; count: number; error?: string }> }> {
-  const tried: Array<{ path: string; ok: boolean; count: number; error?: string }> = []
-  for (const path of paths) {
-    try {
-      const data = await fetchAa<T>(path, key)
-      tried.push({ path, ok: true, count: data.length })
-      if (data.length > 0) {
-        return { data, usedPath: path, tried }
-      }
-    } catch (error) {
-      tried.push({
-        path,
-        ok: false,
-        count: 0,
-        error: error instanceof Error ? error.message.slice(0, 120) : String(error).slice(0, 120),
-      })
-    }
-  }
-  return { data: [], usedPath: null, tried }
-}
-
 function uniqueModels(models: AiModel[]): AiModel[] {
   const seen = new Set<string>()
   return models.filter((model) => {

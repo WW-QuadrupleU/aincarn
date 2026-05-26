@@ -20,6 +20,12 @@ const tools = [
     meta: 'Pricing',
   },
   {
+    href: '/tools/subscriptions',
+    label: 'AIサブスク管理',
+    body: '契約中のAIサブスクをまとめて管理。プラン、料金、更新日を一覧できます。',
+    meta: 'Management',
+  },
+  {
     href: '/lab',
     label: 'Aincarn Lab',
     body: '最新AIを同じ条件で試した比較ログを用途別に蓄積します。',
@@ -38,7 +44,7 @@ export default function ToolsPage() {
         </p>
       </section>
 
-      <section className="mt-6 grid gap-4 md:grid-cols-3">
+      <section className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {tools.map((tool) => (
           <Link
             key={tool.href}

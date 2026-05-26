@@ -12,7 +12,7 @@ import {
 } from '@/lib/ai-database'
 
 type PricingMode = 'plans' | 'llm' | 'image' | 'video' | 'audio'
-type ViewMode = 'matrix' | 'breakeven' | 'diagnosis'
+type ViewMode = 'matrix' | 'breakeven' | 'diagnosis' | 'api'
 
 type PricingRow = {
   model: AiModel
@@ -110,7 +110,10 @@ function unitLabel(mode: PricingMode) {
 
 function eligibleForMode(model: AiModel, mode: PricingMode) {
   if (mode === 'llm') {
-    return model.modality === 'LLM' && !model.visibleIn.includes('textSpeech')
+    return (
+      model.modality === 'LLM' &&
+      !model.visibleIn.includes('textSpeech')
+    )
   }
   if (mode === 'image') return model.visibleIn.includes('textImage') || model.visibleIn.includes('imageImage')
   if (mode === 'audio') return model.visibleIn.includes('textSpeech')
