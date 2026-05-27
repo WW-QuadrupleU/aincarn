@@ -464,9 +464,6 @@ export default function AiPricingTool() {
               <p className="rounded-full border border-slate-200 bg-white px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-slate-500">
                 Premium AI Estimator
               </p>
-              <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-black text-emerald-700 ring-1 ring-emerald-200">
-                LIVE DATA
-              </span>
             </div>
             <h1 className="mt-4 max-w-2xl text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">
               AI料金比較ツール
@@ -476,26 +473,27 @@ export default function AiPricingTool() {
               主要AIサービス {planSummary.services}社・{planSummary.total}プランを一画面で比較できます。
             </p>
 
-            {/* タブ */}
-            <div className="mt-6 inline-flex flex-wrap gap-1.5 rounded-full border border-slate-200 bg-white/70 p-1 shadow-sm shadow-slate-950/5">
-              {tabConfig.map((tab) => {
-                const isActive = viewMode === tab.id
-                return (
-                  <button
-                    key={tab.id}
-                    type="button"
-                    onClick={() => setViewMode(tab.id)}
-                    className={`rounded-full px-4 py-2 text-xs font-black transition-all ${
-                      isActive
-                        ? 'bg-gradient-to-r from-slate-950 via-slate-900 to-indigo-950 text-white shadow-md shadow-slate-950/20'
-                        : 'text-slate-500 hover:bg-slate-100 hover:text-slate-950'
-                    }`}
-                  >
-                    <span className="mr-1.5">{tab.icon}</span>
-                    {tab.label}
-                  </button>
-                )
-              })}
+            <div className="mt-6 w-full max-w-full overflow-x-auto rounded-full border border-slate-200 bg-white/70 p-1.5 shadow-sm shadow-slate-950/5">
+              <div className="flex min-w-max gap-1.5">
+                {tabConfig.map((tab) => {
+                  const isActive = viewMode === tab.id
+                  return (
+                    <button
+                      key={tab.id}
+                      type="button"
+                      onClick={() => setViewMode(tab.id)}
+                      className={`flex shrink-0 items-center justify-center whitespace-nowrap rounded-full px-4 py-2 text-xs font-black transition-all ${
+                        isActive
+                          ? 'bg-gradient-to-r from-slate-950 via-slate-900 to-indigo-950 text-white shadow-md shadow-slate-950/20'
+                          : 'text-slate-500 hover:bg-slate-100 hover:text-slate-950'
+                      }`}
+                    >
+                      <span className="mr-1.5">{tab.icon}</span>
+                      {tab.label}
+                    </button>
+                  )
+                })}
+              </div>
             </div>
           </div>
 
@@ -1233,6 +1231,4 @@ export default function AiPricingTool() {
     </div>
   )
 }
-
-
 
