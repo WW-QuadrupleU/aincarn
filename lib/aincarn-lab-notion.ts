@@ -49,14 +49,24 @@ type PropertyValue = {
 }
 
 export function hasLabNotion() {
-  return Boolean(process.env.NOTION_TOKEN && process.env.NOTION_LAB_OUTPUTS_DB_ID)
+  return Boolean(getLabNotionToken() && process.env.NOTION_LAB_OUTPUTS_DB_ID)
+}
+
+export function getLabNotionTokenSource() {
+  if (process.env.NOTION_LAB_TOKEN) return 'NOTION_LAB_TOKEN'
+  if (process.env.NOTION_TOKEN) return 'NOTION_TOKEN'
+  return null
+}
+
+function getLabNotionToken() {
+  return process.env.NOTION_LAB_TOKEN || process.env.NOTION_TOKEN || ''
 }
 
 async function notionFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
   const response = await fetch(`${NOTION_API}${path}`, {
     ...init,
     headers: {
-      Authorization: `Bearer ${process.env.NOTION_TOKEN}`,
+      Authorization: `Bearer ${getLabNotionToken()}`,
       'Notion-Version': NOTION_VERSION,
       'Content-Type': 'application/json',
       ...(init.headers as Record<string, string> | undefined),
