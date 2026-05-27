@@ -75,8 +75,31 @@ function plainText(rich: NotionRichText[] | undefined): string {
   return rich.map((item) => item.plain_text || '').join('').trim()
 }
 
+function normalizePropertyName(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/\s*\([^)]*\)\s*/g, '')
+    .replace(/[\s_-]+/g, '')
+}
+
+function findProperty(page: NotionPage, names: string[]): PropertyValue | undefined {
+  for (const name of names) {
+    const prop = page.properties[name] as PropertyValue | undefined
+    if (prop) return prop
+  }
+
+  const normalizedNames = names.map(normalizePropertyName)
+  for (const key of Object.keys(page.properties)) {
+    const normalizedKey = normalizePropertyName(key)
+    if (normalizedNames.some((name) => normalizedKey === name || normalizedKey.includes(name))) {
+      return page.properties[key] as PropertyValue | undefined
+    }
+  }
+  return undefined
+}
+
 function readTitle(page: NotionPage, key: string): string {
-  const prop = page.properties[key] as PropertyValue | undefined
+  const prop = findProperty(page, [key])
   if (prop) {
     if (prop.title && prop.title.length > 0) return plainText(prop.title)
     if (prop.rich_text && prop.rich_text.length > 0) return plainText(prop.rich_text)
@@ -92,19 +115,21 @@ function readTitle(page: NotionPage, key: string): string {
 }
 
 function readRichText(page: NotionPage, key: string): string {
-  const prop = page.properties[key] as PropertyValue | undefined
+  const prop = findProperty(page, [key])
   if (prop) {
     if (prop.rich_text) return plainText(prop.rich_text)
     if (prop.title) return plainText(prop.title)
+    if (prop.select?.name) return prop.select.name
   }
-  // フォールバック: 大文字小文字を無視して一致するキーを探す
-  const lowerKey = key.toLowerCase()
-  for (const k of Object.keys(page.properties)) {
-    if (k.toLowerCase() === lowerKey) {
-      const p = page.properties[k] as PropertyValue | undefined
-      if (p?.rich_text) return plainText(p.rich_text)
-    }
-  }
+  return ''
+}
+
+function readPropertyText(page: NotionPage, names: string[]): string {
+  const prop = findProperty(page, names)
+  if (!prop) return ''
+  if (prop.select?.name) return prop.select.name
+  if (prop.rich_text) return plainText(prop.rich_text)
+  if (prop.title) return plainText(prop.title)
   return ''
 }
 
@@ -163,34 +188,16 @@ function blocksToSections(blocks: NotionBlock[]): Array<{ heading: string; body?
 
 function compareOrder(a: NotionPage, b: NotionPage): number {
   const getOrder = (page: NotionPage) => {
-    const prop = page.properties['Order'] as PropertyValue | undefined
+    const prop = findProperty(page, ['Order', '順序', '並び順'])
     if (prop?.number !== undefined && prop.number !== null) return prop.number
-    
-    // フォールバック: 大文字小文字無視または日本語名
-    for (const k of Object.keys(page.properties)) {
-      const lk = k.toLowerCase()
-      if (lk === 'order' || lk === '順序' || lk === '並び順') {
-        const p = page.properties[k] as PropertyValue | undefined
-        if (p?.number !== undefined && p?.number !== null) return p.number
-      }
-    }
     return Number.POSITIVE_INFINITY
   }
   return getOrder(a) - getOrder(b)
 }
 
 function readLogDate(page: NotionPage): string {
-  const prop = page.properties['LogDate'] as PropertyValue | undefined
+  const prop = findProperty(page, ['LogDate', 'Date', '日付', '更新日'])
   if (prop?.date?.start) return prop.date.start
-  
-  // フォールバック: 大文字小文字無視または日本語名
-  for (const k of Object.keys(page.properties)) {
-    const lk = k.toLowerCase()
-    if (lk === 'logdate' || lk === 'date' || lk === '日付' || lk === '更新日') {
-      const p = page.properties[k] as PropertyValue | undefined
-      if (p?.date?.start) return p.date.start
-    }
-  }
   return ''
 }
 
@@ -228,23 +235,7 @@ export async function fetchLabOutputsFromNotion(slug: string): Promise<LabModelO
 
     // カテゴリでフィルタリング（大文字・小文字を区別せず、カラム名のブレも許容する）
     const matchedPages = query.results.filter((page) => {
-      let catName: string | undefined
-      
-      const prop = page.properties['Category'] as PropertyValue | undefined
-      if (prop?.select?.name) {
-        catName = prop.select.name
-      } else {
-        for (const k of Object.keys(page.properties)) {
-          const lk = k.toLowerCase()
-          if (lk === 'category' || lk === 'カテゴリ' || lk === '分類') {
-            const p = page.properties[k] as PropertyValue | undefined
-            if (p?.select?.name) {
-              catName = p.select.name
-              break
-            }
-          }
-        }
-      }
+      const catName = readPropertyText(page, ['Category', 'カテゴリ', '分類'])
       return catName?.toLowerCase() === slug.toLowerCase()
     })
 
