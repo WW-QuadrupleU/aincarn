@@ -473,8 +473,8 @@ export default function AiPricingTool() {
               主要AIサービス {planSummary.services}社・{planSummary.total}プランを一画面で比較できます。
             </p>
 
-            <div className="mt-6 w-full max-w-full overflow-x-auto rounded-full border border-slate-200 bg-white/70 p-1.5 shadow-sm shadow-slate-950/5">
-              <div className="flex min-w-max gap-1.5">
+            <div className="mt-6 w-full rounded-[22px] border border-slate-200 bg-white/70 p-1.5 shadow-sm shadow-slate-950/5 sm:inline-flex sm:w-auto sm:rounded-full">
+              <div className="grid w-full gap-1.5 sm:flex sm:w-auto">
                 {tabConfig.map((tab) => {
                   const isActive = viewMode === tab.id
                   return (
@@ -482,7 +482,7 @@ export default function AiPricingTool() {
                       key={tab.id}
                       type="button"
                       onClick={() => setViewMode(tab.id)}
-                      className={`flex shrink-0 items-center justify-center whitespace-nowrap rounded-full px-4 py-2 text-xs font-black transition-all ${
+                      className={`flex w-full items-center justify-center rounded-full px-4 py-2.5 text-xs font-black transition-all sm:w-auto sm:py-2 ${
                         isActive
                           ? 'bg-gradient-to-r from-slate-950 via-slate-900 to-indigo-950 text-white shadow-md shadow-slate-950/20'
                           : 'text-slate-500 hover:bg-slate-100 hover:text-slate-950'
@@ -1231,4 +1231,3 @@ export default function AiPricingTool() {
     </div>
   )
 }
-
