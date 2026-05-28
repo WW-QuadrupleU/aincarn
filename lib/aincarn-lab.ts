@@ -1,6 +1,7 @@
 export type LabModelOutput = {
   model: string
   brief: string
+  raw?: string
   sections: Array<{ heading: string; body?: string; bullets?: string[] }>
 }
 

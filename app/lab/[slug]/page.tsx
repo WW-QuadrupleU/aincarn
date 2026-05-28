@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import LabModelTabs from '@/components/LabModelTabs'
 import { getLabCategory, labCategories } from '@/lib/aincarn-lab'
+import type { LabModelOutput, LabScoreRow } from '@/lib/aincarn-lab'
 import { fetchLabOutputsFromNotion } from '@/lib/aincarn-lab-notion'
 
 type Props = {
@@ -15,6 +16,43 @@ export function generateStaticParams() {
 
 // 5 分ごとに ISR で再生成。Notion 編集後 5 分以内に反映される。
 export const revalidate = 300
+
+function normalizeModelName(name: string) {
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, '')
+}
+
+function getModelScore(model: string, scoreTable: LabScoreRow[] | undefined) {
+  if (!scoreTable) return 0
+  return scoreTable.reduce((total, row) => total + (row.scores[model] || 0), 0)
+}
+
+function rankModels(models: string[], scoreTable: LabScoreRow[] | undefined) {
+  return [...models].sort((a, b) => {
+    const scoreDiff = getModelScore(b, scoreTable) - getModelScore(a, scoreTable)
+    if (scoreDiff !== 0) return scoreDiff
+    return models.indexOf(a) - models.indexOf(b)
+  })
+}
+
+function sortOutputsByModelRank(outputs: LabModelOutput[] | undefined, rankedModels: string[]) {
+  if (!outputs) return outputs
+
+  const remaining = [...outputs]
+  const sorted: LabModelOutput[] = []
+  for (const model of rankedModels) {
+    const modelKey = normalizeModelName(model)
+    const index = remaining.findIndex((output) => {
+      const outputKey = normalizeModelName(output.model)
+      return outputKey === modelKey || outputKey.includes(modelKey) || modelKey.includes(outputKey)
+    })
+    if (index >= 0) {
+      const [output] = remaining.splice(index, 1)
+      sorted.push(output)
+    }
+  }
+
+  return [...sorted, ...remaining]
+}
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
@@ -44,6 +82,8 @@ export default async function LabDetailPage({ params }: Props) {
   // ISR で 5 分キャッシュされるので Notion 編集後の反映タイムラグはおよそ 5 分。
   const notionOutputs = await fetchLabOutputsFromNotion(slug)
   const outputs = notionOutputs && notionOutputs.length > 0 ? notionOutputs : log?.outputs
+  const rankedModels = log ? rankModels(log.models, log.scoreTable) : []
+  const rankedOutputs = sortOutputsByModelRank(outputs, rankedModels)
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-12">
@@ -87,7 +127,7 @@ export default async function LabDetailPage({ params }: Props) {
               {log.status === 'template' ? 'Template' : 'Published'}
             </span>
             <div className="flex flex-wrap gap-1.5">
-              {log.models.map((model) => (
+              {rankedModels.map((model) => (
                 <span
                   key={model}
                   className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-black text-slate-600"
@@ -130,7 +170,7 @@ export default async function LabDetailPage({ params }: Props) {
                   <th className="border-b border-slate-200 px-4 py-3 text-[11px] font-black uppercase tracking-[0.14em] text-slate-500">
                     評価項目
                   </th>
-                  {log.models.map((model) => (
+                  {rankedModels.map((model) => (
                     <th
                       key={model}
                       className="border-b border-slate-200 px-4 py-3 text-center text-[11px] font-black uppercase tracking-[0.14em] text-slate-500"
@@ -144,7 +184,7 @@ export default async function LabDetailPage({ params }: Props) {
                 {log.scoreTable.map((row, idx) => (
                   <tr key={row.metric} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/40'}>
                     <td className="px-4 py-3 text-sm font-black text-slate-900">{row.metric}</td>
-                    {log.models.map((model) => {
+                    {rankedModels.map((model) => {
                       const score = row.scores[model] || 0
                       const isTop = score === Math.max(...Object.values(row.scores))
                       return (
@@ -167,7 +207,7 @@ export default async function LabDetailPage({ params }: Props) {
 
           {log.roles && log.roles.length > 0 && (
             <div className="mt-6 grid gap-3 md:grid-cols-3">
-              {log.roles.map((role) => (
+              {[...log.roles].sort((a, b) => rankedModels.indexOf(a.model) - rankedModels.indexOf(b.model)).map((role) => (
                 <div key={role.model} className="rounded-2xl border border-slate-200 bg-slate-50/60 p-4">
                   <p className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-500">Best for</p>
                   <p className="mt-1 text-sm font-black text-slate-950">{role.model}</p>
@@ -181,9 +221,9 @@ export default async function LabDetailPage({ params }: Props) {
       )}
 
       {/* 4. モデル別の実出力タブ (Notion 優先、失敗時は埋め込みデータ) */}
-      {outputs && outputs.length > 0 && (
+      {rankedOutputs && rankedOutputs.length > 0 && (
         <div className="mt-6">
-          <LabModelTabs outputs={outputs} />
+          <LabModelTabs outputs={rankedOutputs} />
         </div>
       )}
 

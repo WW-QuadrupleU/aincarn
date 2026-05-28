@@ -196,6 +196,47 @@ function blocksToSections(blocks: NotionBlock[]): Array<{ heading: string; body?
   return sections
 }
 
+function blocksToRawText(blocks: NotionBlock[]): string {
+  const lines: string[] = []
+  let numberedIndex = 1
+
+  for (const block of blocks) {
+    const type = block.type
+    if (type === 'heading_1' || type === 'heading_2' || type === 'heading_3') {
+      const text = plainText(
+        block.heading_1?.rich_text || block.heading_2?.rich_text || block.heading_3?.rich_text,
+      )
+      if (text) {
+        if (lines.length > 0 && lines[lines.length - 1] !== '') lines.push('')
+        lines.push(text)
+        lines.push('')
+      }
+      numberedIndex = 1
+    } else if (type === 'bulleted_list_item') {
+      const text = plainText(block.bulleted_list_item?.rich_text)
+      if (text) lines.push(`・${text}`)
+      numberedIndex = 1
+    } else if (type === 'numbered_list_item') {
+      const text = plainText(block.numbered_list_item?.rich_text)
+      if (text) {
+        lines.push(`${numberedIndex}. ${text}`)
+        numberedIndex += 1
+      }
+    } else if (type === 'paragraph' || type === 'quote' || type === 'code') {
+      const text = plainText(
+        block.paragraph?.rich_text || block.quote?.rich_text || block.code?.rich_text,
+      )
+      if (text) {
+        lines.push(type === 'quote' ? `> ${text}` : text)
+        lines.push('')
+      }
+      numberedIndex = 1
+    }
+  }
+
+  return lines.join('\n').replace(/\n{3,}/g, '\n\n').trim()
+}
+
 function compareOrder(a: NotionPage, b: NotionPage): number {
   const getOrder = (page: NotionPage) => {
     const prop = findProperty(page, ['Order', '順序', '並び順'])
@@ -259,13 +300,15 @@ export async function fetchLabOutputsFromNotion(slug: string): Promise<LabModelO
       if (!model) continue
       const brief = readRichText(page, 'Brief')
       let sections: Array<{ heading: string; body?: string; bullets?: string[] }> = []
+      let raw = ''
       try {
         const blocks = await fetchPageBlocks(page.id)
+        raw = blocksToRawText(blocks)
         sections = blocksToSections(blocks)
       } catch (error) {
         console.warn(`[lab-notion] block fetch failed for page ${page.id}:`, error)
       }
-      outputs.push({ model, brief, sections })
+      outputs.push({ model, brief, raw, sections })
     }
 
     return outputs.length > 0 ? outputs : null
