@@ -2,7 +2,8 @@ import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
   title: '広告・アフィリエイト開示',
-  description: 'Aincarnの広告掲載、アフィリエイトリンク、比較情報の扱いについて掲載しています。',
+  description:
+    'Aincarnの広告掲載、アフィリエイトリンク、比較情報の扱いについて記載しています。',
 }
 
 export default function DisclosurePage() {
@@ -13,12 +14,16 @@ export default function DisclosurePage() {
         <h1 className="mt-2 text-3xl font-black tracking-tight text-brand-text">広告・アフィリエイト開示</h1>
         <div className="mt-7 space-y-6 text-sm font-bold leading-relaxed text-gray-600">
           <p>
-            Aincarnでは、今後Google AdSenseなどの広告、またはAIサービスや関連ツールの紹介リンクを掲載する場合があります。
+            Aincarnでは、Google AdSenseなどの広告、またはAIサービスや関連ツールの紹介リンクを掲載する場合があります。
             広告や紹介リンクから収益が発生する場合でも、掲載内容の評価や比較方針が不当に左右されないように運営します。
           </p>
           <p>
-            料金、仕様、提供条件は変更されることがあります。Aincarnでは公式ページ、公開ベンチマーク、運営者による確認情報を分けて扱い、
-            読者が自分の用途に合うか判断しやすい形で整理します。
+            料金、仕様、利用制限、対象モデルは変更されることがあります。Aincarnでは公式ページ、公開データ、Aincarn Labの比較ログなど、
+            情報源の性質を分けて扱い、読者が自分の用途に合うか判断しやすい形で整理します。
+          </p>
+          <p>
+            記事やツール内の情報は、特定のサービスの契約や購入を保証するものではありません。
+            契約前には、必ず公式ページで最新の料金、提供条件、利用規約を確認してください。
           </p>
           <p>
             誤りや古い情報を見つけた場合は、お問い合わせページまたはメールでご連絡ください。

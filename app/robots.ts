@@ -5,7 +5,16 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: '*',
       allow: '/',
-      disallow: ['/test/', '/tools/aios/', '/sign-in/', '/sign-up/', '/sso-callback/'],
+      disallow: [
+        '/test/',
+        '/tools/aios/',
+        '/tools/ai-subscription/',
+        '/sign-in/',
+        '/sign-up/',
+        '/sso-callback/',
+        '/login/',
+        '/signup/',
+      ],
     },
     sitemap: 'https://aincarn.com/sitemap.xml',
   }

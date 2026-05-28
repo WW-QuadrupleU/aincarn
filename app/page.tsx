@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Image from 'next/image'
 import Link from 'next/link'
 import SmoothHashLink from '@/components/SmoothHashLink'
 
@@ -92,33 +93,31 @@ export default function HomePage() {
             </div>
 
             <div className="rounded-[36px] border border-white/80 bg-white/78 p-3 shadow-2xl shadow-slate-950/10 backdrop-blur-2xl">
-              <div className="overflow-hidden rounded-[28px] border border-white/15 bg-slate-950 p-5 text-white shadow-inner shadow-white/10">
-                <div className="mb-5 h-2 rounded-full bg-gradient-to-r from-indigo-500 via-sky-400 to-rose-300" />
-                <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <p className="text-xs font-bold uppercase tracking-[0.18em] text-white/50">Decision Panel</p>
-                    <h2 className="mt-2 text-2xl font-black tracking-tight">AI選びの判断軸</h2>
-                  </div>
-                  <div className="grid size-12 place-items-center rounded-2xl bg-white text-sm font-black text-slate-950">AI</div>
-                </div>
-                <div className="mt-6 grid gap-3">
-                  {[
-                    ['Performance', '賢さ・速度・価格効率', 'from-indigo-400 to-sky-300'],
-                    ['Pricing', '月額・API・生成単価', 'from-emerald-300 to-teal-300'],
-                    ['Compare', '同じ条件で試した比較ログ', 'from-fuchsia-400 to-orange-300'],
-                  ].map(([label, body, accent], index) => (
-                    <div key={label} className="rounded-2xl border border-white/10 bg-white/[0.06] p-4">
-                      <div className="flex items-center justify-between gap-3">
-                        <div>
-                          <p className="text-xs font-black uppercase tracking-[0.16em] text-white/45">{label}</p>
-                          <p className="mt-1 text-sm font-bold text-white/84">{body}</p>
-                        </div>
-                        <div className="h-2 w-20 overflow-hidden rounded-full bg-white/10">
-                          <div className={`h-full rounded-full bg-gradient-to-r ${accent}`} style={{ width: `${86 - index * 16}%` }} />
-                        </div>
+              <div className="relative overflow-hidden rounded-[28px] border border-white/15 bg-slate-950 text-white shadow-inner shadow-white/10">
+                <Image
+                  src="/images/A_modern_editorial_hero_image_202605282220.jpeg"
+                  alt="AIモデル比較と料金判断を表すAincarnのビジュアル"
+                  width={2048}
+                  height={1024}
+                  priority
+                  className="aspect-[16/10] w-full object-cover"
+                />
+                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950 via-slate-950/78 to-transparent p-5 pt-20">
+                  <div className="mb-4 h-2 rounded-full bg-gradient-to-r from-indigo-500 via-sky-400 to-rose-300" />
+                  <p className="text-xs font-bold uppercase tracking-[0.18em] text-white/55">Decision Panel</p>
+                  <h2 className="mt-2 text-2xl font-black tracking-tight">AI選びの判断軸</h2>
+                  <div className="mt-4 grid gap-2 sm:grid-cols-3">
+                    {[
+                      ['Performance', '賢さ・速度'],
+                      ['Pricing', '月額・API'],
+                      ['Compare', '比較ログ'],
+                    ].map(([label, body]) => (
+                      <div key={label} className="rounded-2xl border border-white/12 bg-white/[0.08] p-3 backdrop-blur-md">
+                        <p className="text-[10px] font-black uppercase tracking-[0.14em] text-white/45">{label}</p>
+                        <p className="mt-1 text-xs font-bold text-white/86">{body}</p>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
