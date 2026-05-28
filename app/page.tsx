@@ -94,6 +94,7 @@ export default function HomePage() {
 
             <div className="rounded-[36px] border border-white/80 bg-white/78 p-3 shadow-2xl shadow-slate-950/10 backdrop-blur-2xl">
               <div className="relative overflow-hidden rounded-[28px] border border-white/15 bg-slate-950 text-white shadow-inner shadow-white/10">
+                <div className="absolute left-5 right-5 top-5 z-10 h-2 rounded-full bg-gradient-to-r from-indigo-500 via-sky-400 to-rose-300 shadow-lg shadow-sky-500/15" />
                 <Image
                   src="/images/A_modern_editorial_hero_image_202605282220.jpeg"
                   alt="AIモデル比較と料金判断を表すAincarnのビジュアル"
@@ -103,7 +104,6 @@ export default function HomePage() {
                   className="aspect-[16/10] w-full object-cover"
                 />
                 <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950 via-slate-950/78 to-transparent p-5 pt-20">
-                  <div className="mb-4 h-2 rounded-full bg-gradient-to-r from-indigo-500 via-sky-400 to-rose-300" />
                   <p className="text-xs font-bold uppercase tracking-[0.18em] text-white/55">Decision Panel</p>
                   <h2 className="mt-2 text-2xl font-black tracking-tight">AI選びの判断軸</h2>
                   <div className="mt-4 grid gap-2 sm:grid-cols-3">
