@@ -464,9 +464,6 @@ export default function AiPricingTool() {
               <p className="rounded-full border border-slate-200 bg-white px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-slate-500">
                 Premium AI Estimator
               </p>
-              <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-black text-emerald-700 ring-1 ring-emerald-200">
-                LIVE DATA
-              </span>
             </div>
             <h1 className="mt-4 max-w-2xl text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">
               AI料金比較ツール
@@ -477,7 +474,7 @@ export default function AiPricingTool() {
             </p>
 
             {/* タブ */}
-            <div className="mt-6 inline-flex flex-wrap gap-1.5 rounded-full border border-slate-200 bg-white/70 p-1 shadow-sm shadow-slate-950/5">
+            <div className="mt-6 flex flex-wrap gap-1.5 rounded-[999px] border border-slate-200 bg-white/70 p-1 shadow-sm shadow-slate-950/5 sm:inline-flex sm:flex-nowrap">
               {tabConfig.map((tab) => {
                 const isActive = viewMode === tab.id
                 return (

@@ -115,12 +115,16 @@ function MiniStat({ label, value }: { label: string; value: number | string }) {
 function MetricLeaderboard({
   title,
   caption,
+  icon,
+  accent,
   models,
   genreId,
   mode,
 }: {
   title: string
   caption: string
+  icon: string
+  accent: string
   models: AiModel[]
   genreId: AiGenreId
   mode: 'intelligence' | 'speed' | 'price'
@@ -137,14 +141,18 @@ function MetricLeaderboard({
   )
 
   return (
-    <section className="overflow-hidden rounded-[20px] border border-white/75 bg-white/90 p-3 shadow-sm shadow-slate-950/5 backdrop-blur">
-      <div className="mb-3">
-        <div className="border-b border-slate-100 pb-2">
-          <h2 className="text-base font-extrabold text-slate-950">{title}</h2>
-          <p className="mt-0.5 text-[11px] font-bold leading-relaxed text-gray-500">{caption}</p>
+    <section className="group relative overflow-hidden rounded-[24px] border border-white/80 bg-white/92 p-4 shadow-md shadow-slate-950/5 backdrop-blur transition hover:-translate-y-0.5 hover:shadow-xl hover:shadow-slate-950/10">
+      <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${accent}`} />
+      <div className="mb-3 flex items-start justify-between gap-3 border-b border-slate-100 pb-3">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2">
+            <span className="text-base">{icon}</span>
+            <h2 className="text-base font-black tracking-tight text-slate-950">{title}</h2>
+          </div>
+          <p className="mt-1 text-[11px] font-bold leading-relaxed text-gray-500">{caption}</p>
         </div>
       </div>
-      <div className="divide-y divide-gray-100">
+      <div className="divide-y divide-slate-100/80">
         {models.slice(0, 7).map((model, index) => {
           const score =
             mode === 'intelligence'
@@ -153,25 +161,31 @@ function MetricLeaderboard({
                 ? model.speed
                 : priceEfficiencyScore(model, genreId)
           const width = Math.max(8, (score / maxScore) * 100)
+          const medalTone =
+            index === 0
+              ? 'bg-gradient-to-br from-amber-400 via-yellow-400 to-orange-400 text-white shadow-sm shadow-amber-500/30'
+              : index === 1
+                ? 'bg-gradient-to-br from-slate-300 via-slate-400 to-slate-500 text-white shadow-sm shadow-slate-500/20'
+                : index === 2
+                  ? 'bg-gradient-to-br from-orange-300 via-amber-500 to-amber-700 text-white shadow-sm shadow-amber-700/20'
+                  : 'bg-slate-50 text-slate-400 ring-1 ring-slate-200'
 
           return (
-            <div key={model.id} className="py-2">
+            <div key={model.id} className="py-2.5">
               <div className="mb-1.5 flex min-w-0 items-start justify-between gap-3">
                 <div className="flex min-w-0 items-center gap-2">
-                  <span className={`grid size-6 shrink-0 place-items-center rounded-full text-[11px] font-black ${
-                    index < 3 ? 'bg-slate-950 text-white' : 'bg-gray-100 text-gray-500'
-                  }`}>
+                  <span className={`grid size-6 shrink-0 place-items-center rounded-full text-[11px] font-black ${medalTone}`}>
                     {index + 1}
                   </span>
                   <div className="min-w-0">
                     <p className="truncate text-sm font-black text-slate-950">{model.name}</p>
-                    <p className="truncate text-[11px] font-bold text-gray-400">{model.creator}</p>
+                    <p className="truncate text-[10px] font-bold uppercase tracking-[0.08em] text-slate-400">{model.creator}</p>
                   </div>
                 </div>
-                <p className="shrink-0 text-lg font-black text-slate-950">{score}</p>
+                <p className="shrink-0 text-lg font-black tabular-nums text-slate-950">{score}</p>
               </div>
-              <div className="h-3.5 overflow-hidden rounded-full bg-slate-100 ring-1 ring-slate-200/70">
-                <div className={`h-full rounded-full ${scoreTone(score)}`} style={{ width: `${width}%` }} />
+              <div className="h-3 overflow-hidden rounded-full bg-slate-100/80 ring-1 ring-inset ring-slate-200/60">
+                <div className={`h-full rounded-full ${scoreTone(score)} shadow-sm shadow-slate-900/10`} style={{ width: `${width}%` }} />
               </div>
             </div>
           )
@@ -334,19 +348,69 @@ export default function AiModelCompareTool() {
 
   return (
     <div className="space-y-6">
-      <section className="rounded-[20px] border border-white/75 bg-white/88 p-3 sm:p-4 shadow-sm shadow-slate-950/5 backdrop-blur">
-        <div className="mb-2">
-          <div className="flex flex-wrap items-center gap-2">
-            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-500">Model Metrics</p>
-            <span className="rounded-full bg-gradient-to-r from-slate-100 to-white px-1.5 py-0.5 text-[9px] font-bold text-slate-500">
-              {payload.isLive ? '自動更新' : '編集データ'}
-            </span>
-            {loading && <span className="text-[9px] font-bold text-gray-400">更新確認中...</span>}
+      {/* ヒーロー */}
+      <section className="overflow-hidden rounded-[28px] border border-white/80 bg-white/92 shadow-xl shadow-slate-950/10 backdrop-blur">
+        <div className="grid gap-0 lg:grid-cols-[1fr_360px]">
+          <div className="p-6 sm:p-8">
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="rounded-full border border-slate-200 bg-white px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-slate-500">
+                AI Model Compare
+              </p>
+              {loading && (
+                <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-black text-slate-500 ring-1 ring-slate-200">
+                  更新確認中…
+                </span>
+              )}
+            </div>
+            <h1 className="mt-4 max-w-2xl text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">
+              AIモデル比較ツール
+            </h1>
+            <p className="mt-3 max-w-2xl text-sm font-bold leading-relaxed text-gray-500">
+              テキスト、画像、動画、音声まで、主要AIモデルの「賢さ・速度・価格効率」を用途別に並べて比較。
+              {payload.models.length}モデルを{AI_GENRES.length}ジャンルの軸で見られます。
+            </p>
           </div>
-          <h2 className="text-lg font-extrabold text-slate-950 mt-0.5">ジャンルごとにAIモデルを比較</h2>
-          <p className="mt-1 text-xs leading-relaxed text-gray-500">
-            {genre.description}。用途によって重視すべき指標が変わるため、賢さ・速度・価格効率の項目別に比較します。
-          </p>
+
+          {/* 右側：ダーク統計バンド */}
+          <div className="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 p-6 text-white sm:p-7">
+            <div className="absolute -right-12 -top-12 h-40 w-40 rounded-full bg-gradient-to-br from-indigo-500/30 to-transparent blur-3xl" aria-hidden="true" />
+            <div className="absolute -bottom-16 -left-10 h-44 w-44 rounded-full bg-gradient-to-tr from-cyan-500/20 to-transparent blur-3xl" aria-hidden="true" />
+            <div className="relative">
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/60">
+                Now comparing
+              </p>
+              <div className="mt-4 grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.18em] text-white/55">Models</p>
+                  <p className="mt-1 text-3xl font-black tracking-tight tabular-nums">{payload.models.length}</p>
+                  <p className="text-[10px] font-bold text-white/55">AI models</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.18em] text-white/55">Genres</p>
+                  <p className="mt-1 text-3xl font-black tracking-tight tabular-nums">{AI_GENRES.length}</p>
+                  <p className="text-[10px] font-bold text-white/55">use cases</p>
+                </div>
+              </div>
+              <div className="mt-5 rounded-2xl border border-white/10 bg-white/[0.06] p-3">
+                <p className="text-[10px] font-black uppercase tracking-[0.16em] text-white/55">Current focus</p>
+                <p className="mt-1 text-sm font-black">{genre.shortLabel}</p>
+                <p className="mt-0.5 text-[11px] font-bold leading-relaxed text-white/65">{genre.sourceMetric}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ジャンル選択 */}
+      <section className="rounded-[24px] border border-white/80 bg-white/92 p-4 shadow-md shadow-slate-950/5 backdrop-blur sm:p-5">
+        <div className="mb-3 flex flex-wrap items-end justify-between gap-2">
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-500">Genre</p>
+            <h2 className="mt-0.5 text-lg font-black tracking-tight text-slate-950">ジャンルごとにAIモデルを比較</h2>
+            <p className="mt-1 max-w-3xl text-xs font-bold leading-relaxed text-gray-500">
+              {genre.description}。用途によって重視すべき指標が変わるため、賢さ・速度・価格効率の項目別に並べます。
+            </p>
+          </div>
         </div>
         <div className="grid gap-2 sm:grid-cols-2 md:grid-cols-4">
           {AI_GENRE_GROUPS.map((group) => (
@@ -399,6 +463,8 @@ export default function AiModelCompareTool() {
         <MetricLeaderboard
           title="賢さランキング"
           caption="用途別の能力指標。リサーチ、文章、コード、分析などの主戦場を見ます。"
+          icon="🧠"
+          accent="from-indigo-500 via-sky-400 to-cyan-300"
           models={performanceRanking}
           genreId={genreId}
           mode="intelligence"
@@ -406,6 +472,8 @@ export default function AiModelCompareTool() {
         <MetricLeaderboard
           title="速度ランキング"
           caption="応答速度の目安。大量処理や反復作業では体感差が大きくなります。"
+          icon="⚡"
+          accent="from-amber-400 via-orange-400 to-rose-400"
           models={speedRanking}
           genreId={genreId}
           mode="speed"
@@ -413,23 +481,50 @@ export default function AiModelCompareTool() {
         <MetricLeaderboard
           title="価格効率ランキング"
           caption="価格の軽さをスコア化。高性能でも単価が重いモデルはここでは伸びにくくなります。"
+          icon="💎"
+          accent="from-emerald-400 via-teal-400 to-sky-400"
           models={priceRanking}
           genreId={genreId}
           mode="price"
         />
       </section>
 
-      <section className="rounded-[20px] border border-white/75 bg-white/88 p-4 shadow-sm shadow-slate-950/5 backdrop-blur">
-        <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-end">
-          <div className="flex-1">
-            <ModelSelect label="比較するモデル 1" value={first.id} models={genreModels} onChange={setFirstId} />
+      <section className="relative overflow-hidden rounded-[24px] border border-white/80 bg-white/92 p-5 shadow-md shadow-slate-950/5 backdrop-blur">
+        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-fuchsia-500 via-violet-500 to-indigo-500" />
+        <div className="mb-1 flex flex-wrap items-baseline justify-between gap-2">
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-500">Head to Head</p>
+            <h2 className="mt-0.5 text-lg font-black tracking-tight text-slate-950">2モデルを直接比較</h2>
           </div>
-          <div className="flex-1">
-            <ModelSelect label="比較するモデル 2" value={second.id} models={genreModels} onChange={setSecondId} />
+          <p className="text-[11px] font-bold text-gray-500">同じジャンルで賢さ・速度・価格効率を並べます</p>
+        </div>
+        <div className="mt-4 mb-4 grid gap-3 sm:grid-cols-[1fr_auto_1fr] sm:items-end">
+          <ModelSelect label="モデル 1" value={first.id} models={genreModels} onChange={setFirstId} />
+          <div className="hidden sm:flex sm:items-end sm:pb-2">
+            <span className="grid size-8 place-items-center rounded-full bg-gradient-to-br from-slate-950 to-indigo-950 text-[10px] font-black text-white shadow-md shadow-slate-950/30">
+              VS
+            </span>
           </div>
-          <div className="rounded-2xl bg-gradient-to-br from-[#111827] via-[#334155] to-[#94a3b8] px-4 py-3 text-white shadow-lg shadow-slate-950/10 sm:w-44">
-            <p className="text-[10px] font-bold text-white/75">賢さ比較の優位</p>
-            <p className="text-sm font-black">{winner}</p>
+          <ModelSelect label="モデル 2" value={second.id} models={genreModels} onChange={setSecondId} />
+        </div>
+        <div className="relative mb-4 overflow-hidden rounded-2xl bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 px-5 py-4 text-white shadow-lg shadow-slate-950/20">
+          <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-gradient-to-br from-amber-400/30 to-transparent blur-2xl" aria-hidden="true" />
+          <div className="relative flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/60">Verdict · 賢さ優位</p>
+              <p className="mt-1 text-2xl font-black tracking-tight">{winner}</p>
+            </div>
+            <div className="flex items-center gap-3 text-right">
+              <div>
+                <p className="text-[10px] font-bold text-white/55">{first.name}</p>
+                <p className="text-2xl font-black tabular-nums">{first.performance[genreId]}</p>
+              </div>
+              <span className="text-xs font-black text-white/40">vs</span>
+              <div>
+                <p className="text-[10px] font-bold text-white/55">{second.name}</p>
+                <p className="text-2xl font-black tabular-nums">{second.performance[genreId]}</p>
+              </div>
+            </div>
           </div>
         </div>
         <div className="grid gap-4 lg:grid-cols-2">
@@ -438,32 +533,46 @@ export default function AiModelCompareTool() {
         </div>
       </section>
 
-      <section className="rounded-[20px] border border-white/75 bg-white/88 p-4 shadow-sm shadow-slate-950/5 backdrop-blur">
-        <h2 className="text-lg font-extrabold text-slate-950">{genre.shortLabel}モデル一覧</h2>
-        <div className="mt-3 overflow-x-auto">
+      <section className="relative overflow-hidden rounded-[24px] border border-white/80 bg-white/92 p-5 shadow-md shadow-slate-950/5 backdrop-blur">
+        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-slate-900 via-slate-700 to-slate-400" />
+        <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-500">Full list</p>
+            <h2 className="mt-0.5 text-lg font-black tracking-tight text-slate-950">{genre.shortLabel}モデル一覧</h2>
+          </div>
+          <p className="text-[11px] font-bold text-gray-500">{performanceRanking.length}モデルを表示</p>
+        </div>
+        <div className="mt-3 overflow-x-auto rounded-2xl border border-slate-100">
           <table className="w-full min-w-[860px] border-collapse text-sm">
             <thead>
-              <tr className="border-b border-gray-200 text-left text-xs font-black uppercase tracking-[0.08em] text-gray-400">
-                <th className="py-2 pr-3">モデル</th>
-                <th className="px-3 py-2 text-right">指標</th>
-                <th className="px-3 py-2 text-right">賢さ</th>
-                <th className="px-3 py-2 text-right">速度</th>
-                <th className="px-3 py-2 text-right">価格効率</th>
-                <th className="px-3 py-2 text-right">価格目安</th>
+              <tr className="bg-gradient-to-r from-slate-50 via-white to-slate-50 text-left text-[10px] font-black uppercase tracking-[0.12em] text-slate-500">
+                <th className="px-4 py-3">モデル</th>
+                <th className="px-3 py-3 text-right">指標</th>
+                <th className="px-3 py-3 text-right">賢さ</th>
+                <th className="px-3 py-3 text-right">速度</th>
+                <th className="px-3 py-3 text-right">価格効率</th>
+                <th className="px-4 py-3 text-right">価格目安</th>
               </tr>
             </thead>
             <tbody>
-              {performanceRanking.map((model) => (
-                <tr key={model.id} className="border-b border-gray-100 transition hover:bg-white/70">
-                  <td className="py-2 pr-2">
-                    <p className="font-black text-slate-950">{model.name}</p>
-                    <p className="text-[10px] text-gray-400">{model.creator} / {model.releaseLabel}</p>
+              {performanceRanking.map((model, index) => (
+                <tr key={model.id} className="border-t border-slate-100 transition hover:bg-slate-50/70">
+                  <td className="px-4 py-2.5">
+                    <div className="flex items-center gap-2">
+                      <span className={`grid size-5 shrink-0 place-items-center rounded-full text-[10px] font-black tabular-nums ${
+                        index < 3 ? 'bg-slate-950 text-white' : 'bg-slate-100 text-slate-400'
+                      }`}>{index + 1}</span>
+                      <div>
+                        <p className="font-black text-slate-950">{model.name}</p>
+                        <p className="text-[10px] font-bold uppercase tracking-[0.06em] text-slate-400">{model.creator} · {model.releaseLabel}</p>
+                      </div>
+                    </div>
                   </td>
-                  <td className="px-2 py-2 text-right text-[11px] font-bold text-gray-500">{model.metric ?? '-'}</td>
-                  <td className="px-2 py-2 text-right font-bold text-slate-950">{model.performance[genreId]}</td>
-                  <td className="px-2 py-2 text-right font-bold text-slate-950">{model.speed}</td>
-                  <td className="px-2 py-2 text-right font-bold text-slate-950">{priceEfficiencyScore(model, genreId)}</td>
-                  <td className="px-2 py-2 text-right text-[11px] font-bold text-gray-500">{model.priceLabel ?? costLabel(model.costLevel)}</td>
+                  <td className="px-3 py-2.5 text-right text-[11px] font-bold text-gray-500">{model.metric ?? '-'}</td>
+                  <td className="px-3 py-2.5 text-right font-black tabular-nums text-slate-950">{model.performance[genreId]}</td>
+                  <td className="px-3 py-2.5 text-right font-black tabular-nums text-slate-950">{model.speed}</td>
+                  <td className="px-3 py-2.5 text-right font-black tabular-nums text-slate-950">{priceEfficiencyScore(model, genreId)}</td>
+                  <td className="px-4 py-2.5 text-right text-[11px] font-bold text-gray-500">{model.priceLabel ?? costLabel(model.costLevel)}</td>
                 </tr>
               ))}
             </tbody>
