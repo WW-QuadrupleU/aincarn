@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { fetchLabOutputsFromNotion, hasLabNotion } from '@/lib/aincarn-lab-notion'
+import { fetchLabOutputsFromNotion, getLabNotionTokenSource, hasLabNotion } from '@/lib/aincarn-lab-notion'
 
 // 開発用デバッグエンドポイント:
 //   GET /api/debug/lab-notion?slug=writing
@@ -17,6 +17,8 @@ export async function GET(request: Request) {
 
   const env = {
     hasNotionToken: Boolean(process.env.NOTION_TOKEN),
+    hasNotionLabToken: Boolean(process.env.NOTION_LAB_TOKEN),
+    notionTokenSource: getLabNotionTokenSource(),
     hasNotionDbId: Boolean(process.env.NOTION_LAB_OUTPUTS_DB_ID),
     notionDbIdPreview: process.env.NOTION_LAB_OUTPUTS_DB_ID?.slice(0, 8),
     integrationConfigured: hasLabNotion(),

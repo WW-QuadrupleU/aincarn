@@ -49,14 +49,24 @@ type PropertyValue = {
 }
 
 export function hasLabNotion() {
-  return Boolean(process.env.NOTION_TOKEN && process.env.NOTION_LAB_OUTPUTS_DB_ID)
+  return Boolean(getLabNotionToken() && process.env.NOTION_LAB_OUTPUTS_DB_ID)
+}
+
+export function getLabNotionTokenSource() {
+  if (process.env.NOTION_LAB_TOKEN) return 'NOTION_LAB_TOKEN'
+  if (process.env.NOTION_TOKEN) return 'NOTION_TOKEN'
+  return null
+}
+
+function getLabNotionToken() {
+  return process.env.NOTION_LAB_TOKEN || process.env.NOTION_TOKEN || ''
 }
 
 async function notionFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
   const response = await fetch(`${NOTION_API}${path}`, {
     ...init,
     headers: {
-      Authorization: `Bearer ${process.env.NOTION_TOKEN}`,
+      Authorization: `Bearer ${getLabNotionToken()}`,
       'Notion-Version': NOTION_VERSION,
       'Content-Type': 'application/json',
       ...(init.headers as Record<string, string> | undefined),
@@ -75,17 +85,59 @@ function plainText(rich: NotionRichText[] | undefined): string {
   return rich.map((item) => item.plain_text || '').join('').trim()
 }
 
+function normalizePropertyName(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/\s*\([^)]*\)\s*/g, '')
+    .replace(/[\s_-]+/g, '')
+}
+
+function findProperty(page: NotionPage, names: string[]): PropertyValue | undefined {
+  for (const name of names) {
+    const prop = page.properties[name] as PropertyValue | undefined
+    if (prop) return prop
+  }
+
+  const normalizedNames = names.map(normalizePropertyName)
+  for (const key of Object.keys(page.properties)) {
+    const normalizedKey = normalizePropertyName(key)
+    if (normalizedNames.some((name) => normalizedKey === name || normalizedKey.includes(name))) {
+      return page.properties[key] as PropertyValue | undefined
+    }
+  }
+  return undefined
+}
+
 function readTitle(page: NotionPage, key: string): string {
-  const prop = page.properties[key] as PropertyValue | undefined
-  if (!prop) return ''
-  if (prop.title && prop.title.length > 0) return plainText(prop.title)
-  if (prop.rich_text && prop.rich_text.length > 0) return plainText(prop.rich_text)
+  const prop = findProperty(page, [key])
+  if (prop) {
+    if (prop.title && prop.title.length > 0) return plainText(prop.title)
+    if (prop.rich_text && prop.rich_text.length > 0) return plainText(prop.rich_text)
+  }
+  // フォールバック: title型を持つ最初のプロパティを探す
+  for (const k of Object.keys(page.properties)) {
+    const p = page.properties[k] as Record<string, unknown> | undefined
+    if (p && Array.isArray(p.title) && p.title.length > 0) {
+      return plainText(p.title as NotionRichText[])
+    }
+  }
   return ''
 }
 
 function readRichText(page: NotionPage, key: string): string {
-  const prop = page.properties[key] as PropertyValue | undefined
+  const prop = findProperty(page, [key])
+  if (prop) {
+    if (prop.rich_text) return plainText(prop.rich_text)
+    if (prop.title) return plainText(prop.title)
+    if (prop.select?.name) return prop.select.name
+  }
+  return ''
+}
+
+function readPropertyText(page: NotionPage, names: string[]): string {
+  const prop = findProperty(page, names)
   if (!prop) return ''
+  if (prop.select?.name) return prop.select.name
   if (prop.rich_text) return plainText(prop.rich_text)
   if (prop.title) return plainText(prop.title)
   return ''
@@ -145,15 +197,18 @@ function blocksToSections(blocks: NotionBlock[]): Array<{ heading: string; body?
 }
 
 function compareOrder(a: NotionPage, b: NotionPage): number {
-  const ao = (a.properties['Order'] as PropertyValue | undefined)?.number ?? Number.POSITIVE_INFINITY
-  const bo = (b.properties['Order'] as PropertyValue | undefined)?.number ?? Number.POSITIVE_INFINITY
-  return ao - bo
+  const getOrder = (page: NotionPage) => {
+    const prop = findProperty(page, ['Order', '順序', '並び順'])
+    if (prop?.number !== undefined && prop.number !== null) return prop.number
+    return Number.POSITIVE_INFINITY
+  }
+  return getOrder(a) - getOrder(b)
 }
 
 function readLogDate(page: NotionPage): string {
-  const prop = page.properties['LogDate'] as PropertyValue | undefined
-  const start = prop?.date?.start
-  return typeof start === 'string' ? start : ''
+  const prop = findProperty(page, ['LogDate', 'Date', '日付', '更新日'])
+  if (prop?.date?.start) return prop.date.start
+  return ''
 }
 
 function pickLatestLogPages(pages: NotionPage[]): NotionPage[] {
@@ -183,17 +238,19 @@ export async function fetchLabOutputsFromNotion(slug: string): Promise<LabModelO
       {
         method: 'POST',
         body: JSON.stringify({
-          filter: {
-            property: 'Category',
-            select: { equals: slug },
-          },
-          page_size: 20,
+          page_size: 100,
         }),
       },
     )
 
+    // カテゴリでフィルタリング（大文字・小文字を区別せず、カラム名のブレも許容する）
+    const matchedPages = query.results.filter((page) => {
+      const catName = readPropertyText(page, ['Category', 'カテゴリ', '分類'])
+      return catName?.toLowerCase() === slug.toLowerCase()
+    })
+
     // LogDate が新しい行群だけに絞り込み、その中で Order 昇順に整列する
-    const latestLogPages = pickLatestLogPages(query.results)
+    const latestLogPages = pickLatestLogPages(matchedPages)
     const pages = [...latestLogPages].sort(compareOrder)
     const outputs: LabModelOutput[] = []
 

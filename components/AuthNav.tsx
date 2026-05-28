@@ -55,14 +55,6 @@ function SignedInState() {
 
   return (
     <div className="flex items-center gap-2">
-      {planLabel && (
-        <span
-          className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-[10px] font-black uppercase tracking-[0.12em] text-slate-600"
-          title="現在のAincarn OSプラン"
-        >
-          {planLabel}
-        </span>
-      )}
       <UserButton />
     </div>
   )

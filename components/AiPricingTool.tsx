@@ -474,25 +474,27 @@ export default function AiPricingTool() {
             </p>
 
             {/* タブ */}
-            <div className="mt-6 flex flex-wrap gap-1.5 rounded-[999px] border border-slate-200 bg-white/70 p-1 shadow-sm shadow-slate-950/5 sm:inline-flex sm:flex-nowrap">
-              {tabConfig.map((tab) => {
-                const isActive = viewMode === tab.id
-                return (
-                  <button
-                    key={tab.id}
-                    type="button"
-                    onClick={() => setViewMode(tab.id)}
-                    className={`rounded-full px-4 py-2 text-xs font-black transition-all ${
-                      isActive
-                        ? 'bg-gradient-to-r from-slate-950 via-slate-900 to-indigo-950 text-white shadow-md shadow-slate-950/20'
-                        : 'text-slate-500 hover:bg-slate-100 hover:text-slate-950'
-                    }`}
-                  >
-                    <span className="mr-1.5">{tab.icon}</span>
-                    {tab.label}
-                  </button>
-                )
-              })}
+            <div className="mt-6 w-full rounded-[22px] border border-slate-200 bg-white/70 p-1.5 shadow-sm shadow-slate-950/5 sm:inline-flex sm:w-auto sm:rounded-full">
+              <div className="grid w-full gap-1.5 sm:flex sm:w-auto">
+                {tabConfig.map((tab) => {
+                  const isActive = viewMode === tab.id
+                  return (
+                    <button
+                      key={tab.id}
+                      type="button"
+                      onClick={() => setViewMode(tab.id)}
+                      className={`flex w-full items-center justify-center rounded-full px-4 py-2.5 text-xs font-black transition-all sm:w-auto sm:py-2 ${
+                        isActive
+                          ? 'bg-gradient-to-r from-slate-950 via-slate-900 to-indigo-950 text-white shadow-md shadow-slate-950/20'
+                          : 'text-slate-500 hover:bg-slate-100 hover:text-slate-950'
+                      }`}
+                    >
+                      <span className="mr-1.5">{tab.icon}</span>
+                      {tab.label}
+                    </button>
+                  )
+                })}
+              </div>
             </div>
           </div>
 
@@ -1006,11 +1008,103 @@ export default function AiPricingTool() {
                 </div>
               </div>
 
-            {/* マトリックス表
-                ウィンドウが広いときは全幅で表示し、狭い画面のみ横スクロール。
-                md+ では overflow-visible にして thead の sticky を機能させる。
-                border-separate にしないと thead の sticky が一部ブラウザでズレるため切替。 */}
-            <div className="overflow-x-auto md:overflow-x-visible rounded-2xl border border-gray-200 bg-white/70 p-1 shadow-inner scrollbar-thin">
+            {/* モバイル用: 価格帯ごとに縦積みのコンパクトビュー(横スクロール不要) */}
+            <div className="md:hidden space-y-3">
+              {Object.entries(matrixYLabels).map(([yKey, yItem]) => {
+                const dotColors: Record<string, string> = {
+                  free: 'bg-emerald-500',
+                  low: 'bg-blue-500',
+                  mid: 'bg-violet-500',
+                  high: 'bg-amber-500',
+                  premium: 'bg-rose-500',
+                }
+                const iconMap: Record<string, string> = {
+                  general: '🌐',
+                  coding: '💻',
+                  media: '🎨',
+                  audio: '🎙️',
+                }
+                const plansInY = AI_PLANS
+                  .filter((plan) => plan.matrixY === yKey)
+                  .map((plan) => {
+                    const isMatch =
+                      !query.trim() ||
+                      `${plan.service} ${plan.plan} ${plan.category}`
+                        .toLowerCase()
+                        .includes(query.trim().toLowerCase())
+                    return { ...plan, isMatch }
+                  })
+                  .sort((a, b) => a.monthlyUsd - b.monthlyUsd)
+
+                return (
+                  <div key={yKey} className="rounded-2xl border border-slate-200 bg-white/80 p-3 shadow-sm">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <span className={`inline-block size-2 shrink-0 rounded-full ${dotColors[yKey] || 'bg-slate-400'}`} />
+                        <span className="text-sm font-black text-slate-900 truncate">{yItem.label}</span>
+                      </div>
+                      <span className="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-black text-slate-500 border border-slate-200">
+                        {yItem.price}
+                      </span>
+                    </div>
+                    {plansInY.length === 0 ? (
+                      <p className="mt-2 text-[10px] font-bold italic text-gray-300">-</p>
+                    ) : (
+                      <div className="mt-2 flex flex-wrap gap-1.5">
+                        {plansInY.map((plan) => {
+                          const isKeep = keepList.some(
+                            (k) => k.serviceName === plan.service && k.planName === plan.plan
+                          )
+                          const serviceId = plan.service.toLowerCase().replace(/\s+/g, '-')
+                          const tone = getServiceTone(serviceId)
+                          const icon = iconMap[plan.matrixX[0]] || ''
+                          return (
+                            <div
+                              key={`m-${plan.service}-${plan.plan}`}
+                              className={`flex items-center gap-1 rounded-lg border bg-white px-1.5 py-1 shadow-sm ${
+                                plan.isMatch ? 'border-slate-200' : 'border-slate-100 opacity-30 grayscale'
+                              }`}
+                              style={plan.isMatch ? { borderLeftWidth: '3px', borderLeftColor: tone.ink } : {}}
+                            >
+                              <span className="text-[10px] leading-none">{icon}</span>
+                              <span className="text-[10px] font-black" style={{ color: tone.ink }}>{plan.service}</span>
+                              <span className="text-[9px] font-black text-gray-500">{plan.plan}</span>
+                              <span className="text-[10px] font-black text-slate-900">
+                                {plan.isApi
+                                  ? plan.monthlyUsd > 0
+                                    ? formatCost(plan.monthlyUsd).usd + '/u'
+                                    : '-'
+                                  : formatCost(plan.monthlyUsd).usd}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => toggleKeep(plan.service, plan.plan, plan.monthlyUsd)}
+                                className={`text-[11px] font-bold leading-none focus:outline-none transition-colors ${
+                                  isKeep ? 'text-amber-500' : 'text-slate-300'
+                                }`}
+                                title={isKeep ? 'キープ解除' : 'キープに登録'}
+                              >
+                                ★
+                              </button>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+              <div className="flex flex-wrap items-center gap-2 px-1 pt-1 text-[10px] font-bold text-slate-500">
+                <span className="font-black text-slate-700">カテゴリ:</span>
+                <span>🌐 総合</span>
+                <span>💻 開発</span>
+                <span>🎨 画像/動画</span>
+                <span>🎙️ 音声</span>
+              </div>
+            </div>
+
+            {/* マトリックス表 (md+ のみ表示) */}
+            <div className="hidden md:block overflow-x-auto md:overflow-x-visible rounded-2xl border border-gray-200 bg-white/70 p-1 shadow-inner scrollbar-thin">
               <table className="w-full min-w-[800px] md:min-w-0 border-separate border-spacing-0 table-fixed">
                 <thead className="sticky top-28 z-30 sm:top-16">
                   <tr className="bg-slate-50">
@@ -1230,6 +1324,3 @@ export default function AiPricingTool() {
     </div>
   )
 }
-
-
-
