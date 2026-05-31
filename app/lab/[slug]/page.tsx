@@ -85,6 +85,18 @@ export default async function LabDetailPage({ params }: Props) {
   const outputs = notionOutputs && notionOutputs.length > 0 ? notionOutputs : log?.outputs
   const rankedModels = log ? rankModels(log.models, log.scoreTable) : []
   const rankedOutputs = sortOutputsByModelRank(outputs, rankedModels)
+  const promptSection = (
+    <section className="mt-6 rounded-[28px] border border-white/80 bg-white/86 p-5 shadow-sm shadow-slate-950/5 backdrop-blur-xl sm:p-6">
+      <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">Data Prompt</p>
+      <h2 className="mt-2 text-xl font-black tracking-tight text-slate-950">比較データ収集用プロンプト</h2>
+      <p className="mt-2 text-xs font-bold leading-relaxed text-slate-500">
+        各AIに同じプロンプトを投げ、回答、実行日、モデル名、所要時間、料金目安を別途記録します。
+      </p>
+      <pre className="mt-4 overflow-auto rounded-3xl bg-slate-950 p-5 text-xs font-bold leading-relaxed text-white whitespace-pre-wrap break-words">
+        {category.firstPrompt}
+      </pre>
+    </section>
+  )
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-12">
@@ -221,28 +233,20 @@ export default async function LabDetailPage({ params }: Props) {
         </section>
       )}
 
+      {slug === 'coding' && promptSection}
+
       {/* 4. モデル別の実出力タブ (Notion 優先、失敗時は埋め込みデータ) */}
+      {slug === 'coding' && rankedOutputs && rankedOutputs.length > 0 && (
+        <LabCodePreviews outputs={rankedOutputs} />
+      )}
+
       {rankedOutputs && rankedOutputs.length > 0 && (
         <div className="mt-6">
           <LabModelTabs outputs={rankedOutputs} />
         </div>
       )}
 
-      {slug === 'coding' && rankedOutputs && rankedOutputs.length > 0 && (
-        <LabCodePreviews outputs={rankedOutputs} />
-      )}
-
-      {/* 5. プロンプト (白文字を明示) */}
-      <section className="mt-6 rounded-[28px] border border-white/80 bg-white/86 p-5 shadow-sm shadow-slate-950/5 backdrop-blur-xl sm:p-6">
-        <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">Data Prompt</p>
-        <h2 className="mt-2 text-xl font-black tracking-tight text-slate-950">比較データ収集用プロンプト</h2>
-        <p className="mt-2 text-xs font-bold leading-relaxed text-slate-500">
-          各AIに同じプロンプトを投げ、回答、実行日、モデル名、所要時間、料金目安を別途記録します。
-        </p>
-        <pre className="mt-4 overflow-auto rounded-3xl bg-slate-950 p-5 text-xs font-bold leading-relaxed text-white whitespace-pre-wrap break-words">
-          {category.firstPrompt}
-        </pre>
-      </section>
+      {slug !== 'coding' && promptSection}
     </main>
   )
 }

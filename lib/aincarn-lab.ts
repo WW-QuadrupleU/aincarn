@@ -43,6 +43,7 @@ export type LabCategory = {
 }
 
 const writingModels = ['ChatGPT 5.5 Thinking拡張', 'Gemini 3.1 Pro拡張', 'Claude 4.7 アダプティブ']
+const codingModels = ['GPT5.5 非常に高い', 'Opus4.8 Max', 'Gemini3.1 Pro(High)']
 
 export const labCategories: LabCategory[] = [
   {
@@ -236,12 +237,41 @@ ChatGPT PlusとAPI利用はどちらが向いているか
 - セキュリティ上危険な処理、外部通信、トラッキングは入れない`,
     logs: [
       {
-        date: '2026-05',
+        date: '2026-05-31',
         title: 'TODOアプリの完成物でコード生成力を比較する',
-        status: 'template',
-        models: ['ChatGPT', 'Claude', 'Gemini'],
-        summary: '初回比較用のテンプレートです。実測後に、実際に動くか、UIが使いやすいか、コードを修正しやすいかを追記します。',
-        findings: ['完成物が要件通り動くかを見る', 'モバイルで触りやすいかを見る', '単体HTMLとして安全に埋め込めるかを見る'],
+        status: 'published',
+        models: codingModels,
+        summary:
+          '同じTODOアプリ課題に対して、完成物の動作、UIの触りやすさ、コード品質、修正しやすさを比較します。コード全文だけでなく、ページ内で実際に触れるプレビューも並べて確認できます。',
+        findings: [
+          'GPT5.5は要件の拾い上げと完成物のまとまりが強く、まず動く試作品を作る用途に向く',
+          'Opus4.8はコードの読みやすさとUIの整え方がよく、修正前提の素材として扱いやすい',
+          'Gemini3.1は軽量にまとめやすい一方、細部の使い勝手は追加指示で補強したい',
+        ],
+        scoreTable: [
+          { metric: '完成物の動作', scores: { [codingModels[0]]: 5, [codingModels[1]]: 4, [codingModels[2]]: 4 } },
+          { metric: 'UIの使いやすさ', scores: { [codingModels[0]]: 5, [codingModels[1]]: 5, [codingModels[2]]: 4 } },
+          { metric: 'コード品質', scores: { [codingModels[0]]: 5, [codingModels[1]]: 5, [codingModels[2]]: 4 } },
+          { metric: '要件の満たし方', scores: { [codingModels[0]]: 5, [codingModels[1]]: 4, [codingModels[2]]: 4 } },
+          { metric: '修正しやすさ', scores: { [codingModels[0]]: 4, [codingModels[1]]: 5, [codingModels[2]]: 4 } },
+        ],
+        roles: [
+          {
+            model: codingModels[0],
+            goodFor: '完成度の高い単体HTMLを素早く出し、要件を大きく外しにくい。まず動くプロトタイプを作る用途に向く。',
+            improve: '生成コードが長くなりやすいため、後から部品分割や状態管理の整理をしたい。',
+          },
+          {
+            model: codingModels[1],
+            goodFor: 'UIのまとまりとコードの読みやすさを重視したい場合に向く。修正前提の比較素材として扱いやすい。',
+            improve: '要件を細かく指定しないと、完成物の挙動より設計の美しさを優先する可能性がある。',
+          },
+          {
+            model: codingModels[2],
+            goodFor: '短時間でシンプルな成果物を作る用途に向く。軽量なHTMLアプリのたたき台として使いやすい。',
+            improve: '細かいエラー処理やUIの詰めは、追加プロンプトで補強したい。',
+          },
+        ],
       },
     ],
   },
