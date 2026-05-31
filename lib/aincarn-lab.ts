@@ -244,27 +244,27 @@ ChatGPT PlusとAPI利用はどちらが向いているか
         summary:
           '同じTODOアプリ課題に対して、完成物の動作、UIの触りやすさ、コード品質、修正しやすさを比較します。コード全文だけでなく、ページ内で実際に触れるプレビューも並べて確認できます。',
         findings: [
-          'GPT5.5は要件の拾い上げと完成物のまとまりが強く、まず動く試作品を作る用途に向く',
-          'Opus4.8はコードの読みやすさとUIの整え方がよく、修正前提の素材として扱いやすい',
+          'Opus4.8はタスク追加、完了切り替え、削除の基本要件を満たしており、完成物として最も扱いやすい',
+          'GPT5.5は完成物のまとまりはよいが、TODOアプリの基本操作要件は追加確認が必要',
           'Gemini3.1は軽量にまとめやすい一方、細部の使い勝手は追加指示で補強したい',
         ],
         scoreTable: [
-          { metric: '完成物の動作', scores: { [codingModels[0]]: 5, [codingModels[1]]: 4, [codingModels[2]]: 4 } },
+          { metric: '完成物の動作', scores: { [codingModels[0]]: 4, [codingModels[1]]: 5, [codingModels[2]]: 4 } },
           { metric: 'UIの使いやすさ', scores: { [codingModels[0]]: 5, [codingModels[1]]: 5, [codingModels[2]]: 4 } },
           { metric: 'コード品質', scores: { [codingModels[0]]: 5, [codingModels[1]]: 5, [codingModels[2]]: 4 } },
-          { metric: '要件の満たし方', scores: { [codingModels[0]]: 5, [codingModels[1]]: 4, [codingModels[2]]: 4 } },
+          { metric: '要件の満たし方', scores: { [codingModels[0]]: 3, [codingModels[1]]: 5, [codingModels[2]]: 3 } },
           { metric: '修正しやすさ', scores: { [codingModels[0]]: 4, [codingModels[1]]: 5, [codingModels[2]]: 4 } },
         ],
         roles: [
           {
             model: codingModels[0],
-            goodFor: '完成度の高い単体HTMLを素早く出し、要件を大きく外しにくい。まず動くプロトタイプを作る用途に向く。',
-            improve: '生成コードが長くなりやすいため、後から部品分割や状態管理の整理をしたい。',
+            goodFor: '見た目のまとまりがある単体HTMLを素早く出す用途に向く。まず画面案を作るプロトタイプとして使いやすい。',
+            improve: 'タスク追加、完了切り替え、削除などの基本操作がすべて満たされているか追加確認したい。',
           },
           {
             model: codingModels[1],
-            goodFor: 'UIのまとまりとコードの読みやすさを重視したい場合に向く。修正前提の比較素材として扱いやすい。',
-            improve: '要件を細かく指定しないと、完成物の挙動より設計の美しさを優先する可能性がある。',
+            goodFor: 'タスク追加、完了切り替え、削除の基本要件を満たしつつ、UIのまとまりとコードの読みやすさもある。',
+            improve: 'より実用寄りにするなら、空入力の扱い、編集機能、フィルタ機能を追加したい。',
           },
           {
             model: codingModels[2],
