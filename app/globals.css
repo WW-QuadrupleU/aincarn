@@ -49,6 +49,108 @@
   }
 }
 
+/* ===== Motion & ambiance ===== */
+@keyframes aincarn-fade-up {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes aincarn-float {
+  0% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(3%, -4%, 0) scale(1.08); }
+  100% { transform: translate3d(-3%, 3%, 0) scale(0.96); }
+}
+
+@keyframes aincarn-flow {
+  from { background-position: 0% 50%; }
+  to { background-position: 100% 50%; }
+}
+
+@keyframes aincarn-shine {
+  0% { transform: translateX(-130%) skewX(-14deg); }
+  100% { transform: translateX(240%) skewX(-14deg); }
+}
+
+@keyframes aincarn-reveal {
+  from { clip-path: inset(0 100% 0 0); }
+  to { clip-path: inset(0 0 0 0); }
+}
+
+@keyframes aincarn-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.45; transform: scale(0.82); }
+}
+
+@layer utilities {
+  .animate-fade-up {
+    opacity: 0;
+    animation: aincarn-fade-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+
+  .text-shimmer {
+    background-size: 200% auto;
+    animation: aincarn-flow 7s ease-in-out infinite alternate;
+  }
+
+  .flow-bar {
+    background-size: 200% 100%;
+    animation: aincarn-flow 6s ease-in-out infinite alternate;
+  }
+
+  .grain-overlay {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    opacity: 0.05;
+    mix-blend-mode: soft-light;
+  }
+
+  .bar-reveal {
+    animation: aincarn-reveal 1.1s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .live-dot {
+    animation: aincarn-pulse 1.8s ease-in-out infinite;
+  }
+
+  .ambient-blob {
+    position: absolute;
+    border-radius: 999px;
+    filter: blur(64px);
+    will-change: transform;
+    animation: aincarn-float 20s ease-in-out infinite alternate;
+  }
+
+  .shine-sweep {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    border-radius: inherit;
+  }
+  .shine-sweep::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 45%;
+    background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.55), transparent);
+    transform: translateX(-130%) skewX(-14deg);
+  }
+  .group:hover .shine-sweep::after {
+    animation: aincarn-shine 0.9s ease;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-up { opacity: 1; animation: none; }
+  .text-shimmer,
+  .flow-bar,
+  .bar-reveal,
+  .live-dot,
+  .ambient-blob { animation: none; }
+  .shine-sweep::after { display: none; }
+}
+
 .dna-field {
   position: relative;
   background:
