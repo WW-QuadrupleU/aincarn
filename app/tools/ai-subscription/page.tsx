@@ -7,6 +7,10 @@ export const metadata: Metadata = {
   title: 'AIサブスク管理',
   description:
     'ChatGPT、Claude、GeminiなどのAIサブスクリプションを比較・管理するツールです。2次元マトリックスでポジショニングを確認でき、AIコンシェルジュが最適な組み合わせを診断します。',
+  robots: {
+    index: false,
+    follow: false,
+  },
 }
 
 export default function AiSubscriptionPage() {

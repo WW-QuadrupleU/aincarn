@@ -1,4 +1,4 @@
-﻿import type { Metadata } from 'next'
+import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
   title: 'お問い合わせ',
@@ -12,7 +12,13 @@ export default function ContactPage() {
         <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">Contact</p>
         <h1 className="mt-2 text-3xl font-black tracking-tight text-brand-text">お問い合わせ</h1>
         <p className="mt-4 text-sm font-bold leading-relaxed text-gray-500">
-          掲載内容に関するご指摘、AIモデル比較への追加希望、実測テストのリクエストなどはメールでお送りください。
+          <span className="inline-block">掲載内容に関する</span>
+          <span className="inline-block">ご指摘、</span>
+          <span className="inline-block">AIモデル比較への</span>
+          <span className="inline-block">追加希望、</span>
+          <span className="inline-block">実測テストの</span>
+          <span className="inline-block">リクエストなどは</span>
+          <span className="inline-block">メールでお送りください。</span>
         </p>
         <a
           href="mailto:contact@aincarn.com"

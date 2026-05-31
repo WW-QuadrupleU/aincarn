@@ -26,22 +26,22 @@ function formatRawOutput(text: string) {
     .replace(/\r\n/g, '\n')
     .replace(/\n{3,}/g, '\n\n')
     .replace(/([^\n])((?:記事タイトル案|冒頭文|見出し構成|比較表|注意点|まとめ|このテーマで読者|H2：|H3：|##|###))/g, '$1\n\n$2')
-    .replace(/([^\n])([•・◦]\s+)/g, '$1\n$2')
+    .replace(/([^\n])([•・◦]\s*)/g, '$1\n$2')
     .trim()
 }
 
-function summarizeOutput(output: LabModelOutput) {
-  const fallback = output.sections
-    .map((section) => section.body || section.bullets?.join('。') || '')
-    .join('。')
-  const source = formatRawOutput(output.brief || fallback)
-  const summary =
-    source
-      .split('\n')
-      .map((line) => line.trim())
-      .find((line) => line && !/^(記事タイトル案|冒頭文|見出し構成|比較表|注意点|まとめ|H2：|H3：|##|###)/.test(line))
-    || source.replace(/\s+/g, ' ').trim()
-  return summary.length > 120 ? `${summary.slice(0, 118)}...` : summary
+function outputRawText(output: LabModelOutput) {
+  if (output.raw) return output.raw
+  if (output.brief) return output.brief
+
+  return output.sections
+    .map((section) => {
+      const body = section.body ? `\n${section.body}` : ''
+      const bullets = section.bullets?.length ? `\n${section.bullets.map((bullet) => `・${bullet}`).join('\n')}` : ''
+      return `${section.heading}${body}${bullets}`.trim()
+    })
+    .filter(Boolean)
+    .join('\n\n')
 }
 
 export default function LabModelTabs({ outputs }: { outputs: LabModelOutput[] }) {
@@ -55,54 +55,14 @@ export default function LabModelTabs({ outputs }: { outputs: LabModelOutput[] })
   return (
     <section className="rounded-[28px] border border-white/80 bg-white/86 p-5 shadow-sm shadow-slate-950/5 backdrop-blur-xl sm:p-6">
       <div className="flex flex-wrap items-center gap-2">
-        <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">Per-model output</p>
-        <h2 className="text-xl font-black tracking-tight text-slate-950">モデル別アウトプット</h2>
+        <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">Per-model raw data</p>
+        <h2 className="text-xl font-black tracking-tight text-slate-950">モデル別生データ</h2>
       </div>
       <p className="mt-2 text-xs font-bold leading-relaxed text-slate-500">
-        上部では要点を俯瞰し、下部ではNotionに保存した生データをそのまま確認できます。
+        Notionに保存した本文を、内容は変えずに表示します。読みやすさのため、見出しや箇条書きの前だけ改行を補います。
       </p>
 
-      <div className="mt-5 rounded-[24px] border border-slate-200 bg-slate-50/70 p-4">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div>
-            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-400">Model Digest</p>
-            <h3 className="mt-1 text-base font-black tracking-tight text-slate-950">モデル別要約</h3>
-          </div>
-          <span className="rounded-full bg-white px-3 py-1 text-[10px] font-black text-slate-500 ring-1 ring-slate-200">
-            {outputs.length} models
-          </span>
-        </div>
-        <div className="mt-4 grid gap-3 md:grid-cols-3">
-          {outputs.map((output, index) => {
-            const itemAccent = modelAccent(index)
-            return (
-              <button
-                key={`${output.model}-summary`}
-                type="button"
-                onClick={() => setActiveIndex(index)}
-                className={`rounded-2xl border bg-white p-4 text-left transition hover:-translate-y-0.5 hover:shadow-md ${
-                  index === activeIndex ? 'border-slate-950 shadow-sm shadow-slate-950/10' : 'border-slate-200'
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <span
-                    className="grid size-7 place-items-center rounded-full text-[9px] font-black text-white"
-                    style={{ background: `linear-gradient(135deg, ${itemAccent.from} 0%, ${itemAccent.via} 48%, ${itemAccent.to} 100%)` }}
-                  >
-                    {modelMark(output.model, index)}
-                  </span>
-                  <p className="min-w-0 truncate text-xs font-black text-slate-950">{output.model}</p>
-                </div>
-                <p className="mt-3 line-clamp-4 text-xs font-bold leading-relaxed text-slate-600">
-                  {summarizeOutput(output)}
-                </p>
-              </button>
-            )
-          })}
-        </div>
-      </div>
-
-      <div className="mt-4 flex flex-wrap gap-2">
+      <div className="mt-5 flex flex-wrap gap-2">
         {outputs.map((output, index) => {
           const isActive = index === activeIndex
           const itemAccent = modelAccent(index)
@@ -148,38 +108,11 @@ export default function LabModelTabs({ outputs }: { outputs: LabModelOutput[] })
 
           <div className="mt-5 rounded-2xl border border-white/10 bg-white/[0.04] p-4">
             <p className="text-[10px] font-black uppercase tracking-[0.18em] text-white/48">Raw Output</p>
-            <h4 className="mt-1 text-sm font-black text-white">生データ</h4>
+            <h4 className="mt-1 text-sm font-black text-white">Notion生データ</h4>
             <pre className="mt-4 whitespace-pre-wrap break-words font-sans text-sm font-semibold leading-7 text-white/86">
-              {formatRawOutput(active.brief)}
+              {formatRawOutput(outputRawText(active))}
             </pre>
           </div>
-
-          {active.sections.length > 0 && (
-            <div className="mt-5 space-y-4">
-              {active.sections.map((section) => (
-                <div key={`${active.model}-${section.heading}`} className="rounded-2xl border border-white/10 bg-white/[0.06] p-4">
-                  <p className="text-[11px] font-black uppercase tracking-[0.16em] text-white/55">{section.heading}</p>
-                  {section.body && (
-                    <p className="mt-2 whitespace-pre-wrap text-sm font-semibold leading-relaxed text-white/86">{section.body}</p>
-                  )}
-                  {section.bullets && section.bullets.length > 0 && (
-                    <ul className="mt-2 space-y-1.5">
-                      {section.bullets.map((bullet) => (
-                        <li key={bullet} className="flex items-start gap-2 text-sm font-semibold leading-relaxed text-white/86">
-                          <span
-                            className="mt-1.5 inline-flex size-1.5 shrink-0 rounded-full"
-                            style={{ background: gradient }}
-                            aria-hidden="true"
-                          />
-                          <span>{bullet}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
         </div>
       </article>
     </section>

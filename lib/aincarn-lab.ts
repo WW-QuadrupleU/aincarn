@@ -1,6 +1,7 @@
 export type LabModelOutput = {
   model: string
   brief: string
+  raw?: string
   sections: Array<{ heading: string; body?: string; bullets?: string[] }>
 }
 
@@ -42,6 +43,7 @@ export type LabCategory = {
 }
 
 const writingModels = ['ChatGPT 5.5 Thinking拡張', 'Gemini 3.1 Pro拡張', 'Claude 4.7 アダプティブ']
+const codingModels = ['GPT5.5 非常に高い', 'Opus4.8 Max', 'Gemini3.1 Pro(High)']
 
 export const labCategories: LabCategory[] = [
   {
@@ -207,13 +209,13 @@ ChatGPT PlusとAPI利用はどちらが向いているか
     title: 'コード生成AI比較ログ',
     shortTitle: 'コード生成',
     description:
-      '同じ小さな実装課題を主要AIに依頼し、設計の妥当性、コードの読みやすさ、修正指示への強さ、実装後の説明力を記録します。',
-    taskExample: '小さなTODOアプリの設計と実装方針を作る',
+      '同じ小さな実装課題を主要AIに依頼し、実際に動く成果物、コード品質、UIの完成度、修正しやすさを記録します。生成物はページ内で触れるプレビューとして比較します。',
+    taskExample: '単体HTMLで動く小さなTODOアプリを作る',
     accent: 'from-indigo-500 via-sky-400 to-cyan-300',
     soft: 'from-indigo-50 to-cyan-50',
-    evaluation: ['要件理解', '実装方針の安全さ', 'コード品質', 'エラー時の修正力', '説明の分かりやすさ'],
+    evaluation: ['完成物の動作', 'UIの使いやすさ', 'コード品質', '要件の満たし方', '修正しやすさ'],
     firstPrompt: `あなたはAI比較サイト「Aincarn Lab」の検証対象AIです。
-以下の条件で、小さなWebアプリの実装計画とコード方針を作成してください。
+以下の条件で、ブラウザ上でそのまま動かせる小さなWebアプリを作成してください。
 
 課題:
 ブラウザで使えるシンプルなTODOアプリを作る
@@ -226,19 +228,50 @@ ChatGPT PlusとAPI利用はどちらが向いているか
 - モバイルでも見やすい
 
 出力条件:
-- まず実装方針を説明する
-- 必要なファイル構成を示す
-- 主要なコード例を出す
-- 想定されるバグと対策を挙げる
-- 最後に「初心者が詰まりやすい点」を3つ挙げる`,
+- HTML、CSS、JavaScriptを1つのHTMLファイルにまとめる
+- 外部ライブラリ、外部CDN、画像、ビルドツールは使わない
+- そのまま .html として保存すれば動くコードを出す
+- コードは全文を1つのコードブロックで出す
+- コードの前後に長い説明を入れすぎない
+- コードの後に、実装した機能、工夫した点、制限事項を短く箇条書きでまとめる
+- セキュリティ上危険な処理、外部通信、トラッキングは入れない`,
     logs: [
       {
-        date: '2026-05',
-        title: 'TODOアプリ実装計画でコード生成力を比較する',
-        status: 'template',
-        models: ['ChatGPT', 'Claude', 'Gemini'],
-        summary: '初回比較用のテンプレートです。実測後に設計志向、コード品質、修正しやすさを追記します。',
-        findings: ['要件の抜け漏れを見る', 'localStorage処理の安全さを見る', '説明とコードの整合性を見る'],
+        date: '2026-05-31',
+        title: 'TODOアプリの完成物でコード生成力を比較する',
+        status: 'published',
+        models: codingModels,
+        summary:
+          '同じTODOアプリ課題に対して、完成物の動作、UIの触りやすさ、コード品質、修正しやすさを比較します。コード全文だけでなく、ページ内で実際に触れるプレビューも並べて確認できます。',
+        findings: [
+          'Opus4.8はタスク追加、完了切り替え、削除の基本要件を満たしており、完成物として最も扱いやすい',
+          'GPT5.5は完成物のまとまりはよいが、TODOアプリの基本操作要件は追加確認が必要',
+          'Gemini3.1は軽量にまとめやすい一方、細部の使い勝手は追加指示で補強したい',
+        ],
+        scoreTable: [
+          { metric: '完成物の動作', scores: { [codingModels[0]]: 4, [codingModels[1]]: 5, [codingModels[2]]: 4 } },
+          { metric: 'UIの使いやすさ', scores: { [codingModels[0]]: 5, [codingModels[1]]: 5, [codingModels[2]]: 4 } },
+          { metric: 'コード品質', scores: { [codingModels[0]]: 5, [codingModels[1]]: 5, [codingModels[2]]: 4 } },
+          { metric: '要件の満たし方', scores: { [codingModels[0]]: 3, [codingModels[1]]: 5, [codingModels[2]]: 3 } },
+          { metric: '修正しやすさ', scores: { [codingModels[0]]: 4, [codingModels[1]]: 5, [codingModels[2]]: 4 } },
+        ],
+        roles: [
+          {
+            model: codingModels[0],
+            goodFor: '見た目のまとまりがある単体HTMLを素早く出す用途に向く。まず画面案を作るプロトタイプとして使いやすい。',
+            improve: 'タスク追加、完了切り替え、削除などの基本操作がすべて満たされているか追加確認したい。',
+          },
+          {
+            model: codingModels[1],
+            goodFor: 'タスク追加、完了切り替え、削除の基本要件を満たしつつ、UIのまとまりとコードの読みやすさもある。',
+            improve: 'より実用寄りにするなら、空入力の扱い、編集機能、フィルタ機能を追加したい。',
+          },
+          {
+            model: codingModels[2],
+            goodFor: '短時間でシンプルな成果物を作る用途に向く。軽量なHTMLアプリのたたき台として使いやすい。',
+            improve: '細かいエラー処理やUIの詰めは、追加プロンプトで補強したい。',
+          },
+        ],
       },
     ],
   },
