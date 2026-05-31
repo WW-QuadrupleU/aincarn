@@ -117,11 +117,10 @@ export default function HomePage() {
               <p className="inline-flex rounded-full border border-white/80 bg-white/82 px-4 py-2 text-xs font-bold uppercase tracking-[0.18em] text-slate-500 shadow-sm shadow-slate-950/5 backdrop-blur-xl">
                 Aincarn
               </p>
-              <h1 className="mt-7 max-w-4xl text-5xl font-black leading-[1.02] tracking-tight text-slate-950 sm:text-7xl">
+              <h1 className="mt-7 max-w-4xl text-[2.2rem] min-[360px]:text-[2.5rem] min-[390px]:text-[2.8rem] sm:text-[3.5rem] md:text-7xl font-black leading-[1.02] tracking-tight text-slate-950">
                 <span className="inline-block">AI選びを、</span>
-                <span className="block bg-gradient-to-r from-indigo-600 via-sky-500 to-teal-400 bg-clip-text text-transparent">
-                  <span className="inline-block">使う前に</span>
-                  <span className="inline-block">整理する。</span>
+                <span className="block bg-gradient-to-r from-indigo-600 via-sky-500 to-teal-400 bg-clip-text text-transparent whitespace-nowrap">
+                  使う前に整理する。
                 </span>
               </h1>
               <p className="mt-6 max-w-2xl text-base font-semibold leading-relaxed text-slate-600 sm:text-lg">
