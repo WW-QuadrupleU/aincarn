@@ -118,9 +118,10 @@ export default function HomePage() {
                 Aincarn
               </p>
               <h1 className="mt-7 max-w-4xl text-5xl font-black leading-[1.02] tracking-tight text-slate-950 sm:text-7xl">
-                AI選びを、
+                <span className="inline-block">AI選びを、</span>
                 <span className="block bg-gradient-to-r from-indigo-600 via-sky-500 to-teal-400 bg-clip-text text-transparent">
-                  使う前に整理する。
+                  <span className="inline-block">使う前に</span>
+                  <span className="inline-block">整理する。</span>
                 </span>
               </h1>
               <p className="mt-6 max-w-2xl text-base font-semibold leading-relaxed text-slate-600 sm:text-lg">
@@ -189,7 +190,7 @@ export default function HomePage() {
       <section className="mx-auto max-w-6xl px-4 pb-12">
         <div id="tools" className="mb-7 scroll-mt-28">
           <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">Tools</p>
-          <h2 className="mt-2 text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">目的に合わせて使う</h2>
+          <h2 className="mt-2 text-3xl font-black tracking-tight text-slate-950 sm:text-4xl"><span className="inline-block">目的に合わせて</span><span className="inline-block">使う</span></h2>
         </div>
         <div className="grid gap-4 md:grid-cols-3">
           {tools.map((tool) => (
@@ -263,7 +264,7 @@ export default function HomePage() {
       <section className="mx-auto max-w-6xl px-4 pb-16">
         <div className="rounded-[36px] border border-white/80 bg-white/84 p-6 shadow-xl shadow-slate-950/5 backdrop-blur-xl sm:p-8">
           <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">Editorial Policy</p>
-          <h2 className="mt-2 text-3xl font-black tracking-tight text-slate-950">Aincarnの比較方針</h2>
+          <h2 className="mt-2 text-3xl font-black tracking-tight text-slate-950"><span className="inline-block">Aincarnの</span><span className="inline-block">比較方針</span></h2>
           <div className="mt-6 grid gap-4 md:grid-cols-3">
             {principles.map((item) => (
               <article key={item.title} className="rounded-3xl border border-slate-200/80 bg-slate-50/80 p-5">
