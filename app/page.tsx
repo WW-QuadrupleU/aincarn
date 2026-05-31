@@ -101,20 +101,20 @@ export default function HomePage() {
                   width={2048}
                   height={1024}
                   priority
-                  className="aspect-[16/10] w-full object-cover"
+                  className="aspect-[4/3] sm:aspect-[16/10] w-full object-cover"
                 />
-                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950 via-slate-950/78 to-transparent p-5 pt-20">
-                  <p className="text-xs font-bold uppercase tracking-[0.18em] text-white/55">Decision Panel</p>
-                  <h2 className="mt-2 text-2xl font-black tracking-tight">AI選びの判断軸</h2>
-                  <div className="mt-4 grid gap-2 sm:grid-cols-3">
+                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950 via-slate-950/78 to-transparent p-4 pt-16 sm:p-5 sm:pt-20">
+                  <p className="text-[10px] sm:text-xs font-bold uppercase tracking-[0.18em] text-white/55">Decision Panel</p>
+                  <h2 className="mt-1 sm:mt-2 text-xl sm:text-2xl font-black tracking-tight">AI選びの判断軸</h2>
+                  <div className="mt-3 sm:mt-4 grid grid-cols-3 gap-2">
                     {[
                       ['Performance', '賢さ・速度'],
                       ['Pricing', '月額・API'],
                       ['Compare', '比較ログ'],
                     ].map(([label, body]) => (
-                      <div key={label} className="rounded-2xl border border-white/12 bg-white/[0.08] p-3 backdrop-blur-md">
-                        <p className="text-[10px] font-black uppercase tracking-[0.14em] text-white/45">{label}</p>
-                        <p className="mt-1 text-xs font-bold text-white/86">{body}</p>
+                      <div key={label} className="rounded-2xl border border-white/12 bg-white/[0.08] p-2 sm:p-3 backdrop-blur-md">
+                        <p className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.14em] text-white/45">{label}</p>
+                        <p className="mt-0.5 sm:mt-1 text-[11px] sm:text-xs font-bold text-white/86">{body}</p>
                       </div>
                     ))}
                   </div>
