@@ -15,7 +15,16 @@ const tools = [
   {
     href: '/tools/ai-model-compare',
     label: 'AIモデル比較',
-    body: '主要AIモデルの賢さ、速度、価格効率を横並びで比較します。用途ごとの向き不向きを、まず数値で把握できます。',
+    bodyChunks: [
+      '主要AIモデルの賢さ、',
+      '速度、',
+      '価格効率を',
+      '横並びで比較します。',
+      '用途ごとの',
+      '向き不向きを、',
+      'まず数値で',
+      '把握できます。',
+    ],
     tag: 'Performance',
     metric: '性能・速度・価格',
     accent: 'from-indigo-500 via-sky-400 to-cyan-300',
@@ -24,7 +33,15 @@ const tools = [
   {
     href: '/tools/ai-pricing',
     label: 'AI料金比較',
-    body: '料金プラン比較、API料金シミュレータ、損益分岐をまとめて確認できます。用途に合う課金方法を整理します。',
+    bodyChunks: [
+      '料金プラン比較、',
+      'API料金シミュレータ、',
+      '損益分岐を',
+      'まとめて確認できます。',
+      '用途に合う',
+      '課金方法を',
+      '整理します。',
+    ],
     tag: 'Pricing',
     metric: '月額・API',
     accent: 'from-emerald-400 via-teal-400 to-sky-400',
@@ -33,7 +50,16 @@ const tools = [
   {
     href: '/tools/subscriptions',
     label: 'AIサブスク管理',
-    body: '契約中のAIサブスクをまとめて管理。プラン、料金、更新日、ステータスを一覧で把握できます。',
+    bodyChunks: [
+      '契約中の',
+      'AIサブスクを',
+      'まとめて管理。',
+      'プラン、',
+      '料金、',
+      '更新日、',
+      'ステータスを',
+      '一覧で把握できます。',
+    ],
     tag: 'Management',
     metric: 'サブスク',
     accent: 'from-violet-500 via-purple-400 to-fuchsia-300',
@@ -44,15 +70,40 @@ const tools = [
 const principles = [
   {
     title: '公開データと実測ログを分ける',
-    body: '公開ベンチマーク、公式料金、Aincarn Labの比較ログを混ぜずに整理し、情報源の性質が分かるようにします。',
+    bodyChunks: [
+      '公開ベンチマーク、',
+      '公式料金、',
+      'Aincarn Labの',
+      '比較ログを',
+      '混ぜずに整理し、',
+      '情報源の',
+      '性質が分かるようにします。',
+    ],
   },
   {
     title: '用途別に翻訳する',
-    body: '単なる総合点だけでなく、文章作成、コード、調査、画像、動画などの使い方に合わせて判断しやすくします。',
+    bodyChunks: [
+      '単なる総合点だけでなく、',
+      '文章作成、',
+      'コード、',
+      '調査、',
+      '画像、',
+      '動画などの',
+      '使い方に合わせて',
+      '判断しやすくします。',
+    ],
   },
   {
     title: 'その時点の条件で見る',
-    body: 'AIは頻繁に更新されます。比較日、使用モデル、プロンプトを残し、モデルごとの変化を追える形にします。',
+    bodyChunks: [
+      'AIは頻繁に',
+      '更新されます。',
+      '比較日、',
+      '使用モデル、',
+      'プロンプトを残し、',
+      'モデルごとの',
+      '変化を追える形にします。',
+    ],
   },
 ]
 
@@ -73,8 +124,18 @@ export default function HomePage() {
                 </span>
               </h1>
               <p className="mt-6 max-w-2xl text-base font-semibold leading-relaxed text-slate-600 sm:text-lg">
-                Aincarnは、AIモデルの性能、AI料金、実際の比較ログをひとつの視点で整理するサイトです。
-                公開データとAincarn Labの検証をもとに、今どのAIを使うべきか判断しやすくします。
+                <span className="inline-block">Aincarnは、</span>
+                <span className="inline-block">AIモデルの性能、</span>
+                <span className="inline-block">AI料金、</span>
+                <span className="inline-block">実際の比較ログを</span>
+                <span className="inline-block">ひとつの視点で</span>
+                <span className="inline-block">整理するサイトです。</span>
+                <br className="hidden sm:inline" />
+                <span className="inline-block">公開データと</span>
+                <span className="inline-block">Aincarn Labの検証をもとに、</span>
+                <span className="inline-block">今どのAIを</span>
+                <span className="inline-block">使うべきか</span>
+                <span className="inline-block">判断しやすくします。</span>
               </p>
               <div className="mt-9 flex flex-wrap gap-3">
                 <SmoothHashLink
@@ -145,7 +206,11 @@ export default function HomePage() {
                 <span className="text-xs font-black text-slate-400">{tool.metric}</span>
               </div>
               <h3 className="text-2xl font-black tracking-tight text-slate-950">{tool.label}</h3>
-              <p className="mt-3 text-sm font-semibold leading-relaxed text-slate-600">{tool.body}</p>
+              <p className="mt-3 text-sm font-semibold leading-relaxed text-slate-600">
+                {tool.bodyChunks.map((chunk, index) => (
+                  <span key={index} className="inline-block">{chunk}</span>
+                ))}
+              </p>
               <span className={`mt-8 inline-flex rounded-full bg-gradient-to-r ${tool.accent} px-4 py-2 text-xs font-black text-white shadow-sm shadow-slate-950/10 transition group-hover:scale-[1.02]`}>
                 開く
               </span>
@@ -164,8 +229,20 @@ export default function HomePage() {
             <p className="mt-7 text-xs font-black uppercase tracking-[0.2em] text-white/45">Compare</p>
             <h2 className="mt-3 text-4xl font-black tracking-tight sm:text-5xl">AINCARN LAB</h2>
             <p className="mt-4 max-w-2xl text-sm font-bold leading-relaxed text-white/68">
-              最新モデルに同じプロンプトを投げ、文章作成、コード生成、調査・要約などの結果を用途別に蓄積します。
-              単なる印象ではなく、比較日・使用モデル・評価軸を残して、AIの変化を追えるログにしていきます。
+              <span className="inline-block">最新モデルに</span>
+              <span className="inline-block">同じプロンプトを投げ、</span>
+              <span className="inline-block">文章作成、</span>
+              <span className="inline-block">コード生成、</span>
+              <span className="inline-block">調査・要約などの</span>
+              <span className="inline-block">結果を用途別に</span>
+              <span className="inline-block">蓄積します。</span>
+              <br className="hidden sm:inline" />
+              <span className="inline-block">単なる印象ではなく、</span>
+              <span className="inline-block">比較日・使用モデル・</span>
+              <span className="inline-block">評価軸を残して、</span>
+              <span className="inline-block">AIの変化を</span>
+              <span className="inline-block">追えるログに</span>
+              <span className="inline-block">していきます。</span>
             </p>
             <span className="mt-7 inline-flex rounded-full bg-white px-4 py-2 text-xs font-black text-slate-950 transition group-hover:scale-[1.02]">
               比較ログを見る
@@ -191,7 +268,11 @@ export default function HomePage() {
             {principles.map((item) => (
               <article key={item.title} className="rounded-3xl border border-slate-200/80 bg-slate-50/80 p-5">
                 <h3 className="text-lg font-black text-slate-950">{item.title}</h3>
-                <p className="mt-3 text-sm font-semibold leading-relaxed text-slate-600">{item.body}</p>
+                <p className="mt-3 text-sm font-semibold leading-relaxed text-slate-600">
+                  {item.bodyChunks.map((chunk, index) => (
+                    <span key={index} className="inline-block">{chunk}</span>
+                  ))}
+                </p>
               </article>
             ))}
           </div>
