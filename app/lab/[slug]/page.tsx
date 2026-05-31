@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import LabCodePreviews from '@/components/LabCodePreviews'
 import LabModelTabs from '@/components/LabModelTabs'
 import { getLabCategory, labCategories } from '@/lib/aincarn-lab'
 import type { LabModelOutput, LabScoreRow } from '@/lib/aincarn-lab'
@@ -225,6 +226,10 @@ export default async function LabDetailPage({ params }: Props) {
         <div className="mt-6">
           <LabModelTabs outputs={rankedOutputs} />
         </div>
+      )}
+
+      {slug === 'coding' && rankedOutputs && rankedOutputs.length > 0 && (
+        <LabCodePreviews outputs={rankedOutputs} />
       )}
 
       {/* 5. プロンプト (白文字を明示) */}

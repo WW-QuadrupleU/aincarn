@@ -143,6 +143,17 @@ function readPropertyText(page: NotionPage, names: string[]): string {
   return ''
 }
 
+function categoryMatches(categoryName: string, slug: string) {
+  const normalizedCategory = categoryName.trim().toLowerCase()
+  const normalizedSlug = slug.trim().toLowerCase()
+  const aliases: Record<string, string[]> = {
+    coding: ['coding', 'code'],
+    writing: ['writing', 'article', 'text'],
+    research: ['research', 'summary'],
+  }
+  return (aliases[normalizedSlug] || [normalizedSlug]).includes(normalizedCategory)
+}
+
 async function fetchPageBlocks(pageId: string): Promise<NotionBlock[]> {
   const blocks: NotionBlock[] = []
   let cursor: string | undefined
@@ -287,7 +298,7 @@ export async function fetchLabOutputsFromNotion(slug: string): Promise<LabModelO
     // カテゴリでフィルタリング（大文字・小文字を区別せず、カラム名のブレも許容する）
     const matchedPages = query.results.filter((page) => {
       const catName = readPropertyText(page, ['Category', 'カテゴリ', '分類'])
-      return catName?.toLowerCase() === slug.toLowerCase()
+      return categoryMatches(catName || '', slug)
     })
 
     // LogDate が新しい行群だけに絞り込み、その中で Order 昇順に整列する
